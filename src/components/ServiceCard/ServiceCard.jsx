@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import StatusBadge from '../StatusBadge';
 import { getLogoUrl } from '../../assets/logos';
 import './ServiceCard.css';
@@ -9,9 +10,9 @@ import './ServiceCard.css';
  * @param {Object} props.provider - Service provider metadata
  * @param {Object} [props.statusData] - Normalized status data
  * @param {boolean} [props.loading] - Whether this service is currently fetching
- * @param {() => void} [props.onSelect] - Optional selection/details callback
+ * @param {(provider: Object) => void} [props.onSelect] - Optional selection/details callback
  */
-export default function ServiceCard({
+function ServiceCard({
   provider,
   statusData,
   loading = false,
@@ -23,18 +24,24 @@ export default function ServiceCard({
   const componentCount = statusData?.components?.length || 0;
   const activeIncidents = statusData?.incidents?.length || 0;
 
+  const handleClick = () => {
+    if (onSelect) onSelect(provider);
+  };
+
+  const handleKeyDown = (e) => {
+    if (onSelect && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      onSelect(provider);
+    }
+  };
+
   return (
     <article
       className="service-card"
-      onClick={onSelect}
+      onClick={onSelect ? handleClick : undefined}
       role={onSelect ? 'button' : undefined}
       tabIndex={onSelect ? 0 : undefined}
-      onKeyDown={(e) => {
-        if (onSelect && (e.key === 'Enter' || e.key === ' ')) {
-          e.preventDefault();
-          onSelect();
-        }
-      }}
+      onKeyDown={onSelect ? handleKeyDown : undefined}
     >
       <div className="service-card__header">
         <div className="service-card__identity">
@@ -102,3 +109,5 @@ export default function ServiceCard({
     </article>
   );
 }
+
+export default memo(ServiceCard);

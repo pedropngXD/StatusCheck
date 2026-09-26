@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { STATUS_PROVIDERS } from '../lib/statusProviders';
 import { useServiceStatus } from '../hooks/useServiceStatus';
 import { useViewMode } from '../hooks/useViewMode';
@@ -51,6 +51,20 @@ export default function DashboardPage() {
 
   // Selected service status data for modal
   const selectedStatusData = selectedService ? statuses[selectedService.id]?.data : null;
+
+  // Memoized handlers to maintain reference stability and prevent re-rendering cards
+  const handleSelectService = useCallback((service) => {
+    setSelectedService(service);
+  }, []);
+
+  const handleResetFilter = useCallback(() => {
+    setSearchQuery('');
+    selectPreset('all');
+  }, [selectPreset]);
+
+  const handleCloseModal = useCallback(() => {
+    setSelectedService(null);
+  }, []);
 
   return (
     <main className="dashboard">
@@ -184,18 +198,15 @@ export default function DashboardPage() {
         viewMode={viewMode}
         loading={loading}
         refreshing={refreshing}
-        onSelectService={(service) => setSelectedService(service)}
-        onResetFilter={() => {
-          setSearchQuery('');
-          selectPreset('all');
-        }}
+        onSelectService={handleSelectService}
+        onResetFilter={handleResetFilter}
       />
 
       {/* Incident Details Modal */}
       <IncidentList
         service={selectedService}
         statusData={selectedStatusData}
-        onClose={() => setSelectedService(null)}
+        onClose={handleCloseModal}
       />
 
       {/* Footer */}

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import './StatusBadge.css';
 
 const DEFAULT_LABELS = {
@@ -17,7 +18,7 @@ const DEFAULT_LABELS = {
  * @param {'sm' | 'md' | 'lg'} [props.size='md']
  * @param {boolean} [props.showDot=true]
  */
-export default function StatusBadge({
+function StatusBadge({
   status = 'unknown',
   label,
   size = 'md',
@@ -33,3 +34,5 @@ export default function StatusBadge({
     </span>
   );
 }
+
+export default memo(StatusBadge);

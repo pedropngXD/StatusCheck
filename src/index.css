@@ -15,14 +15,14 @@
 :root,
 :root[data-theme="light"] {
   --bg-primary: #f5f5f7;
-  --bg-card: rgba(255, 255, 255, 0.85);
-  --bg-card-hover: rgba(255, 255, 255, 0.96);
+  --bg-card: #ffffff;
+  --bg-card-hover: #ffffff;
   --text-primary: #1d1d1f;
   --text-secondary: #86868b;
   --border-subtle: rgba(0, 0, 0, 0.08);
-  --border-card: rgba(0, 0, 0, 0.08);
+  --border-card: rgba(0, 0, 0, 0.07);
   --card-hover-border: rgba(0, 0, 0, 0.16);
-  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.04);
+  --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.04);
   --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.08);
 
   /* Component specific tokens */
@@ -49,15 +49,15 @@
 /* Dark Theme ([data-theme="dark"]) */
 :root[data-theme="dark"] {
   --bg-primary: #000000;
-  --bg-card: rgba(28, 28, 30, 0.75);
-  --bg-card-hover: rgba(44, 44, 46, 0.85);
+  --bg-card: #1c1c1e;
+  --bg-card-hover: #2c2c2e;
   --text-primary: #f5f5f7;
   --text-secondary: #a1a1a6;
   --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-card: rgba(255, 255, 255, 0.12);
-  --card-hover-border: rgba(255, 255, 255, 0.2);
-  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.3);
-  --shadow-card-hover: 0 8px 30px rgba(0, 0, 0, 0.5);
+  --border-card: rgba(255, 255, 255, 0.1);
+  --card-hover-border: rgba(255, 255, 255, 0.24);
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.35);
+  --shadow-card-hover: 0 8px 28px rgba(0, 0, 0, 0.55);
 
   /* Component specific tokens */
   --toggle-active-bg: rgba(255, 255, 255, 0.16);
@@ -84,15 +84,15 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]):not([data-theme="dark"]) {
     --bg-primary: #000000;
-    --bg-card: rgba(28, 28, 30, 0.75);
-    --bg-card-hover: rgba(44, 44, 46, 0.85);
+    --bg-card: #1c1c1e;
+    --bg-card-hover: #2c2c2e;
     --text-primary: #f5f5f7;
     --text-secondary: #a1a1a6;
     --border-subtle: rgba(255, 255, 255, 0.08);
-    --border-card: rgba(255, 255, 255, 0.12);
-    --card-hover-border: rgba(255, 255, 255, 0.2);
-    --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.3);
-    --shadow-card-hover: 0 8px 30px rgba(0, 0, 0, 0.5);
+    --border-card: rgba(255, 255, 255, 0.1);
+    --card-hover-border: rgba(255, 255, 255, 0.24);
+    --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.35);
+    --shadow-card-hover: 0 8px 28px rgba(0, 0, 0, 0.55);
 
     --toggle-active-bg: rgba(255, 255, 255, 0.16);
     --toggle-active-color: #ffffff;

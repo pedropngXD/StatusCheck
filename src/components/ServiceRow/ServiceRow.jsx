@@ -1,17 +1,18 @@
+import { memo } from 'react';
 import StatusBadge from '../StatusBadge';
 import { getLogoUrl } from '../../assets/logos';
 import './ServiceRow.css';
 
 /**
- * ServiceRow renders a service in compact table row mode.
- *
- * @param {Object} props
- * @param {Object} props.provider - Service provider metadata
- * @param {Object} [props.statusData] - Normalized status data
- * @param {boolean} [props.loading] - Whether this service is currently fetching
- * @param {() => void} [props.onSelect] - Optional selection/details callback
- */
-export default function ServiceRow({
+  * ServiceRow renders a service in compact table row mode.
+  *
+  * @param {Object} props
+  * @param {Object} props.provider - Service provider metadata
+  * @param {Object} [props.statusData] - Normalized status data
+  * @param {boolean} [props.loading] - Whether this service is currently fetching
+  * @param {(provider: Object) => void} [props.onSelect] - Optional selection/details callback
+  */
+function ServiceRow({
   provider,
   statusData,
   loading = false,
@@ -21,18 +22,24 @@ export default function ServiceRow({
   const status = loading ? 'loading' : (statusData?.status || 'unknown');
   const description = loading ? 'Checking status...' : (statusData?.statusDescription || provider.description);
 
+  const handleClick = () => {
+    if (onSelect) onSelect(provider);
+  };
+
+  const handleKeyDown = (e) => {
+    if (onSelect && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      onSelect(provider);
+    }
+  };
+
   return (
     <div
       className="service-row"
-      onClick={onSelect}
+      onClick={onSelect ? handleClick : undefined}
       role={onSelect ? 'button' : undefined}
       tabIndex={onSelect ? 0 : undefined}
-      onKeyDown={(e) => {
-        if (onSelect && (e.key === 'Enter' || e.key === ' ')) {
-          e.preventDefault();
-          onSelect();
-        }
-      }}
+      onKeyDown={onSelect ? handleKeyDown : undefined}
     >
       <div className="service-row__identity">
         <div className="service-row__logo-wrapper">
@@ -81,3 +88,5 @@ export default function ServiceRow({
     </div>
   );
 }
+
+export default memo(ServiceRow);

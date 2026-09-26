@@ -81,8 +81,6 @@
   align-items: center;
   gap: 6px;
   background: var(--bg-card);
-  backdrop-filter: var(--blur-glass);
-  -webkit-backdrop-filter: var(--blur-glass);
   border: 1px solid var(--border-card);
   padding: 6px 12px;
   border-radius: var(--radius-md);

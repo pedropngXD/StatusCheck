@@ -85,7 +85,7 @@ export default function ServiceGrid({
             provider={provider}
             statusData={statusData}
             loading={isServiceLoading}
-            onSelect={onSelectService ? () => onSelectService(provider) : undefined}
+            onSelect={onSelectService}
           />
         ) : (
           <ServiceRow
@@ -93,7 +93,7 @@ export default function ServiceGrid({
             provider={provider}
             statusData={statusData}
             loading={isServiceLoading}
-            onSelect={onSelectService ? () => onSelectService(provider) : undefined}
+            onSelect={onSelectService}
           />
         );
       })}
