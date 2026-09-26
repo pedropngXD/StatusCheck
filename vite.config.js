@@ -67,4 +67,7 @@ export default defineConfig({
       },
     },
   ],
+  build: {
+    assetsInlineLimit: 14336, // 14 KB (inlines all brand logos uniformly in base64, eliminating extra HTTP calls)
+  },
 });
