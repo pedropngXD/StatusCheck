@@ -58,7 +58,7 @@
 
 @media (prefers-color-scheme: dark) {
   .incident-modal__logo-wrapper {
-    background: rgba(255, 255, 255, 0.1);
+    background: #ffffff;
   }
 }
 

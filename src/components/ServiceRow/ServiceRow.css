@@ -53,7 +53,8 @@
 
 @media (prefers-color-scheme: dark) {
   .service-row__logo-wrapper {
-    background: rgba(255, 255, 255, 0.08);
+    background: #ffffff;
+    border-color: rgba(255, 255, 255, 0.2);
   }
 }
 
