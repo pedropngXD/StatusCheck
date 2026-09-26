@@ -1,2 +1,1 @@
-import StatusBadge from './StatusBadge.jsx';
-export default StatusBadge;
+export { default } from './StatusBadge';

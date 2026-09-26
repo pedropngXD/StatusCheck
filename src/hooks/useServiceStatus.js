@@ -300,19 +300,19 @@ export function useServiceStatus(providers = STATUS_PROVIDERS, options = {}) {
   useEffect(() => {
     if (!enabled) return;
 
-    fetchAll();
+    // Trigger initial fetch asynchronously to avoid cascading renders on mount
+    const timer = setTimeout(() => {
+      fetchAll();
+    }, 0);
 
+    let intervalId = null;
     if (pollingInterval && pollingInterval > 0) {
-      const intervalId = setInterval(fetchAll, pollingInterval);
-      return () => {
-        clearInterval(intervalId);
-        if (activeAbortRef.current) {
-          activeAbortRef.current.abort();
-        }
-      };
+      intervalId = setInterval(fetchAll, pollingInterval);
     }
 
     return () => {
+      clearTimeout(timer);
+      if (intervalId) clearInterval(intervalId);
       if (activeAbortRef.current) {
         activeAbortRef.current.abort();
       }

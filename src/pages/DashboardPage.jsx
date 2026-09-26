@@ -204,6 +204,7 @@ export default function DashboardPage() {
 
       {/* Incident Details Modal */}
       <IncidentList
+        key={selectedService?.id || 'none'}
         service={selectedService}
         statusData={selectedStatusData}
         onClose={handleCloseModal}

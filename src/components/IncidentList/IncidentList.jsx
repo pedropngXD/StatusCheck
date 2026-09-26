@@ -74,19 +74,14 @@ export default function IncidentList({ service, statusData, onClose }) {
   const [componentSearch, setComponentSearch] = useState('');
   const [showAllComponents, setShowAllComponents] = useState(false);
 
-  // Reset search and expand state when service changes
-  useEffect(() => {
-    setComponentSearch('');
-    setShowAllComponents(false);
-  }, [service]);
-
   const logoSrc = service ? getLogoUrl(service.logo) : null;
-  const incidents = statusData?.incidents || [];
-  const rawComponents = statusData?.components || [];
+  const incidents = statusData?.incidents;
+  const rawComponents = statusData?.components;
   const status = statusData?.status || 'unknown';
 
   // Sort components by priority: outage first, degraded second, then alphabetical
   const sortedComponents = useMemo(() => {
+    if (!rawComponents || !Array.isArray(rawComponents)) return [];
     const priority = { outage: 0, degraded: 1, unknown: 2, operational: 3 };
     return [...rawComponents].sort((a, b) => {
       const pA = priority[a.status] ?? 4;
