@@ -54,7 +54,7 @@ async function fetchProviderStatus(provider, signal) {
       }
       const proxyData = await proxyRes.json();
       return normalizeStatus(provider, proxyData);
-    } catch (proxyErr) {
+    } catch {
       // Return a safe fallback status indicating the failure
       return createUnknownState(directErr.message || 'Network request failed');
     }

@@ -1,0 +1,256 @@
+.dashboard {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem 1.5rem;
+  width: 100%;
+}
+
+/* Header */
+.dashboard__header {
+  margin-bottom: 2rem;
+}
+
+.dashboard__header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.dashboard__title-group {
+  max-width: 580px;
+}
+
+.dashboard__title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin: 0;
+  color: var(--text-primary);
+  line-height: 1.15;
+}
+
+.dashboard__subtitle {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin: 0.5rem 0 0 0;
+  line-height: 1.5;
+}
+
+/* Live Telemetry & Actions */
+.dashboard__telemetry {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.dashboard__live-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--status-operational);
+  background: var(--status-operational-bg);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(52, 199, 89, 0.2);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.dashboard__live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--status-operational);
+  box-shadow: 0 0 6px var(--status-operational);
+  animation: telemetry-pulse 2s infinite ease-in-out;
+}
+
+.dashboard__refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-card);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  border: 1px solid var(--border-card);
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dashboard__refresh-btn:hover {
+  background: var(--bg-card-hover);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.dashboard__refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.dashboard__refresh-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.dashboard__refresh-icon--spinning {
+  animation: spin 0.8s linear infinite;
+}
+
+/* Metrics summary strip */
+.dashboard__metrics {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.metric-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  box-shadow: var(--shadow-card);
+}
+
+.metric-badge strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.metric-badge--operational strong {
+  color: var(--status-operational);
+}
+
+.metric-badge--degraded strong {
+  color: var(--status-degraded);
+}
+
+.metric-badge--outage strong {
+  color: var(--status-outage);
+}
+
+/* Controls Toolbar */
+.dashboard__controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.dashboard__search-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+  max-width: 360px;
+}
+
+.dashboard__search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 15px;
+  height: 15px;
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+
+.dashboard__search-input {
+  width: 100%;
+  padding: 8px 12px 8px 36px;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.dashboard__search-input:focus {
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06);
+}
+
+.dashboard__search-clear {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+}
+
+/* Footer */
+.dashboard__footer {
+  margin-top: 4rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes telemetry-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.3); }
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 1.5rem 1rem 3rem 1rem;
+  }
+
+  .dashboard__title {
+    font-size: 1.75rem;
+  }
+
+  .dashboard__controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dashboard__search-wrapper {
+    max-width: 100%;
+  }
+
+  .dashboard__footer {
+    flex-direction: column;
+    text-align: center;
+  }
+}

@@ -1,14 +1,201 @@
+import { useState, useMemo } from 'react';
+import { STATUS_PROVIDERS } from '../lib/statusProviders';
+import { useServiceStatus } from '../hooks/useServiceStatus';
+import { useViewMode } from '../hooks/useViewMode';
+import { usePresets } from '../hooks/usePresets';
+
+import ServiceGrid from '../components/ServiceGrid';
+import ViewToggle from '../components/ViewToggle';
+import PresetManager from '../components/PresetManager';
+import IncidentList from '../components/IncidentList';
+
+import './DashboardPage.css';
+
 export default function DashboardPage() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedService, setSelectedService] = useState(null);
+
+  const { viewMode, setViewMode } = useViewMode('grid');
+  const { statuses, summary, loading, refreshing, lastCycleAt, refetch } = useServiceStatus(STATUS_PROVIDERS);
+
+  const {
+    presets,
+    activePresetId,
+    selectedServiceIds,
+    selectPreset,
+    createPreset,
+    updatePreset,
+    deletePreset,
+  } = usePresets();
+
+  // Filter providers by active preset and search query
+  const filteredProviders = useMemo(() => {
+    return STATUS_PROVIDERS.filter((provider) => {
+      // 1. Preset filter
+      const matchesPreset = selectedServiceIds.includes(provider.id);
+      if (!matchesPreset) return false;
+
+      // 2. Search query filter
+      if (!searchQuery.trim()) return true;
+      const query = searchQuery.toLowerCase().trim();
+      return (
+        provider.name.toLowerCase().includes(query) ||
+        provider.description.toLowerCase().includes(query) ||
+        provider.category.toLowerCase().includes(query)
+      );
+    });
+  }, [selectedServiceIds, searchQuery]);
+
+  // Selected service status data for modal
+  const selectedStatusData = selectedService ? statuses[selectedService.id]?.data : null;
+
   return (
-    <main style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
-      <header style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '2rem', fontWeight: 600, margin: 0, letterSpacing: '-0.02em' }}>
-          Status Check
-        </h1>
-        <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-          Real-time status monitoring for AI services and developer platforms.
-        </p>
+    <main className="dashboard">
+      {/* Header */}
+      <header className="dashboard__header">
+        <div className="dashboard__header-top">
+          <div className="dashboard__title-group">
+            <h1 className="dashboard__title">Status Check</h1>
+            <p className="dashboard__subtitle">
+              Real-time telemetry and health monitoring for leading AI services and developer platforms.
+            </p>
+          </div>
+
+          <div className="dashboard__telemetry">
+            <span className="dashboard__live-tag">
+              <span className="dashboard__live-dot" />
+              Live
+            </span>
+
+            <button
+              type="button"
+              className="dashboard__refresh-btn"
+              onClick={refetch}
+              disabled={refreshing}
+              aria-label="Refresh status telemetry"
+            >
+              <svg
+                className={`dashboard__refresh-icon ${refreshing ? 'dashboard__refresh-icon--spinning' : ''}`}
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M1.5 8a6.5 6.5 0 0 1 11.23-4.46L14.5 5" />
+                <path d="M14.5 1.5v3.5h-3.5" />
+                <path d="M14.5 8a6.5 6.5 0 0 1-11.23 4.46L1.5 11" />
+                <path d="M1.5 14.5V11h3.5" />
+              </svg>
+              <span>{refreshing ? 'Updating...' : 'Refresh'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Aggregate Summary Metrics */}
+        <div className="dashboard__metrics">
+          <div className="metric-badge">
+            Monitored: <strong>{summary.total}</strong>
+          </div>
+          <div className="metric-badge metric-badge--operational">
+            Operational: <strong>{summary.operational}</strong>
+          </div>
+          {summary.degraded > 0 && (
+            <div className="metric-badge metric-badge--degraded">
+              Degraded: <strong>{summary.degraded}</strong>
+            </div>
+          )}
+          {summary.outage > 0 && (
+            <div className="metric-badge metric-badge--outage">
+              Outages: <strong>{summary.outage}</strong>
+            </div>
+          )}
+          {lastCycleAt && (
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginLeft: 'auto' }}>
+              Checked at {lastCycleAt.toLocaleTimeString()}
+            </span>
+          )}
+        </div>
       </header>
+
+      {/* Preset Filter Tabs */}
+      <PresetManager
+        presets={presets}
+        activePresetId={activePresetId}
+        onSelectPreset={selectPreset}
+        onCreatePreset={createPreset}
+        onUpdatePreset={updatePreset}
+        onDeletePreset={deletePreset}
+        allServices={STATUS_PROVIDERS}
+      />
+
+      {/* Toolbar Controls (Search & View Mode Toggle) */}
+      <div className="dashboard__controls">
+        <div className="dashboard__search-wrapper">
+          <svg
+            className="dashboard__search-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            type="search"
+            className="dashboard__search-input"
+            placeholder="Filter services by name or category..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              className="dashboard__search-clear"
+              onClick={() => setSearchQuery('')}
+              aria-label="Clear search"
+            >
+              <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor">
+                <path d="M8 0a8 8 0 1 0 8 8A8 8 0 0 0 8 0zm3.5 10.3l-1.2 1.2L8 9.2l-2.3 2.3-1.2-1.2L6.8 8 4.5 5.7l1.2-1.2L8 6.8l2.3-2.3 1.2 1.2L9.2 8z" />
+              </svg>
+            </button>
+          )}
+        </div>
+
+        <ViewToggle viewMode={viewMode} onChange={setViewMode} />
+      </div>
+
+      {/* Services List / Grid */}
+      <ServiceGrid
+        providers={filteredProviders}
+        statuses={statuses}
+        viewMode={viewMode}
+        loading={loading}
+        onSelectService={(service) => setSelectedService(service)}
+        onResetFilter={() => {
+          setSearchQuery('');
+          selectPreset('all');
+        }}
+      />
+
+      {/* Incident Details Modal */}
+      <IncidentList
+        service={selectedService}
+        statusData={selectedStatusData}
+        onClose={() => setSelectedService(null)}
+      />
+
+      {/* Footer */}
+      <footer className="dashboard__footer">
+        <span>Status Check — Real-time telemetry dashboard for AI & cloud services.</span>
+        <span>Auto-refreshes every 60 seconds • Direct API telemetry</span>
+      </footer>
     </main>
   );
 }
