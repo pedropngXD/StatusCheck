@@ -13,20 +13,30 @@
 
 O **Status Check** agrega o estado operacional e métricas de incidentes de 22 provedores essenciais para desenvolvedores modernos e engenheiros de IA em uma interface unificada.
 
-Construído sem dependências visuais pesadas, o projeto prioriza tempos de carregamento instantâneos, baixa latência e consumo mínimo de recursos através de renderização otimizada no React 19 e CSS nativo com aceleração de hardware.
+Construído sem bibliotecas de componentes externas ou dependências visuais pesadas, o projeto prioriza tempos de carregamento instantâneos, baixa latência e consumo mínimo de recursos através de renderização otimizada no React 19 e CSS nativo com aceleração de hardware.
 
 ---
 
 ## ✨ Principais Funcionalidades
 
-- **⚡ Telemetria em Tempo Real:** Atualização automática e silenciosa em segundo plano a cada 60 segundos com suporte a atualização manual sob demanda.
-- **🔍 22 Provedores Monitorados:** Cobertura de provedores de IA de ponta (OpenAI, Claude, Perplexity, Cohere, etc.) e infraestrutura crítica de nuvem (AWS, Cloudflare, GitHub, Supabase, Vercel, etc.).
+- **⚡ Telemetria em Tempo Real:** Atualização automática e silenciosa em segundo plano a cada 60 segundos com suporte a atualização manual sob demanda e estado de cold-start instantâneo via cache local.
+- **🔍 22 Provedores Monitorados:** Cobertura de provedores de IA de ponta (OpenAI, OpenAI Codex, Claude, Perplexity, Cohere, Google Cloud, Hugging Face, Mistral AI, xAI) e infraestrutura crítica de nuvem (AWS, Cloudflare, GitHub, GitLab, Supabase, Vercel, Stripe, etc.).
 - **📊 Diagnóstico e Detalhes de Incidentes:** Modal detalhado com histórico de mensagens dos incidentes, severidade e decomposição individual de componentes com campo de busca em tempo real.
 - **🎛️ Gerenciador de Presets Personalizados:** Crie, edite e alterne entre coleções personalizadas de serviços para acompanhar apenas as ferramentas do seu stack diário (persistido localmente via `localStorage`).
-- **🔲 Visualizações Flexíveis:** Alterne entre os modos **Grade (Cards)** e **Lista (Linhas Compactas)** com persistência de preferência.
-- **🌗 Design System Apple-like:** Modos Claro e Escuro nativos com detecção automática do tema do sistema operacional e transições suaves.
+- **🎯 Filtros de Status Interativos e Contextuais:**
+  - As caixas de métricas (**Monitores**, **Operational**, **Degraded**, **Outages**) atuam como botões de filtro dinâmico.
+  - A contagem de status é **vinculada dinamicamente ao preset selecionado** (ex.: se o preset ativo possui 3 serviços operacionais, o contador exibe exatamente 3).
+- **🔲 Visualizações Flexíveis com Segmented Control Conectado:**
+  - Alterne entre os modos **Grade (Cards)** e **Lista (Linhas)**.
+  - Alternador com indicador deslizante fluido (*sliding pill*) no padrão Apple.
+- **📱 Experiência Mobile First Refinada:**
+  - Grid otimizado em **2 colunas** no mobile para visualização de alta densidade.
+  - Indicadores de rolagem horizontal com **setas e gradientes dinâmicos** nas abas de presets.
+  - Modais em formato *bottom-sheet* com suporte a arrasto e toque.
+  - **Zero Background Shift:** Layout 100% estático ao abrir modais através de `scrollbar-gutter: stable`.
+- **🌗 Design System Apple-like:** Modos Claro e Escuro nativos com detecção automática do tema do sistema operacional, suporte a tokens CSS e transições suaves.
 - **🚀 Otimizações de Alta Performance:**
-  - **Zero Roundtrips de Imagens:** Inline unificado em base64 de todos os 22 logotipos diretamente no bundle via Vite (`assetsInlineLimit`), eliminando requisições HTTP adicionais.
+  - **Zero Roundtrips de Imagens:** Inlining em base64 de todos os 22 logotipos diretamente no bundle via Vite (`assetsInlineLimit`), eliminando requisições HTTP adicionais.
   - **CORS Bypass Seguro:** Proxy de desenvolvimento embutido no Vite e Edge Serverless Function (`/api/status`) para produção na Vercel com cabeçalhos de Edge Cache (`s-maxage=30, stale-while-revalidate=60`).
   - **Decodificação Especial:** Suporte integrado a endpoints legados ou atípicos, como a decodificação de payloads UTF-16 BE da AWS.
 
@@ -35,7 +45,7 @@ Construído sem dependências visuais pesadas, o projeto prioriza tempos de carr
 ## 🛠️ Tecnologias Utilizadas
 
 - **Frontend:** [React 19](https://react.dev/) + [Vite 8](https://vite.dev/)
-- **Estilização:** CSS Moderno (Variáveis de Design Tokens, Glassmorphism, SF Pro Font Stack)
+- **Estilização:** CSS Moderno (Variáveis de Design Tokens, Glassmorphism, SF Pro Font Stack, `scrollbar-gutter`)
 - **Linter:** [Oxlint](https://oxc.rs/) (linter ultrarrápido baseado em Rust)
 - **Backend / Proxy:** Vercel Serverless Function (Node.js) & Vite Connect Middleware
 
@@ -96,27 +106,30 @@ StatusCheck/
 ├── api/
 │   └── status.js               # Serverless Function da Vercel (Edge Proxy CORS & Caching)
 ├── public/
-│   └── favicon.ico             # Ícone do projeto
+│   └── favicon.ico             # Favicon da aplicação
 ├── src/
 │   ├── assets/
-│   │   └── logos/              # Logos dos 22 serviços monitorados
+│   │   └── logos/              # Logos dos 22 serviços monitorados e resolver dinâmico
 │   ├── components/
 │   │   ├── IncidentList/       # Modal de detalhes de incidentes e busca de componentes
 │   │   ├── PresetManager/      # Gerenciador e editor de presets personalizados
 │   │   ├── ServiceCard/        # Card da visualização em grade
-│   │   ├── ServiceGrid/        # Container da grade de serviços
+│   │   ├── ServiceGrid/        # Container da grade e lista de serviços
 │   │   ├── ServiceRow/         # Linha da visualização em lista
 │   │   ├── StatusBadge/        # Tag de status (Operational, Degraded, Outage, etc.)
 │   │   ├── ThemeToggle/        # Alternador de tema Claro / Escuro
-│   │   └── ViewToggle/         # Alternador de modo Grade / Lista
+│   │   └── ViewToggle/         # Alternador de modo Grade / Lista animado
 │   ├── hooks/
+│   │   ├── usePresets.js       # Hook de persistência e CRUD de presets
 │   │   ├── useServiceStatus.js # Hook de orquestração de telemetria, cache e polling
-│   │   └── useTheme.js         # Hook de persistência de tema
+│   │   ├── useTheme.js         # Hook de persistência de tema (Claro/Escuro)
+│   │   └── useViewMode.js      # Hook de persistência do modo de exibição (Grid/Rows)
 │   ├── lib/
-│   │   ├── statusAdapters.js   # Normalizadores de resposta para diferentes APIs de status
-│   │   └── statusProviders.js  # Definição e catálogo dos serviços monitorados
+│   │   ├── normalizeStatus.js  # Normalizadores de resposta para diferentes APIs de status
+│   │   └── statusProviders.js  # Definição e catálogo dos 22 serviços monitorados
 │   ├── pages/
-│   │   └── DashboardPage.jsx   # Página principal do dashboard
+│   │   ├── DashboardPage.jsx   # Página principal do dashboard
+│   │   └── DashboardPage.css   # Estilos principais do dashboard e controles
 │   ├── App.jsx                 # Componente raiz
 │   ├── index.css               # Design tokens, variáveis CSS e resets globais
 │   └── main.jsx                # Ponto de entrada da aplicação React
