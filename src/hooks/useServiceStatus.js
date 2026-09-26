@@ -31,13 +31,21 @@ async function fetchProviderStatus(provider, signal) {
     }
   };
 
+  const parseResponse = async (res) => {
+    const contentType = res.headers.get('content-type') || '';
+    if (provider.adapter === 'betterstack-badge' || contentType.includes('text/html')) {
+      return await res.text();
+    }
+    return await res.json();
+  };
+
   try {
     // 1. Direct fetch attempt
     const res = await fetchWithTimeout(provider.apiUrl);
     if (!res.ok) {
       throw new Error(`HTTP error ${res.status}`);
     }
-    const data = await res.json();
+    const data = await parseResponse(res);
     return normalizeStatus(provider, data);
   } catch (directErr) {
     // If request was explicitly aborted by component unmount, rethrow
@@ -45,14 +53,26 @@ async function fetchProviderStatus(provider, signal) {
       throw directErr;
     }
 
-    // 2. CORS or network fallback attempt via public proxy
+    // 2. Try Vercel Serverless Function proxy (/api/status?url=...)
+    try {
+      const vercelProxyUrl = `/api/status?url=${encodeURIComponent(provider.apiUrl)}`;
+      const vercelRes = await fetchWithTimeout(vercelProxyUrl);
+      if (vercelRes.ok) {
+        const vercelData = await parseResponse(vercelRes);
+        return normalizeStatus(provider, vercelData);
+      }
+    } catch {
+      // Continue to next fallback
+    }
+
+    // 3. Fallback to public CORS proxy if running outside Vercel
     try {
       const proxyUrl = `${CORS_PROXY_URL}${encodeURIComponent(provider.apiUrl)}`;
       const proxyRes = await fetchWithTimeout(proxyUrl);
       if (!proxyRes.ok) {
         throw new Error(`Proxy HTTP error ${proxyRes.status}`);
       }
-      const proxyData = await proxyRes.json();
+      const proxyData = await parseResponse(proxyRes);
       return normalizeStatus(provider, proxyData);
     } catch {
       // Return a safe fallback status indicating the failure

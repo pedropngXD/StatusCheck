@@ -256,6 +256,134 @@ export function normalizeStatusioJson(data) {
 }
 
 /**
+ * Normalizer for AWS Health / Status data (/data.json)
+ */
+export function normalizeAwsJson(data) {
+  if (!Array.isArray(data)) {
+    return createUnknownState('Unexpected format for AWS');
+  }
+
+  // Status codes: '0' = normal, '1' = info, '2' = performance issues (degraded), '3' = disruption (outage)
+  const activeIssues = data.filter((item) => item.current_status === '2' || item.current_status === '3');
+  const hasOutage = activeIssues.some((item) => item.current_status === '3');
+
+  let status = 'operational';
+  let indicator = 'none';
+
+  if (hasOutage) {
+    status = 'outage';
+    indicator = 'critical';
+  } else if (activeIssues.length > 0) {
+    status = 'degraded';
+    indicator = 'minor';
+  }
+
+  const incidents = activeIssues.map((item, idx) => ({
+    id: `aws-${item.service || idx}-${item.timestamp || Date.now()}`,
+    name: item.service_name || item.service || 'AWS Service Event',
+    status: item.current_status === '3' ? 'Service Disruption' : 'Performance Degraded',
+    impact: item.current_status === '3' ? 'major' : 'minor',
+    updatedAt: item.timestamp ? new Date(item.timestamp).toISOString() : new Date().toISOString(),
+    message: `${item.service_name || item.service} is experiencing issues.`,
+  }));
+
+  const components = data.slice(0, 50).map((item, idx) => ({
+    id: `aws-comp-${item.service || idx}`,
+    name: item.service_name || item.service || 'Service',
+    status: item.current_status === '3' ? 'outage' : item.current_status === '2' ? 'degraded' : 'operational',
+  }));
+
+  return {
+    status,
+    statusDescription: status === 'operational'
+      ? 'All AWS services operating normally'
+      : `${activeIssues.length} AWS service issue(s) reported`,
+    indicator,
+    updatedAt: new Date().toISOString(),
+    incidents,
+    components,
+  };
+}
+
+/**
+ * Normalizer for Better Stack badge endpoint (used by Hugging Face)
+ */
+export function normalizeBetterstackBadge(htmlData) {
+  const html = typeof htmlData === 'string' ? htmlData : String(htmlData || '');
+  if (!html) {
+    return createUnknownState('No badge data received');
+  }
+
+  const isGreen = html.includes('text-statuspage-green') || html.toLowerCase().includes('all services are online');
+  const isYellow = html.includes('text-statuspage-yellow') || html.toLowerCase().includes('degraded');
+  const isRed = html.includes('text-statuspage-red') || html.toLowerCase().includes('outage') || html.toLowerCase().includes('downtime');
+
+  let status = 'operational';
+  let indicator = 'none';
+
+  if (isRed) {
+    status = 'outage';
+    indicator = 'critical';
+  } else if (isYellow) {
+    status = 'degraded';
+    indicator = 'minor';
+  } else if (isGreen) {
+    status = 'operational';
+    indicator = 'none';
+  } else {
+    status = 'unknown';
+    indicator = 'unknown';
+  }
+
+  const descMatch = html.match(/<div[^>]*class='[^']*font-medium[^']*'>\s*([^<]+)\s*<\/div>/i);
+  const statusDescription = descMatch ? descMatch[1].trim() : (status === 'operational' ? 'All services are online' : 'Service Disruption Detected');
+
+  return {
+    status,
+    statusDescription,
+    indicator,
+    updatedAt: new Date().toISOString(),
+    incidents: [],
+    components: [],
+  };
+}
+
+/**
+ * Normalizer for OpenAI Codex (extracted from OpenAI summary.json)
+ */
+export function normalizeOpenAiCodex(data) {
+  const baseStatus = normalizeStatuspage(data);
+
+  // Filter components relevant to Codex / API / Code generation
+  const codexComponents = baseStatus.components.filter((c) => {
+    const name = c.name.toLowerCase();
+    return name.includes('codex') || name.includes('api') || name.includes('model') || name.includes('completion');
+  });
+
+  // Check if any codex component has an issue
+  const hasOutage = codexComponents.some((c) => c.status === 'outage');
+  const hasDegraded = codexComponents.some((c) => c.status === 'degraded');
+
+  const status = hasOutage ? 'outage' : hasDegraded ? 'degraded' : baseStatus.status;
+  const statusDescription = status === 'operational'
+    ? 'Codex models & APIs operational'
+    : hasOutage
+    ? 'Codex service outage'
+    : hasDegraded
+    ? 'Codex performance degraded'
+    : baseStatus.statusDescription;
+
+  return {
+    status,
+    statusDescription,
+    indicator: baseStatus.indicator,
+    updatedAt: baseStatus.updatedAt,
+    incidents: baseStatus.incidents,
+    components: codexComponents.length > 0 ? codexComponents : baseStatus.components,
+  };
+}
+
+/**
  * Default fallback state when data is unavailable or an error occurs
  */
 export function createUnknownState(description = 'Status currently unavailable') {
@@ -282,6 +410,12 @@ export function normalizeStatus(provider, rawData) {
     case 'statuspage':
       return normalizeStatuspage(rawData);
 
+    case 'openai-codex':
+      return normalizeOpenAiCodex(rawData);
+
+    case 'betterstack-badge':
+      return normalizeBetterstackBadge(rawData);
+
     case 'gcp-json':
       return normalizeGcpJson(rawData);
 
@@ -290,6 +424,9 @@ export function normalizeStatus(provider, rawData) {
 
     case 'statusio-json':
       return normalizeStatusioJson(rawData);
+
+    case 'aws-json':
+      return normalizeAwsJson(rawData);
 
     default:
       // If custom/unmapped adapter, test if it looks like standard Statuspage
