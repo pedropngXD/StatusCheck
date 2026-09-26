@@ -1,7 +1,32 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import StatusBadge from '../StatusBadge';
 import { getLogoUrl } from '../../assets/logos';
 import './IncidentList.css';
+
+/**
+ * Renders an incident message cleanly with optional clamping for long updates.
+ */
+function IncidentMessage({ message }) {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = message.length > 260;
+
+  return (
+    <div className="incident-item__message-wrapper">
+      <p className={`incident-item__message ${!expanded && isLong ? 'incident-item__message--clamped' : ''}`}>
+        {message}
+      </p>
+      {isLong && (
+        <button
+          type="button"
+          className="incident-item__expand-btn"
+          onClick={() => setExpanded(!expanded)}
+        >
+          {expanded ? 'Show less' : 'Read full update'}
+        </button>
+      )}
+    </div>
+  );
+}
 
 /**
  * IncidentList renders a detailed modal for a selected service,
@@ -38,38 +63,56 @@ export default function IncidentList({ service, statusData, onClose }) {
 
     window.addEventListener('keydown', handleKeyDown);
 
-    // Prevent scrolling directly on the backdrop area
-    const backdropEl = backdropRef.current;
-    const preventBackdropScroll = (e) => {
-      if (e.target === backdropEl) {
-        e.preventDefault();
-      }
-    };
-
-    if (backdropEl) {
-      backdropEl.addEventListener('wheel', preventBackdropScroll, { passive: false });
-      backdropEl.addEventListener('touchmove', preventBackdropScroll, { passive: false });
-    }
-
     return () => {
       document.body.style.overflow = prevBodyOverflow;
       document.documentElement.style.overflow = prevHtmlOverflow;
       document.body.style.paddingRight = prevPaddingRight;
       window.removeEventListener('keydown', handleKeyDown);
-
-      if (backdropEl) {
-        backdropEl.removeEventListener('wheel', preventBackdropScroll);
-        backdropEl.removeEventListener('touchmove', preventBackdropScroll);
-      }
     };
   }, [service, onClose]);
 
-  if (!service) return null;
+  const [componentSearch, setComponentSearch] = useState('');
+  const [showAllComponents, setShowAllComponents] = useState(false);
 
-  const logoSrc = getLogoUrl(service.logo);
+  // Reset search and expand state when service changes
+  useEffect(() => {
+    setComponentSearch('');
+    setShowAllComponents(false);
+  }, [service]);
+
+  const logoSrc = service ? getLogoUrl(service.logo) : null;
   const incidents = statusData?.incidents || [];
-  const components = statusData?.components || [];
+  const rawComponents = statusData?.components || [];
   const status = statusData?.status || 'unknown';
+
+  // Sort components by priority: outage first, degraded second, then alphabetical
+  const sortedComponents = useMemo(() => {
+    const priority = { outage: 0, degraded: 1, unknown: 2, operational: 3 };
+    return [...rawComponents].sort((a, b) => {
+      const pA = priority[a.status] ?? 4;
+      const pB = priority[b.status] ?? 4;
+      if (pA !== pB) return pA - pB;
+      return a.name.localeCompare(b.name);
+    });
+  }, [rawComponents]);
+
+  // Filter components by search query
+  const filteredComponents = useMemo(() => {
+    if (!componentSearch.trim()) return sortedComponents;
+    const q = componentSearch.toLowerCase().trim();
+    return sortedComponents.filter(
+      (c) => c.name.toLowerCase().includes(q) || c.status.toLowerCase().includes(q)
+    );
+  }, [sortedComponents, componentSearch]);
+
+  const visibleComponents = useMemo(() => {
+    if (showAllComponents || componentSearch.trim() || filteredComponents.length <= 24) {
+      return filteredComponents;
+    }
+    return filteredComponents.slice(0, 24);
+  }, [filteredComponents, showAllComponents, componentSearch]);
+
+  if (!service) return null;
 
   return (
     <div
@@ -127,7 +170,7 @@ export default function IncidentList({ service, statusData, onClose }) {
                     </span>
                   </div>
                   {incident.message && (
-                    <p className="incident-item__message">{incident.message}</p>
+                    <IncidentMessage message={incident.message} />
                   )}
                 </div>
               ))
@@ -139,19 +182,60 @@ export default function IncidentList({ service, statusData, onClose }) {
           </div>
 
           {/* Components Section */}
-          {components.length > 0 && (
+          {sortedComponents.length > 0 && (
             <div>
-              <h3 className="incident-modal__section-title">
-                Components Breakdown ({components.length})
-              </h3>
-              <div className="components-list">
-                {components.map((comp) => (
-                  <div key={comp.id} className="component-chip">
-                    <span>{comp.name}</span>
-                    <StatusBadge status={comp.status} size="sm" showDot />
-                  </div>
-                ))}
+              <div className="incident-modal__section-header">
+                <h3 className="incident-modal__section-title">
+                  Components ({sortedComponents.length})
+                </h3>
               </div>
+
+              {sortedComponents.length > 16 && (
+                <div className="incident-modal__search-wrapper">
+                  <svg
+                    className="incident-modal__search-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                  <input
+                    type="search"
+                    className="incident-modal__search-input"
+                    placeholder={`Filter ${sortedComponents.length} components...`}
+                    value={componentSearch}
+                    onChange={(e) => setComponentSearch(e.target.value)}
+                  />
+                </div>
+              )}
+
+              {visibleComponents.length > 0 ? (
+                <div className="components-list">
+                  {visibleComponents.map((comp) => (
+                    <div key={comp.id} className="component-chip">
+                      <span>{comp.name}</span>
+                      <StatusBadge status={comp.status} size="sm" showDot />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="components-empty-msg">No components match &quot;{componentSearch}&quot;</p>
+              )}
+
+              {!componentSearch && !showAllComponents && filteredComponents.length > 24 && (
+                <button
+                  type="button"
+                  className="components-show-all-btn"
+                  onClick={() => setShowAllComponents(true)}
+                >
+                  Show all {filteredComponents.length} components
+                </button>
+              )}
             </div>
           )}
         </div>
