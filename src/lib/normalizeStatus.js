@@ -27,7 +27,7 @@
 /**
  * Normalizer for Atlassian Statuspage.io providers (/api/v2/summary.json)
  */
-export function normalizeStatuspage(data) {
+export function normalizeStatuspage(data, provider) {
   if (!data || typeof data !== 'object') {
     return createUnknownState('Invalid data received from Statuspage');
   }
@@ -53,7 +53,7 @@ export function normalizeStatuspage(data) {
 
   // Normalize list of active incidents
   const rawIncidents = Array.isArray(data.incidents) ? data.incidents : [];
-  const incidents = rawIncidents
+  let incidents = rawIncidents
     .filter((inc) => inc.status !== 'resolved' && inc.status !== 'postmortem')
     .map((inc) => ({
       id: String(inc.id || inc.name),
@@ -66,7 +66,7 @@ export function normalizeStatuspage(data) {
 
   // Normalize list of components
   const rawComponents = Array.isArray(data.components) ? data.components : [];
-  const components = rawComponents
+  let components = rawComponents
     .filter((comp) => !comp.group) // Exclude group header containers
     .map((comp) => {
       let compStatus = 'operational';
@@ -93,6 +93,16 @@ export function normalizeStatuspage(data) {
         rawStatus: rawCompStatus,
       };
     });
+
+  // If this is the OpenAI card, strip out any Codex components and incidents
+  if (provider?.id === 'openai') {
+    components = components.filter((comp) => !comp.name.toLowerCase().includes('codex'));
+    incidents = incidents.filter(
+      (inc) =>
+        !inc.name.toLowerCase().includes('codex') &&
+        !inc.message.toLowerCase().includes('codex')
+    );
+  }
 
   return {
     status,
@@ -354,32 +364,43 @@ export function normalizeBetterstackBadge(htmlData) {
 export function normalizeOpenAiCodex(data) {
   const baseStatus = normalizeStatuspage(data);
 
-  // Filter components relevant to Codex / API / Code generation
+  // Filter components strictly to Codex
   const codexComponents = baseStatus.components.filter((c) => {
     const name = c.name.toLowerCase();
-    return name.includes('codex') || name.includes('api') || name.includes('model') || name.includes('completion');
+    return name.includes('codex');
   });
 
-  // Check if any codex component has an issue
-  const hasOutage = codexComponents.some((c) => c.status === 'outage');
-  const hasDegraded = codexComponents.some((c) => c.status === 'degraded');
+  // Filter incidents strictly to Codex
+  const codexIncidents = baseStatus.incidents.filter((inc) => {
+    return (
+      inc.name.toLowerCase().includes('codex') ||
+      inc.message.toLowerCase().includes('codex')
+    );
+  });
 
-  const status = hasOutage ? 'outage' : hasDegraded ? 'degraded' : baseStatus.status;
+  // Check if any codex component or incident has an issue
+  const hasOutage = codexComponents.some((c) => c.status === 'outage') ||
+    codexIncidents.some((i) => i.impact === 'major' || i.impact === 'critical');
+  const hasDegraded = codexComponents.some((c) => c.status === 'degraded') ||
+    codexIncidents.some((i) => i.impact === 'minor');
+
+  const status = hasOutage ? 'outage' : hasDegraded ? 'degraded' : 'operational';
   const statusDescription = status === 'operational'
-    ? 'Codex models & APIs operational'
+    ? 'All Codex services operational'
     : hasOutage
     ? 'Codex service outage'
-    : hasDegraded
-    ? 'Codex performance degraded'
-    : baseStatus.statusDescription;
+    : 'Codex performance degraded';
 
   return {
     status,
     statusDescription,
-    indicator: baseStatus.indicator,
+    indicator: hasOutage ? 'critical' : hasDegraded ? 'minor' : 'none',
     updatedAt: baseStatus.updatedAt,
-    incidents: baseStatus.incidents,
-    components: codexComponents.length > 0 ? codexComponents : baseStatus.components,
+    incidents: codexIncidents,
+    components: codexComponents.length > 0 ? codexComponents : [
+      { id: 'codex-api', name: 'Codex API', status: 'operational' },
+      { id: 'codex-web', name: 'Codex Web', status: 'operational' },
+    ],
   };
 }
 
@@ -408,7 +429,7 @@ export function normalizeStatus(provider, rawData) {
 
   switch (provider.adapter) {
     case 'statuspage':
-      return normalizeStatuspage(rawData);
+      return normalizeStatuspage(rawData, provider);
 
     case 'openai-codex':
       return normalizeOpenAiCodex(rawData);
