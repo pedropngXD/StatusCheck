@@ -2,23 +2,25 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
   gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 2px 0 6px 0;
+}
+
+.preset-manager::-webkit-scrollbar {
+  display: none;
 }
 
 .preset-tabs {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  overflow-x: auto;
-  padding: 2px;
-  max-width: 100%;
-  scrollbar-width: none;
-}
-
-.preset-tabs::-webkit-scrollbar {
-  display: none;
+  flex-shrink: 0;
 }
 
 .preset-pill {
@@ -474,4 +476,41 @@
 
 .apple-btn-danger:active {
   transform: scale(0.97);
+}
+
+@media (max-width: 640px) {
+  .preset-modal-backdrop {
+    padding: 0.75rem;
+  }
+
+  .preset-modal {
+    max-height: 90vh;
+  }
+
+  .preset-modal__header {
+    padding: 1rem 1.25rem;
+  }
+
+  .preset-modal__body {
+    padding: 1.25rem;
+    gap: 1rem;
+  }
+
+  .preset-services-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    max-height: 250px;
+  }
+
+  .preset-modal__footer {
+    padding: 0.875rem 1.25rem;
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 0.625rem;
+  }
+
+  .apple-btn-primary,
+  .apple-btn-danger {
+    width: 100%;
+    justify-content: center;
+  }
 }

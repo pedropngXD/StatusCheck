@@ -47,3 +47,13 @@
   height: 14px;
   display: block;
 }
+
+@media (max-width: 600px) {
+  .view-toggle__label {
+    display: none;
+  }
+
+  .view-toggle__btn {
+    padding: 6px 8px;
+  }
+}

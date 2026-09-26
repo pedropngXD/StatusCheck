@@ -146,12 +146,30 @@
 
 @media (max-width: 768px) {
   .service-row {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.625rem;
+    padding: 0.75rem 0.875rem;
+  }
+
+  .service-row__identity {
+    min-width: 0;
+    max-width: none;
+    flex: 1;
+    gap: 0.625rem;
+  }
+
+  .service-row__name {
+    font-size: 0.875rem;
   }
 
   .service-row__desc {
     display: none;
+  }
+
+  .service-row__actions {
+    flex-shrink: 0;
+    gap: 0.5rem;
   }
 }

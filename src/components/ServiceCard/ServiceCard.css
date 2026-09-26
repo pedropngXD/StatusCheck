@@ -179,3 +179,40 @@
 .service-card__link:hover .service-card__link-icon {
   transform: translate(1px, -1px);
 }
+
+@media (max-width: 768px) {
+  .service-card {
+    padding: 1rem;
+    border-radius: var(--radius-md);
+  }
+
+  .service-card__header {
+    margin-bottom: 0.625rem;
+  }
+
+  .service-card__logo-wrapper {
+    width: 34px;
+    height: 34px;
+    padding: 5px;
+  }
+
+  .service-card__name {
+    font-size: 0.9375rem;
+  }
+
+  .service-card__desc {
+    font-size: 0.75rem;
+  }
+
+  .service-card__body {
+    margin: 0.375rem 0 0.75rem 0;
+  }
+
+  .service-card__status-msg {
+    font-size: 0.8125rem;
+  }
+
+  .service-card__footer {
+    padding-top: 0.625rem;
+  }
+}

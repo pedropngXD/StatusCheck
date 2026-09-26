@@ -33,7 +33,7 @@ export default function ViewToggle({ viewMode = 'grid', onChange }) {
           <rect x="2" y="9" width="5" height="5" rx="1.5" />
           <rect x="9" y="9" width="5" height="5" rx="1.5" />
         </svg>
-        <span>Grid</span>
+        <span className="view-toggle__label">Grid</span>
       </button>
 
       <button
@@ -57,7 +57,7 @@ export default function ViewToggle({ viewMode = 'grid', onChange }) {
           <line x1="2" y1="8" x2="14" y2="8" />
           <line x1="2" y1="12" x2="14" y2="12" />
         </svg>
-        <span>Rows</span>
+        <span className="view-toggle__label">Rows</span>
       </button>
     </div>
   );

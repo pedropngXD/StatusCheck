@@ -320,3 +320,39 @@
     opacity: 1;
   }
 }
+
+@media (max-width: 640px) {
+  .incident-modal-backdrop {
+    padding: 0.75rem;
+  }
+
+  .incident-modal {
+    max-height: 90vh;
+  }
+
+  .incident-modal__header {
+    padding: 1rem 1.25rem;
+  }
+
+  .incident-modal__content {
+    padding: 1.25rem;
+    gap: 1.25rem;
+  }
+
+  .components-list {
+    grid-template-columns: 1fr;
+  }
+
+  .incident-modal__footer {
+    padding: 0.875rem 1.25rem;
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 0.625rem;
+    text-align: center;
+  }
+
+  .incident-modal__external-link {
+    width: 100%;
+    justify-content: center;
+  }
+}
