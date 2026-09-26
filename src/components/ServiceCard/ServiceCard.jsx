@@ -3,15 +3,6 @@ import StatusBadge from '../StatusBadge';
 import { getLogoUrl } from '../../assets/logos';
 import './ServiceCard.css';
 
-/**
- * ServiceCard renders a single service in Apple-styled grid card mode.
- *
- * @param {Object} props
- * @param {Object} props.provider - Service provider metadata
- * @param {Object} [props.statusData] - Normalized status data
- * @param {boolean} [props.loading] - Whether this service is currently fetching
- * @param {(provider: Object) => void} [props.onSelect] - Optional selection/details callback
- */
 function ServiceCard({
   provider,
   statusData,

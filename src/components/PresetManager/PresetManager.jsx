@@ -2,10 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { getLogoUrl } from '../../assets/logos';
 import './PresetManager.css';
 
-/**
- * PresetManager renders the preset selection pill bar and the modal
- * for creating and editing custom service presets.
- */
 export default function PresetManager({
   presets = [],
   activePresetId = 'all',
@@ -192,7 +188,6 @@ export default function PresetManager({
         </nav>
 
         <div className="preset-manager__actions">
-          {/* If current preset is a custom preset, allow editing */}
           {presets.find((p) => p.id === activePresetId && !p.isDefault) && (
             <button
               type="button"
@@ -247,7 +242,6 @@ export default function PresetManager({
         </div>
       )}
 
-      {/* Preset Modal */}
       {modalOpen && (
         <div
           ref={backdropRef}

@@ -2,17 +2,6 @@ import ServiceCard from '../ServiceCard';
 import ServiceRow from '../ServiceRow';
 import './ServiceGrid.css';
 
-/**
- * ServiceGrid renders the collection of services in either card grid or row list mode.
- *
- * @param {Object} props
- * @param {Array} props.providers - Filtered list of service providers to display
- * @param {Object} props.statuses - Map of providerId -> status object
- * @param {'grid' | 'row'} props.viewMode - Current layout mode
- * @param {boolean} props.loading - Initial global loading state
- * @param {(provider: Object) => void} [props.onSelectService] - Callback when a service is clicked
- * @param {() => void} [props.onResetFilter] - Callback when empty state reset button is clicked
- */
 export default function ServiceGrid({
   providers = [],
   statuses = {},

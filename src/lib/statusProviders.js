@@ -1,9 +1,4 @@
-/**
- * Configuration of services monitored by Status Check.
- * Each service includes a unique ID, category, official URLs, and the adapter type used.
- */
 export const STATUS_PROVIDERS = [
-  // --- Artificial Intelligence ---
   {
     id: 'openai',
     name: 'OpenAI',
@@ -94,8 +89,6 @@ export const STATUS_PROVIDERS = [
     adapter: 'api-health',
     logo: 'xai.png',
   },
-
-  // --- Developer Platforms & Infrastructure ---
   {
     id: 'github',
     name: 'GitHub',

@@ -2,16 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 
 const STORAGE_KEY = 'statuscheck_theme';
 
-/**
- * Custom hook to manage light and dark mode with localStorage persistence
- * and auto-synchronization with html[data-theme].
- *
- * @returns {{
- *   theme: 'light' | 'dark',
- *   setTheme: (theme: 'light' | 'dark') => void,
- *   toggleTheme: () => void,
- * }}
- */
 export function useTheme() {
   const [theme, setTheme] = useState(() => {
     if (typeof window !== 'undefined') {

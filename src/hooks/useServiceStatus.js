@@ -55,20 +55,14 @@ function saveTelemetryCache(statuses) {
       }
     });
     localStorage.setItem(STORAGE_TELEMETRY_CACHE_KEY, JSON.stringify(toSave));
-  } catch {
-    // Ignore storage quota errors
-  }
+  } catch {}
 }
 
-/**
- * Attempts to fetch a provider's status, first directly, then via a CORS proxy fallback if needed.
- */
 async function fetchProviderStatus(provider, signal) {
   const fetchWithTimeout = async (url) => {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-    // Link incoming signal to internal controller
     if (signal) {
       signal.addEventListener('abort', () => controller.abort());
     }
@@ -77,7 +71,7 @@ async function fetchProviderStatus(provider, signal) {
       const response = await fetch(url, {
         signal: controller.signal,
         headers: { Accept: 'application/json, text/html, */*' },
-        cache: 'no-cache', // Bypass local browser disk/memory cache for fresh live data
+        cache: 'no-cache',
       });
       clearTimeout(timer);
       return response;
@@ -95,8 +89,6 @@ async function fetchProviderStatus(provider, signal) {
     return await res.json();
   };
 
-  // For services known to block direct browser CORS (e.g. AWS, Cloudflare, Stripe, Hugging Face),
-  // go straight to proxy to eliminate 1.5s failed handshake delay
   if (NO_CORS_PROVIDERS.has(provider.id) || provider.adapter === 'aws-json') {
     try {
       const proxyUrl = `/api/status?url=${encodeURIComponent(provider.apiUrl)}&_t=${Date.now()}`;
@@ -105,13 +97,10 @@ async function fetchProviderStatus(provider, signal) {
         const proxyData = await parseResponse(proxyRes);
         return normalizeStatus(provider, proxyData);
       }
-    } catch {
-      // Continue to fallbacks below
-    }
+    } catch {}
   }
 
   try {
-    // 1. Direct fetch attempt
     const res = await fetchWithTimeout(provider.apiUrl);
     if (!res.ok) {
       if (provider.adapter === 'api-health' && (res.status === 401 || res.status === 429)) {
@@ -122,12 +111,10 @@ async function fetchProviderStatus(provider, signal) {
     const data = await parseResponse(res);
     return normalizeStatus(provider, data);
   } catch (directErr) {
-    // If request was explicitly aborted by component unmount, rethrow
     if (signal?.aborted) {
       throw directErr;
     }
 
-    // 2. Try Vercel Serverless Function proxy (/api/status?url=...) with cache buster
     try {
       const vercelProxyUrl = `/api/status?url=${encodeURIComponent(provider.apiUrl)}&_t=${Date.now()}`;
       const vercelRes = await fetchWithTimeout(vercelProxyUrl);
@@ -135,11 +122,8 @@ async function fetchProviderStatus(provider, signal) {
         const vercelData = await parseResponse(vercelRes);
         return normalizeStatus(provider, vercelData);
       }
-    } catch {
-      // Continue to next fallback
-    }
+    } catch {}
 
-    // 3. Fallback to public CORS proxy if running outside Vercel
     try {
       const proxyUrl = `${CORS_PROXY_URL}${encodeURIComponent(provider.apiUrl)}`;
       const proxyRes = await fetchWithTimeout(proxyUrl);
@@ -149,21 +133,11 @@ async function fetchProviderStatus(provider, signal) {
       }
       throw new Error(`Proxy HTTP error ${proxyRes.status}`);
     } catch {
-      // Return a safe fallback status indicating the failure
       return createUnknownState(directErr.message || 'Network request failed');
     }
   }
 }
 
-/**
- * Custom hook to monitor and fetch status of services in parallel.
- * Supports auto-polling, manual refetch, and aggregated summary stats.
- *
- * @param {Array} providers - List of providers to fetch (defaults to STATUS_PROVIDERS)
- * @param {Object} options - Configuration options
- * @param {number} options.pollingInterval - Interval in ms between automatic refetches (default 60000 = 60s)
- * @param {boolean} options.enabled - Whether polling is active (default true)
- */
 export function useServiceStatus(providers = STATUS_PROVIDERS, options = {}) {
   const { pollingInterval = 60000, enabled = true } = options;
 
@@ -198,7 +172,6 @@ export function useServiceStatus(providers = STATUS_PROVIDERS, options = {}) {
   const activeAbortRef = useRef(null);
 
   const fetchAll = useCallback(async () => {
-    // Cancel any in-flight request cycle
     if (activeAbortRef.current) {
       activeAbortRef.current.abort();
     }
@@ -207,7 +180,6 @@ export function useServiceStatus(providers = STATUS_PROVIDERS, options = {}) {
 
     setIsRefreshing(true);
 
-    // Immediately put every single provider into loading state so badges show 'Checking...'
     setStatuses((prev) => {
       const next = { ...prev };
       providers.forEach((p) => {
@@ -227,7 +199,6 @@ export function useServiceStatus(providers = STATUS_PROVIDERS, options = {}) {
         const normalized = await fetchProviderStatus(provider, controller.signal);
         if (controller.signal.aborted) return null;
 
-        // Progressively update each service card as soon as its response arrives
         setStatuses((prev) => ({
           ...prev,
           [provider.id]: {
@@ -246,7 +217,7 @@ export function useServiceStatus(providers = STATUS_PROVIDERS, options = {}) {
         };
       } catch (err) {
         if (controller.signal.aborted) {
-          return null; // Ignore aborted requests
+          return null;
         }
 
         setStatuses((prev) => ({
@@ -270,7 +241,6 @@ export function useServiceStatus(providers = STATUS_PROVIDERS, options = {}) {
 
     await Promise.allSettled(promises);
 
-    // If cycle was cancelled midway, do not update state
     if (controller.signal.aborted) {
       return;
     }
@@ -285,22 +255,17 @@ export function useServiceStatus(providers = STATUS_PROVIDERS, options = {}) {
 
     try {
       localStorage.setItem('statuscheck_last_cycle_time', now.toISOString());
-    } catch {
-      // Ignore
-    }
+    } catch {}
 
-    // Persist cache snapshot for instant cold-starts
     setStatuses((latest) => {
       saveTelemetryCache(latest);
       return latest;
     });
   }, [providers]);
 
-  // Initial fetch and polling effect
   useEffect(() => {
     if (!enabled) return;
 
-    // Trigger initial fetch asynchronously to avoid cascading renders on mount
     const timer = setTimeout(() => {
       fetchAll();
     }, 0);
@@ -319,7 +284,6 @@ export function useServiceStatus(providers = STATUS_PROVIDERS, options = {}) {
     };
   }, [fetchAll, pollingInterval, enabled]);
 
-  // Summary counts of all current statuses
   const summary = useMemo(() => {
     let operational = 0;
     let degraded = 0;

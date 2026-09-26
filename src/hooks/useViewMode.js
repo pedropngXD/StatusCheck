@@ -6,11 +6,6 @@ export const VIEW_MODES = {
   ROW: 'row',
 };
 
-/**
- * Hook to manage and persist the layout view mode ('grid' vs 'row') in localStorage.
- *
- * @param {string} defaultMode - Initial fallback mode ('grid' | 'row')
- */
 export function useViewMode(defaultMode = VIEW_MODES.GRID) {
   const [viewMode, setViewModeState] = useState(() => {
     try {
@@ -18,9 +13,7 @@ export function useViewMode(defaultMode = VIEW_MODES.GRID) {
       if (saved === VIEW_MODES.GRID || saved === VIEW_MODES.ROW) {
         return saved;
       }
-    } catch {
-      // Ignore localStorage access errors (e.g. sandboxed iframe or private browsing)
-    }
+    } catch {}
     return defaultMode;
   });
 
@@ -29,9 +22,7 @@ export function useViewMode(defaultMode = VIEW_MODES.GRID) {
     setViewModeState(mode);
     try {
       localStorage.setItem(STORAGE_KEY, mode);
-    } catch {
-      // Ignore write errors
-    }
+    } catch {}
   }, []);
 
   const toggleViewMode = useCallback(() => {
@@ -39,14 +30,11 @@ export function useViewMode(defaultMode = VIEW_MODES.GRID) {
       const next = prev === VIEW_MODES.GRID ? VIEW_MODES.ROW : VIEW_MODES.GRID;
       try {
         localStorage.setItem(STORAGE_KEY, next);
-      } catch {
-        // Ignore write errors
-      }
+      } catch {}
       return next;
     });
   }, []);
 
-  // Sync across tabs if changed elsewhere
   useEffect(() => {
     const handleStorage = (event) => {
       if (event.key === STORAGE_KEY && event.newValue) {

@@ -135,7 +135,6 @@
   margin: 0 0 0.75rem 0;
 }
 
-/* Incident Cards */
 .incident-item {
   background: rgba(255, 149, 0, 0.08);
   border: 1px solid rgba(255, 149, 0, 0.25);
@@ -203,7 +202,6 @@
   color: var(--text-primary);
 }
 
-/* Component search and actions */
 .incident-modal__section-header {
   display: flex;
   align-items: center;
@@ -245,7 +243,6 @@
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05);
 }
 
-/* Components grid in modal */
 .components-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));

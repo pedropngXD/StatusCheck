@@ -5,7 +5,6 @@
   width: 100%;
 }
 
-/* Header */
 .dashboard__header {
   margin-bottom: 2rem;
 }
@@ -38,7 +37,6 @@
   line-height: 1.5;
 }
 
-/* Live Telemetry & Actions */
 .dashboard__telemetry {
   display: flex;
   align-items: center;
@@ -112,7 +110,6 @@
   animation: spin 0.8s linear infinite;
 }
 
-/* Metrics summary strip */
 .dashboard__metrics {
   display: flex;
   align-items: center;
@@ -175,7 +172,6 @@
   color: var(--status-outage);
 }
 
-/* Active Status Filter States */
 .metric-badge--active {
   background: var(--text-primary);
   color: var(--bg-primary);
@@ -241,7 +237,6 @@
   font-family: var(--font-sans);
 }
 
-/* Controls Toolbar */
 .dashboard__controls {
   display: flex;
   align-items: center;
@@ -301,7 +296,6 @@
   align-items: center;
 }
 
-/* Footer */
 .dashboard__footer {
   margin-top: 4rem;
   padding-top: 1.5rem;
@@ -357,7 +351,6 @@
     flex-wrap: wrap;
   }
 
-  /* Neat 2x2 grid for metrics on mobile + centered timestamp */
   .dashboard__metrics {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -385,7 +378,6 @@
     padding: 5px 10px;
   }
 
-  /* Compact controls: Search and ViewToggle side-by-side */
   .dashboard__controls {
     display: flex;
     flex-direction: row;

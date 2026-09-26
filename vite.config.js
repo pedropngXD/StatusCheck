@@ -1,7 +1,6 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
@@ -28,7 +27,6 @@ export default defineConfig({
                 },
               });
 
-              // Special handling for AWS data.json (UTF-16 BE encoding)
               if (targetUrl.includes('status.aws.amazon.com/data.json')) {
                 const arrayBuffer = await upstreamRes.arrayBuffer();
                 const buffer = Buffer.from(arrayBuffer);
@@ -68,6 +66,6 @@ export default defineConfig({
     },
   ],
   build: {
-    assetsInlineLimit: 14336, // 14 KB (inlines all brand logos uniformly in base64, eliminating extra HTTP calls)
+    assetsInlineLimit: 14336,
   },
 });

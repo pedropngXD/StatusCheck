@@ -9,15 +9,6 @@ const DEFAULT_LABELS = {
   unknown: 'Unknown',
 };
 
-/**
- * StatusBadge displays a color-coded status indicator in Apple design style.
- *
- * @param {Object} props
- * @param {'operational' | 'degraded' | 'outage' | 'loading' | 'unknown'} props.status
- * @param {string} [props.label] - Optional custom label
- * @param {'sm' | 'md' | 'lg'} [props.size='md']
- * @param {boolean} [props.showDot=true]
- */
 function StatusBadge({
   status = 'unknown',
   label,

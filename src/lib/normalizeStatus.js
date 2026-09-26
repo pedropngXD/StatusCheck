@@ -1,32 +1,3 @@
-/**
- * Normalizes status data returned by different providers into a standardized, predictable shape.
- * 
- * Standard shape:
- * {
- *   status: 'operational' | 'degraded' | 'outage' | 'unknown',
- *   statusDescription: string,
- *   indicator: 'none' | 'minor' | 'major' | 'critical' | 'unknown',
- *   updatedAt: string | null,
- *   incidents: Array<{
- *     id: string,
- *     name: string,
- *     status: string,
- *     impact: 'none' | 'minor' | 'major' | 'critical',
- *     updatedAt: string,
- *     message: string,
- *   }>,
- *   components: Array<{
- *     id: string,
- *     name: string,
- *     status: 'operational' | 'degraded' | 'outage' | 'unknown',
- *     rawStatus?: string,
- *   }>
- * }
- */
-
-/**
- * Normalizer for Atlassian Statuspage.io providers (/api/v2/summary.json)
- */
 export function normalizeStatuspage(data, provider) {
   if (!data || typeof data !== 'object') {
     return createUnknownState('Invalid data received from Statuspage');
@@ -51,7 +22,6 @@ export function normalizeStatuspage(data, provider) {
       status = 'unknown';
   }
 
-  // Normalize list of active incidents
   const rawIncidents = Array.isArray(data.incidents) ? data.incidents : [];
   let incidents = rawIncidents
     .filter((inc) => inc.status !== 'resolved' && inc.status !== 'postmortem')
@@ -64,10 +34,9 @@ export function normalizeStatuspage(data, provider) {
       message: inc.incident_updates?.[0]?.body || '',
     }));
 
-  // Normalize list of components
   const rawComponents = Array.isArray(data.components) ? data.components : [];
   let components = rawComponents
-    .filter((comp) => !comp.group) // Exclude group header containers
+    .filter((comp) => !comp.group)
     .map((comp) => {
       let compStatus = 'operational';
       const rawCompStatus = (comp.status || '').toLowerCase();
@@ -94,7 +63,6 @@ export function normalizeStatuspage(data, provider) {
       };
     });
 
-  // If this is the OpenAI card, strip out any Codex components and incidents
   if (provider?.id === 'openai') {
     components = components.filter((comp) => !comp.name.toLowerCase().includes('codex'));
     incidents = incidents.filter(
@@ -114,15 +82,11 @@ export function normalizeStatuspage(data, provider) {
   };
 }
 
-/**
- * Normalizer for Google Cloud Platform (/incidents.json)
- */
 export function normalizeGcpJson(data) {
   if (!Array.isArray(data)) {
     return createUnknownState('Unexpected format for GCP');
   }
 
-  // Active GCP incidents have no 'end' timestamp or end is in the future
   const now = Date.now();
   const activeIncidents = data.filter((inc) => {
     if (!inc.end) return true;
@@ -148,7 +112,6 @@ export function normalizeGcpJson(data) {
     };
   }
 
-  // Check severity of active incidents
   const hasOutage = activeIncidents.some(
     (inc) => inc.status_impact === 'SERVICE_OUTAGE' || inc.severity === 'high'
   );
@@ -180,9 +143,6 @@ export function normalizeGcpJson(data) {
   };
 }
 
-/**
- * Normalizer for Stripe (/current)
- */
 export function normalizeStripeJson(data) {
   if (!data || typeof data !== 'object') {
     return createUnknownState('Invalid data from Stripe');
@@ -202,7 +162,6 @@ export function normalizeStripeJson(data) {
     status = 'outage';
     indicator = 'critical';
   } else {
-    // Fallback checking message content
     const msg = (data.message || '').toLowerCase();
     if (msg.includes('online') || msg.includes('operational')) {
       status = 'operational';
@@ -252,9 +211,6 @@ export function normalizeStripeJson(data) {
   };
 }
 
-/**
- * Normalizer for GitLab / Status.io (/1.0/status/:page_id)
- */
 export function normalizeStatusioJson(data) {
   if (!data || !data.result) {
     return createUnknownState('Invalid data from Status.io');
@@ -264,7 +220,6 @@ export function normalizeStatusioJson(data) {
   let status = 'operational';
   let indicator = 'none';
 
-  // Status.io codes: 100: Operational, 200: Planned Maintenance, 300: Degraded Performance, 400: Partial Outage, 500: Major Outage
   if (statusCode === 100) {
     status = 'operational';
     indicator = 'none';
@@ -316,15 +271,11 @@ export function normalizeStatusioJson(data) {
   };
 }
 
-/**
- * Normalizer for AWS Health / Status data (/data.json)
- */
 export function normalizeAwsJson(data) {
   if (!Array.isArray(data)) {
     return createUnknownState('Unexpected format for AWS');
   }
 
-  // If data is empty array, all AWS services are operational
   if (data.length === 0) {
     return {
       status: 'operational',
@@ -343,7 +294,6 @@ export function normalizeAwsJson(data) {
     };
   }
 
-  // Active status codes in AWS: '0' = normal, '1' = info, '2' = performance degraded, '3' = disruption/outage
   const hasOutage = data.some((item) => String(item.status) === '3' || String(item.current_status) === '3');
   const hasDegraded = data.some((item) => String(item.status) === '2' || String(item.current_status) === '2');
 
@@ -368,7 +318,6 @@ export function normalizeAwsJson(data) {
 
   const componentMap = new Map();
 
-  // Core high-visibility AWS services
   const coreServices = [
     { id: 'aws-bedrock', name: 'Amazon Bedrock (AI)', status: 'operational' },
     { id: 'aws-ec2', name: 'Amazon EC2', status: 'operational' },
@@ -384,7 +333,6 @@ export function normalizeAwsJson(data) {
     componentMap.set(core.name.toLowerCase(), { ...core });
   });
 
-  // Deduplicate impacted services across regional events
   data.forEach((event) => {
     if (Array.isArray(event.impacted_service_status_changes)) {
       event.impacted_service_status_changes.forEach((sc) => {
@@ -423,9 +371,6 @@ export function normalizeAwsJson(data) {
   };
 }
 
-/**
- * Normalizer for Better Stack badge endpoint (used by Hugging Face)
- */
 export function normalizeBetterstackBadge(htmlData) {
   const html = typeof htmlData === 'string' ? htmlData : String(htmlData || '');
   if (!html) {
@@ -472,19 +417,14 @@ export function normalizeBetterstackBadge(htmlData) {
   };
 }
 
-/**
- * Normalizer for OpenAI Codex (extracted from OpenAI summary.json)
- */
 export function normalizeOpenAiCodex(data) {
   const baseStatus = normalizeStatuspage(data);
 
-  // Filter components strictly to Codex
   const codexComponents = baseStatus.components.filter((c) => {
     const name = c.name.toLowerCase();
     return name.includes('codex');
   });
 
-  // Filter incidents strictly to Codex
   const codexIncidents = baseStatus.incidents.filter((inc) => {
     return (
       inc.name.toLowerCase().includes('codex') ||
@@ -492,7 +432,6 @@ export function normalizeOpenAiCodex(data) {
     );
   });
 
-  // Check if any codex component or incident has an issue
   const hasOutage = codexComponents.some((c) => c.status === 'outage') ||
     codexIncidents.some((i) => i.impact === 'major' || i.impact === 'critical');
   const hasDegraded = codexComponents.some((c) => c.status === 'degraded') ||
@@ -518,11 +457,7 @@ export function normalizeOpenAiCodex(data) {
   };
 }
 
-/**
- * Normalizer for direct API Health probes (Mistral AI, xAI)
- */
 export function normalizeApiHealth(data, provider) {
-  // If httpStatus is 200, 401 (auth required), or 429 (rate limit), the infrastructure is operational
   const isHealthy = Boolean(
     data?.operational ||
     data?.httpStatus === 200 ||
@@ -562,9 +497,6 @@ export function normalizeApiHealth(data, provider) {
   };
 }
 
-/**
- * Default fallback state when data is unavailable or an error occurs
- */
 export function createUnknownState(description = 'Status currently unavailable') {
   return {
     status: 'unknown',
@@ -576,10 +508,6 @@ export function createUnknownState(description = 'Status currently unavailable')
   };
 }
 
-/**
- * Main dispatcher function: takes provider config and raw data,
- * and delegates to the appropriate normalizer.
- */
 export function normalizeStatus(provider, rawData) {
   if (!rawData) {
     return createUnknownState();
@@ -611,7 +539,6 @@ export function normalizeStatus(provider, rawData) {
       return normalizeApiHealth(rawData, provider);
 
     default:
-      // If custom/unmapped adapter, test if it looks like standard Statuspage
       if (rawData.status?.indicator) {
         return normalizeStatuspage(rawData);
       }

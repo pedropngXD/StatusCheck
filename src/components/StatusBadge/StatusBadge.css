@@ -12,7 +12,6 @@
   white-space: nowrap;
 }
 
-/* Sizes */
 .status-badge--sm {
   padding: 3px 8px;
   font-size: 0.72rem;
@@ -30,7 +29,6 @@
   font-size: 0.9375rem;
 }
 
-/* Dot indicator */
 .status-badge__dot {
   width: 7px;
   height: 7px;
@@ -49,7 +47,6 @@
   height: 9px;
 }
 
-/* Operational */
 .status-badge--operational {
   background: var(--status-operational-bg);
   color: var(--status-operational);
@@ -61,7 +58,6 @@
   box-shadow: 0 0 8px rgba(52, 199, 89, 0.4);
 }
 
-/* Degraded */
 .status-badge--degraded {
   background: var(--status-degraded-bg);
   color: var(--status-degraded);
@@ -74,7 +70,6 @@
   animation: badge-pulse 2s infinite ease-in-out;
 }
 
-/* Outage */
 .status-badge--outage {
   background: var(--status-outage-bg);
   color: var(--status-outage);
@@ -87,7 +82,6 @@
   animation: badge-pulse 1.2s infinite ease-in-out;
 }
 
-/* Loading */
 .status-badge--loading {
   background: rgba(142, 142, 147, 0.08);
   color: var(--text-secondary);
@@ -100,7 +94,6 @@
   animation: badge-blink 1s infinite alternate;
 }
 
-/* Unknown */
 .status-badge--unknown {
   background: var(--status-unknown-bg);
   color: var(--status-unknown);

@@ -1,13 +1,5 @@
 import './ViewToggle.css';
 
-/**
- * ViewToggle allows switching between 'grid' and 'row' layouts.
- * Styled as an Apple-like segmented control.
- *
- * @param {Object} props
- * @param {'grid' | 'row'} props.viewMode
- * @param {(mode: 'grid' | 'row') => void} props.onChange
- */
 export default function ViewToggle({ viewMode = 'grid', onChange }) {
   return (
     <div

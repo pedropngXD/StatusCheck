@@ -1,13 +1,5 @@
 import './ThemeToggle.css';
 
-/**
- * Apple-styled Theme Toggle Button.
- * Toggles between Light and Dark mode with SF-inspired icons and smooth transitions.
- *
- * @param {Object} props
- * @param {'light' | 'dark'} props.theme - Current active theme
- * @param {() => void} props.onToggle - Callback to toggle theme
- */
 export default function ThemeToggle({ theme = 'light', onToggle }) {
   const isDark = theme === 'dark';
 
@@ -21,7 +13,6 @@ export default function ThemeToggle({ theme = 'light', onToggle }) {
     >
       <div className="theme-toggle-btn__icon-wrapper">
         {isDark ? (
-          /* Sun icon when currently dark (clicking will switch to light) */
           <svg
             className="theme-toggle-btn__icon theme-toggle-btn__icon--sun"
             viewBox="0 0 24 24"
@@ -43,7 +34,6 @@ export default function ThemeToggle({ theme = 'light', onToggle }) {
             <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
           </svg>
         ) : (
-          /* Moon icon when currently light (clicking will switch to dark) */
           <svg
             className="theme-toggle-btn__icon theme-toggle-btn__icon--moon"
             viewBox="0 0 24 24"

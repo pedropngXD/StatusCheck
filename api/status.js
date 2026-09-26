@@ -1,9 +1,4 @@
-/**
- * Vercel Serverless Function to proxy status endpoints safely,
- * bypassing browser CORS restrictions and caching upstream responses.
- */
 export default async function handler(req, res) {
-  // Handle CORS preflight
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -39,10 +34,8 @@ export default async function handler(req, res) {
       });
     }
 
-    // Set Vercel Edge caching headers: 30s cache, 60s stale-while-revalidate
     res.setHeader('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=60');
 
-    // Special handling for AWS data.json (encoded in UTF-16 BE)
     if (targetUrl.includes('status.aws.amazon.com/data.json')) {
       const arrayBuffer = await upstreamRes.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);

@@ -37,7 +37,6 @@ export default function DashboardPage() {
     setStatusFilter((prev) => (prev === filterType ? 'all' : filterType));
   }, []);
 
-  // Summary counts scoped to the currently active preset
   const presetSummary = useMemo(() => {
     let operational = 0;
     let degraded = 0;
@@ -74,20 +73,16 @@ export default function DashboardPage() {
     };
   }, [selectedServiceIds, statuses]);
 
-  // Filter providers by active preset, status filter, and search query
   const filteredProviders = useMemo(() => {
     return STATUS_PROVIDERS.filter((provider) => {
-      // 1. Preset filter
       const matchesPreset = selectedServiceIds.includes(provider.id);
       if (!matchesPreset) return false;
 
-      // 2. Status filter
       if (statusFilter !== 'all') {
         const serviceStatus = statuses[provider.id]?.data?.status || 'unknown';
         if (serviceStatus !== statusFilter) return false;
       }
 
-      // 3. Search query filter
       if (!searchQuery.trim()) return true;
       const query = searchQuery.toLowerCase().trim();
       return (
@@ -98,10 +93,8 @@ export default function DashboardPage() {
     });
   }, [selectedServiceIds, statusFilter, statuses, searchQuery]);
 
-  // Selected service status data for modal
   const selectedStatusData = selectedService ? statuses[selectedService.id]?.data : null;
 
-  // Memoized handlers to maintain reference stability and prevent re-rendering cards
   const handleSelectService = useCallback((service) => {
     setSelectedService(service);
   }, []);
@@ -118,7 +111,6 @@ export default function DashboardPage() {
 
   return (
     <main className="dashboard">
-      {/* Header */}
       <header className="dashboard__header">
         <div className="dashboard__header-top">
           <div className="dashboard__title-group">
@@ -163,7 +155,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Aggregate Summary Metrics / Filter Buttons */}
         <div className="dashboard__metrics" role="group" aria-label="Status filter buttons">
           <button
             type="button"
@@ -214,7 +205,6 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* Preset Filter Tabs */}
       <PresetManager
         presets={presets}
         activePresetId={activePresetId}
@@ -225,7 +215,6 @@ export default function DashboardPage() {
         allServices={STATUS_PROVIDERS}
       />
 
-      {/* Toolbar Controls (Search & View Mode Toggle) */}
       <div className="dashboard__controls">
         <div className="dashboard__search-wrapper">
           <svg
@@ -265,7 +254,6 @@ export default function DashboardPage() {
         <ViewToggle viewMode={viewMode} onChange={setViewMode} />
       </div>
 
-      {/* Services List / Grid */}
       <ServiceGrid
         providers={filteredProviders}
         statuses={statuses}
@@ -276,7 +264,6 @@ export default function DashboardPage() {
         onResetFilter={handleResetFilter}
       />
 
-      {/* Incident Details Modal */}
       <IncidentList
         key={selectedService?.id || 'none'}
         service={selectedService}
@@ -284,7 +271,6 @@ export default function DashboardPage() {
         onClose={handleCloseModal}
       />
 
-      {/* Footer */}
       <footer className="dashboard__footer">
         <span>Status Check — Real-time telemetry dashboard for AI & cloud services.</span>
         <span>Auto-refreshes every 60 seconds • Direct API telemetry</span>

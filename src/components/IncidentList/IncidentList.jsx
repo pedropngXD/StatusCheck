@@ -3,9 +3,6 @@ import StatusBadge from '../StatusBadge';
 import { getLogoUrl } from '../../assets/logos';
 import './IncidentList.css';
 
-/**
- * Renders an incident message cleanly with optional clamping for long updates.
- */
 function IncidentMessage({ message }) {
   const [expanded, setExpanded] = useState(false);
   const isLong = message.length > 260;
@@ -28,22 +25,12 @@ function IncidentMessage({ message }) {
   );
 }
 
-/**
- * IncidentList renders a detailed modal for a selected service,
- * showing active incidents, status messages, and component breakdown.
- *
- * @param {Object} props
- * @param {Object|null} props.service - The selected service provider object
- * @param {Object|null} props.statusData - Normalized status data for this service
- * @param {() => void} props.onClose - Modal close handler
- */
 export default function IncidentList({ service, statusData, onClose }) {
   const backdropRef = useRef(null);
 
   useEffect(() => {
     if (!service) return;
 
-    // Lock background scroll on body, compensating for scrollbar width
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     const prevBodyOverflow = document.body.style.overflow;
     const prevPaddingRight = document.body.style.paddingRight;
@@ -76,7 +63,6 @@ export default function IncidentList({ service, statusData, onClose }) {
   const rawComponents = statusData?.components;
   const status = statusData?.status || 'unknown';
 
-  // Sort components by priority: outage first, degraded second, then alphabetical
   const sortedComponents = useMemo(() => {
     if (!rawComponents || !Array.isArray(rawComponents)) return [];
     const priority = { outage: 0, degraded: 1, unknown: 2, operational: 3 };
@@ -88,7 +74,6 @@ export default function IncidentList({ service, statusData, onClose }) {
     });
   }, [rawComponents]);
 
-  // Filter components by search query
   const filteredComponents = useMemo(() => {
     if (!componentSearch.trim()) return sortedComponents;
     const q = componentSearch.toLowerCase().trim();
@@ -148,7 +133,6 @@ export default function IncidentList({ service, statusData, onClose }) {
         </div>
 
         <div className="incident-modal__content">
-          {/* Active Incidents Section */}
           <div>
             <h3 className="incident-modal__section-title">
               {incidents.length > 0 ? `Active Incidents (${incidents.length})` : 'Incident Status'}
@@ -177,7 +161,6 @@ export default function IncidentList({ service, statusData, onClose }) {
             )}
           </div>
 
-          {/* Components Section */}
           {sortedComponents.length > 0 && (
             <div>
               <div className="incident-modal__section-header">
