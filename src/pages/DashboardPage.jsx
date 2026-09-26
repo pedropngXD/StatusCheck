@@ -3,11 +3,13 @@ import { STATUS_PROVIDERS } from '../lib/statusProviders';
 import { useServiceStatus } from '../hooks/useServiceStatus';
 import { useViewMode } from '../hooks/useViewMode';
 import { usePresets } from '../hooks/usePresets';
+import { useTheme } from '../hooks/useTheme';
 
 import ServiceGrid from '../components/ServiceGrid';
 import ViewToggle from '../components/ViewToggle';
 import PresetManager from '../components/PresetManager';
 import IncidentList from '../components/IncidentList';
+import ThemeToggle from '../components/ThemeToggle';
 
 import './DashboardPage.css';
 
@@ -15,6 +17,7 @@ export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedService, setSelectedService] = useState(null);
 
+  const { theme, toggleTheme } = useTheme();
   const { viewMode, setViewMode } = useViewMode('grid');
   const { statuses, summary, loading, refreshing, lastCycleAt, refetch } = useServiceStatus(STATUS_PROVIDERS);
 
@@ -91,6 +94,8 @@ export default function DashboardPage() {
               </svg>
               <span>{refreshing ? 'Checking...' : 'Refresh'}</span>
             </button>
+
+            <ThemeToggle theme={theme} onToggle={toggleTheme} />
           </div>
         </div>
 

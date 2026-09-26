@@ -167,16 +167,10 @@
   font-size: 0.9375rem;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-subtle);
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--input-bg);
   color: var(--text-primary);
   outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-@media (prefers-color-scheme: dark) {
-  .preset-input {
-    background: rgba(255, 255, 255, 0.05);
-  }
 }
 
 .preset-input:focus {

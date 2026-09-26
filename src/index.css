@@ -3,18 +3,37 @@
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
-  /* Color Palette - Light */
+  /* UI Tokens */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+  --blur-glass: blur(20px);
+}
+
+/* Light Theme (Default & [data-theme="light"]) */
+:root,
+:root[data-theme="light"] {
   --bg-primary: #f5f5f7;
-  --bg-card: rgba(255, 255, 255, 0.75);
-  --bg-card-hover: rgba(255, 255, 255, 0.9);
+  --bg-card: rgba(255, 255, 255, 0.85);
+  --bg-card-hover: rgba(255, 255, 255, 0.96);
   --text-primary: #1d1d1f;
   --text-secondary: #86868b;
   --border-subtle: rgba(0, 0, 0, 0.08);
-  --border-card: rgba(255, 255, 255, 0.4);
-  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.04);
-  --shadow-card-hover: 0 8px 30px rgba(0, 0, 0, 0.08);
+  --border-card: rgba(0, 0, 0, 0.08);
+  --card-hover-border: rgba(0, 0, 0, 0.16);
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.04);
+  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.08);
 
-  /* Status Colors */
+  /* Component specific tokens */
+  --toggle-active-bg: #ffffff;
+  --toggle-active-color: #1d1d1f;
+  --toggle-active-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --logo-wrapper-border: rgba(0, 0, 0, 0.08);
+  --logo-wrapper-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --input-bg: rgba(255, 255, 255, 0.7);
+
+  /* Status Colors - Light */
   --status-operational: #34c759;
   --status-operational-bg: rgba(52, 199, 89, 0.12);
   --status-degraded: #ff9500;
@@ -24,17 +43,46 @@
   --status-unknown: #8e8e93;
   --status-unknown-bg: rgba(142, 142, 147, 0.12);
 
-  /* UI Tokens */
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
-  --radius-full: 9999px;
-  --blur-glass: blur(20px);
+  color-scheme: light;
 }
 
+/* Dark Theme ([data-theme="dark"]) */
+:root[data-theme="dark"] {
+  --bg-primary: #000000;
+  --bg-card: rgba(28, 28, 30, 0.75);
+  --bg-card-hover: rgba(44, 44, 46, 0.85);
+  --text-primary: #f5f5f7;
+  --text-secondary: #a1a1a6;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-card: rgba(255, 255, 255, 0.12);
+  --card-hover-border: rgba(255, 255, 255, 0.2);
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 8px 30px rgba(0, 0, 0, 0.5);
+
+  /* Component specific tokens */
+  --toggle-active-bg: rgba(255, 255, 255, 0.16);
+  --toggle-active-color: #ffffff;
+  --toggle-active-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --logo-wrapper-border: rgba(255, 255, 255, 0.2);
+  --logo-wrapper-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  --input-bg: rgba(255, 255, 255, 0.05);
+
+  /* Status Colors - Dark */
+  --status-operational: #30d158;
+  --status-operational-bg: rgba(48, 209, 88, 0.18);
+  --status-degraded: #ff9f0a;
+  --status-degraded-bg: rgba(255, 159, 10, 0.18);
+  --status-outage: #ff453a;
+  --status-outage-bg: rgba(255, 69, 58, 0.18);
+  --status-unknown: #98989d;
+  --status-unknown-bg: rgba(152, 152, 157, 0.18);
+
+  color-scheme: dark;
+}
+
+/* Fallback auto dark mode when no theme attribute has been set */
 @media (prefers-color-scheme: dark) {
-  :root {
-    /* Color Palette - Dark */
+  :root:not([data-theme="light"]):not([data-theme="dark"]) {
     --bg-primary: #000000;
     --bg-card: rgba(28, 28, 30, 0.75);
     --bg-card-hover: rgba(44, 44, 46, 0.85);
@@ -42,10 +90,17 @@
     --text-secondary: #a1a1a6;
     --border-subtle: rgba(255, 255, 255, 0.08);
     --border-card: rgba(255, 255, 255, 0.12);
+    --card-hover-border: rgba(255, 255, 255, 0.2);
     --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.3);
     --shadow-card-hover: 0 8px 30px rgba(0, 0, 0, 0.5);
 
-    /* Status Colors - Dark */
+    --toggle-active-bg: rgba(255, 255, 255, 0.16);
+    --toggle-active-color: #ffffff;
+    --toggle-active-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    --logo-wrapper-border: rgba(255, 255, 255, 0.2);
+    --logo-wrapper-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    --input-bg: rgba(255, 255, 255, 0.05);
+
     --status-operational: #30d158;
     --status-operational-bg: rgba(48, 209, 88, 0.18);
     --status-degraded: #ff9f0a;
@@ -54,6 +109,8 @@
     --status-outage-bg: rgba(255, 69, 58, 0.18);
     --status-unknown: #98989d;
     --status-unknown-bg: rgba(152, 152, 157, 0.18);
+
+    color-scheme: dark;
   }
 }
 
@@ -70,6 +127,7 @@ body {
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 #root {
