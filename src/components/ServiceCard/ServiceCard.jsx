@@ -91,6 +91,7 @@ function ServiceCard({
           className="service-card__link"
           onClick={(e) => e.stopPropagation()}
           aria-label={`Open official status page for ${provider.name}`}
+          title={`Open official status page for ${provider.name}`}
         >
           <svg
             className="service-card__link-icon"
@@ -102,8 +103,9 @@ function ServiceCard({
             strokeLinejoin="round"
             aria-hidden="true"
           >
-            <path d="M6 3h7v7" />
-            <path d="M13 3L7 9" />
+            <path d="M12 9v3.5a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 2 12.5v-7A1.5 1.5 0 0 1 3.5 4H7" />
+            <path d="M10 2h4v4" />
+            <path d="M7 9L14 2" />
           </svg>
         </a>
       </div>

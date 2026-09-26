@@ -285,11 +285,24 @@
   font-weight: 500;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  background: rgba(142, 142, 147, 0.08);
+  border: 1px solid var(--border-subtle);
+  font-size: 0.8125rem;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .incident-modal__external-link:hover {
-  text-decoration: underline;
+  background: rgba(142, 142, 147, 0.18);
+  border-color: var(--card-hover-border);
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+.incident-modal__external-link:active {
+  transform: scale(0.97);
 }
 
 @keyframes modal-fade-in {
