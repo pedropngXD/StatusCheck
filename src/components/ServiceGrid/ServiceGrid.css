@@ -126,3 +126,16 @@
   outline: 2px solid var(--text-primary);
   outline-offset: 2px;
 }
+
+@media (max-width: 768px) {
+  .service-grid--cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.625rem;
+  }
+
+  .service-skeleton {
+    padding: 0.875rem;
+    border-radius: var(--radius-md);
+    min-height: 130px;
+  }
+}
