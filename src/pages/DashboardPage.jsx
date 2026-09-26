@@ -19,7 +19,7 @@ export default function DashboardPage() {
 
   const { theme, toggleTheme } = useTheme();
   const { viewMode, setViewMode } = useViewMode('grid');
-  const { statuses, summary, loading, refreshing, lastCycleAt, refetch } = useServiceStatus(STATUS_PROVIDERS);
+  const { statuses, loading, refreshing, lastCycleAt, refetch } = useServiceStatus(STATUS_PROVIDERS);
 
   const {
     presets,
@@ -36,6 +36,43 @@ export default function DashboardPage() {
   const handleStatusFilterToggle = useCallback((filterType) => {
     setStatusFilter((prev) => (prev === filterType ? 'all' : filterType));
   }, []);
+
+  // Summary counts scoped to the currently active preset
+  const presetSummary = useMemo(() => {
+    let operational = 0;
+    let degraded = 0;
+    let outage = 0;
+    let unknown = 0;
+
+    const presetProviders = STATUS_PROVIDERS.filter((provider) =>
+      selectedServiceIds.includes(provider.id)
+    );
+
+    presetProviders.forEach((provider) => {
+      const statusObj = statuses[provider.id];
+      const statusType = statusObj?.data?.status;
+
+      if (!statusType || statusObj?.loading) {
+        unknown++;
+      } else if (statusType === 'operational') {
+        operational++;
+      } else if (statusType === 'degraded') {
+        degraded++;
+      } else if (statusType === 'outage') {
+        outage++;
+      } else {
+        unknown++;
+      }
+    });
+
+    return {
+      total: presetProviders.length,
+      operational,
+      degraded,
+      outage,
+      unknown,
+    };
+  }, [selectedServiceIds, statuses]);
 
   // Filter providers by active preset, status filter, and search query
   const filteredProviders = useMemo(() => {
@@ -133,9 +170,9 @@ export default function DashboardPage() {
             className={`metric-badge ${statusFilter === 'all' ? 'metric-badge--active' : ''}`}
             onClick={() => setStatusFilter('all')}
             aria-pressed={statusFilter === 'all'}
-            aria-label={`Show all ${summary.total} monitored services`}
+            aria-label={`Show all ${presetSummary.total} monitored services`}
           >
-            <span>Monitored:</span> <strong>{summary.total}</strong>
+            <span>Monitored:</span> <strong>{presetSummary.total}</strong>
           </button>
 
           <button
@@ -143,9 +180,9 @@ export default function DashboardPage() {
             className={`metric-badge metric-badge--operational ${statusFilter === 'operational' ? 'metric-badge--active' : ''}`}
             onClick={() => handleStatusFilterToggle('operational')}
             aria-pressed={statusFilter === 'operational'}
-            aria-label={`Filter by ${summary.operational} operational services`}
+            aria-label={`Filter by ${presetSummary.operational} operational services`}
           >
-            <span>Operational:</span> <strong>{summary.operational}</strong>
+            <span>Operational:</span> <strong>{presetSummary.operational}</strong>
           </button>
 
           <button
@@ -153,9 +190,9 @@ export default function DashboardPage() {
             className={`metric-badge metric-badge--degraded ${statusFilter === 'degraded' ? 'metric-badge--active' : ''}`}
             onClick={() => handleStatusFilterToggle('degraded')}
             aria-pressed={statusFilter === 'degraded'}
-            aria-label={`Filter by ${summary.degraded} degraded services`}
+            aria-label={`Filter by ${presetSummary.degraded} degraded services`}
           >
-            <span>Degraded:</span> <strong>{summary.degraded}</strong>
+            <span>Degraded:</span> <strong>{presetSummary.degraded}</strong>
           </button>
 
           <button
@@ -163,9 +200,9 @@ export default function DashboardPage() {
             className={`metric-badge metric-badge--outage ${statusFilter === 'outage' ? 'metric-badge--active' : ''}`}
             onClick={() => handleStatusFilterToggle('outage')}
             aria-pressed={statusFilter === 'outage'}
-            aria-label={`Filter by ${summary.outage} outage services`}
+            aria-label={`Filter by ${presetSummary.outage} outage services`}
           >
-            <span>Outages:</span> <strong>{summary.outage}</strong>
+            <span>Outages:</span> <strong>{presetSummary.outage}</strong>
           </button>
 
           {lastCycleAt && (
