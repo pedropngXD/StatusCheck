@@ -102,18 +102,15 @@
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  animation: modal-fade-in 0.2s ease-out;
+  animation: modal-fade-in 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   overscroll-behavior: contain;
-  touch-action: none;
 }
 
 .preset-modal {
   background: var(--bg-card);
-  backdrop-filter: var(--blur-glass);
-  -webkit-backdrop-filter: var(--blur-glass);
   border: 1px solid var(--border-card);
   border-radius: var(--radius-lg);
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.28);
   width: 100%;
   max-width: 580px;
   max-height: 85vh;
@@ -121,7 +118,7 @@
   flex-direction: column;
   overflow: hidden;
   overscroll-behavior: contain;
-  animation: modal-scale-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: modal-scale-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .preset-modal__header {
@@ -143,11 +140,32 @@
   padding: 1.5rem;
   overflow-y: auto;
   overscroll-behavior: contain;
-  touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  transform: translateZ(0);
+  will-change: scroll-position;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(142, 142, 147, 0.35) transparent;
+}
+
+.preset-modal__body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.preset-modal__body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.preset-modal__body::-webkit-scrollbar-thumb {
+  background: rgba(142, 142, 147, 0.3);
+  border-radius: var(--radius-full);
+}
+
+.preset-modal__body::-webkit-scrollbar-thumb:hover {
+  background: rgba(142, 142, 147, 0.55);
 }
 
 .preset-input-group label {
@@ -210,7 +228,31 @@
   gap: 0.5rem;
   max-height: 280px;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   padding: 2px;
+  transform: translateZ(0);
+  will-change: scroll-position;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(142, 142, 147, 0.35) transparent;
+}
+
+.preset-services-grid::-webkit-scrollbar {
+  width: 5px;
+}
+
+.preset-services-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.preset-services-grid::-webkit-scrollbar-thumb {
+  background: rgba(142, 142, 147, 0.3);
+  border-radius: var(--radius-full);
+}
+
+.preset-services-grid::-webkit-scrollbar-thumb:hover {
+  background: rgba(142, 142, 147, 0.55);
 }
 
 .preset-service-check {
@@ -224,6 +266,8 @@
   cursor: pointer;
   user-select: none;
   transition: all 0.15s ease;
+  content-visibility: auto;
+  contain-intrinsic-size: 38px;
 }
 
 .preset-service-check:hover {

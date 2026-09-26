@@ -64,28 +64,11 @@ export default function PresetManager({
 
     window.addEventListener('keydown', handleKeyDown);
 
-    const backdropEl = backdropRef.current;
-    const preventBackdropScroll = (e) => {
-      if (e.target === backdropEl) {
-        e.preventDefault();
-      }
-    };
-
-    if (backdropEl) {
-      backdropEl.addEventListener('wheel', preventBackdropScroll, { passive: false });
-      backdropEl.addEventListener('touchmove', preventBackdropScroll, { passive: false });
-    }
-
     return () => {
       document.body.style.overflow = prevBodyOverflow;
       document.documentElement.style.overflow = prevHtmlOverflow;
       document.body.style.paddingRight = prevPaddingRight;
       window.removeEventListener('keydown', handleKeyDown);
-
-      if (backdropEl) {
-        backdropEl.removeEventListener('wheel', preventBackdropScroll);
-        backdropEl.removeEventListener('touchmove', preventBackdropScroll);
-      }
     };
   }, [modalOpen]);
 
