@@ -43,6 +43,9 @@ async function fetchProviderStatus(provider, signal) {
     // 1. Direct fetch attempt
     const res = await fetchWithTimeout(provider.apiUrl);
     if (!res.ok) {
+      if (provider.adapter === 'api-health' && (res.status === 401 || res.status === 429)) {
+        return normalizeStatus(provider, { httpStatus: res.status, operational: true });
+      }
       throw new Error(`HTTP error ${res.status}`);
     }
     const data = await parseResponse(res);
@@ -57,7 +60,7 @@ async function fetchProviderStatus(provider, signal) {
     try {
       const vercelProxyUrl = `/api/status?url=${encodeURIComponent(provider.apiUrl)}`;
       const vercelRes = await fetchWithTimeout(vercelProxyUrl);
-      if (vercelRes.ok) {
+      if (vercelRes.ok || (provider.adapter === 'api-health' && (vercelRes.status === 401 || vercelRes.status === 429))) {
         const vercelData = await parseResponse(vercelRes);
         return normalizeStatus(provider, vercelData);
       }
@@ -69,11 +72,11 @@ async function fetchProviderStatus(provider, signal) {
     try {
       const proxyUrl = `${CORS_PROXY_URL}${encodeURIComponent(provider.apiUrl)}`;
       const proxyRes = await fetchWithTimeout(proxyUrl);
-      if (!proxyRes.ok) {
-        throw new Error(`Proxy HTTP error ${proxyRes.status}`);
+      if (proxyRes.ok || (provider.adapter === 'api-health' && (proxyRes.status === 401 || proxyRes.status === 429))) {
+        const proxyData = await parseResponse(proxyRes);
+        return normalizeStatus(provider, proxyData);
       }
-      const proxyData = await parseResponse(proxyRes);
-      return normalizeStatus(provider, proxyData);
+      throw new Error(`Proxy HTTP error ${proxyRes.status}`);
     } catch {
       // Return a safe fallback status indicating the failure
       return createUnknownState(directErr.message || 'Network request failed');

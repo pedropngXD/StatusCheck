@@ -27,6 +27,13 @@ export default async function handler(req, res) {
     });
 
     if (!upstreamRes.ok) {
+      if (upstreamRes.status === 401 || upstreamRes.status === 429) {
+        return res.status(200).json({
+          status: 'operational',
+          httpStatus: upstreamRes.status,
+          operational: true,
+        });
+      }
       return res.status(upstreamRes.status).json({
         error: `Upstream returned status ${upstreamRes.status}`,
       });

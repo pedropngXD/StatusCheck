@@ -40,6 +40,14 @@ export default defineConfig({
                 return;
               }
 
+              if (!upstreamRes.ok && (upstreamRes.status === 401 || upstreamRes.status === 429)) {
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'application/json');
+                res.setHeader('Access-Control-Allow-Origin', '*');
+                res.end(JSON.stringify({ status: 'operational', httpStatus: upstreamRes.status, operational: true }));
+                return;
+              }
+
               const contentType = upstreamRes.headers.get('content-type') || 'text/plain';
               const text = await upstreamRes.text();
 

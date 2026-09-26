@@ -80,8 +80,8 @@ export const STATUS_PROVIDERS = [
     description: 'Le Chat, La Plateforme & Model APIs',
     category: 'ai',
     pageUrl: 'https://status.mistral.ai',
-    apiUrl: 'https://status.mistral.ai',
-    adapter: 'custom',
+    apiUrl: 'https://api.mistral.ai/v1/models',
+    adapter: 'api-health',
     logo: 'mistral.png',
   },
   {
@@ -90,8 +90,8 @@ export const STATUS_PROVIDERS = [
     description: 'Grok & API Developer Platform',
     category: 'ai',
     pageUrl: 'https://status.x.ai',
-    apiUrl: 'https://status.x.ai',
-    adapter: 'custom',
+    apiUrl: 'https://api.x.ai/v1/models',
+    adapter: 'api-health',
     logo: 'xai.png',
   },
 

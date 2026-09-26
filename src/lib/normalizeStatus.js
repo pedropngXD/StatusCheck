@@ -130,6 +130,13 @@ export function normalizeGcpJson(data) {
     return endTime > now;
   });
 
+  const coreComponents = [
+    { id: 'gcp-gemini', name: 'Gemini & Vertex AI Platform', status: 'operational' },
+    { id: 'gcp-compute', name: 'Compute Engine & Kubernetes (GKE)', status: 'operational' },
+    { id: 'gcp-storage', name: 'Cloud Storage & Firestore', status: 'operational' },
+    { id: 'gcp-network', name: 'Cloud Networking & Cloud CDN', status: 'operational' },
+  ];
+
   if (activeIncidents.length === 0) {
     return {
       status: 'operational',
@@ -137,7 +144,7 @@ export function normalizeGcpJson(data) {
       indicator: 'none',
       updatedAt: new Date().toISOString(),
       incidents: [],
-      components: [],
+      components: coreComponents,
     };
   }
 
@@ -158,13 +165,18 @@ export function normalizeGcpJson(data) {
     message: inc.most_recent_update?.text || '',
   }));
 
+  const components = coreComponents.map((c) => ({
+    ...c,
+    status: hasOutage ? 'outage' : 'degraded',
+  }));
+
   return {
     status,
     statusDescription: `${activeIncidents.length} active incident(s) ongoing`,
     indicator,
     updatedAt: activeIncidents[0]?.modified || new Date().toISOString(),
     incidents,
-    components: [],
+    components,
   };
 }
 
@@ -201,12 +213,34 @@ export function normalizeStripeJson(data) {
     }
   }
 
-  const rawStatuses = Array.isArray(data.statuses) ? data.statuses : [];
-  const components = rawStatuses.map((item, idx) => ({
-    id: `stripe-${idx}`,
-    name: item.title || item.name || 'Service',
-    status: item.status === 'up' ? 'operational' : item.status === 'down' ? 'outage' : 'degraded',
-  }));
+  const components = [];
+  if (data.statuses && typeof data.statuses === 'object') {
+    if (Array.isArray(data.statuses)) {
+      data.statuses.forEach((item, idx) => {
+        components.push({
+          id: `stripe-${idx}`,
+          name: item.title || item.name || 'Service',
+          status: item.status === 'up' ? 'operational' : item.status === 'down' ? 'outage' : 'degraded',
+        });
+      });
+    } else {
+      const nameMap = {
+        api: 'API Platform',
+        webhooks: 'Webhooks',
+        dashboard: 'Dashboard',
+        stripejs: 'Stripe.js & Elements',
+        checkout: 'Checkout',
+        supportsite: 'Support Site',
+      };
+      Object.entries(data.statuses).forEach(([key, val]) => {
+        components.push({
+          id: `stripe-${key}`,
+          name: nameMap[key] || key.charAt(0).toUpperCase() + key.slice(1),
+          status: val === 'up' ? 'operational' : val === 'down' ? 'outage' : 'degraded',
+        });
+      });
+    }
+  }
 
   return {
     status,
@@ -255,13 +289,30 @@ export function normalizeStatusioJson(data) {
     message: inc.messages?.[0]?.details || '',
   }));
 
+  const rawComponents = Array.isArray(data.result.status) ? data.result.status : [];
+  const components = rawComponents.map((item) => {
+    let compStatus = 'operational';
+    if (item.status_code === 100) {
+      compStatus = 'operational';
+    } else if (item.status_code === 200 || item.status_code === 300 || item.status_code === 400) {
+      compStatus = 'degraded';
+    } else if (item.status_code === 500) {
+      compStatus = 'outage';
+    }
+    return {
+      id: String(item.id || item.name),
+      name: item.name || 'Service',
+      status: compStatus,
+    };
+  });
+
   return {
     status,
     statusDescription: data.result.status_overall?.status || (status === 'operational' ? 'All Systems Operational' : 'Service Disruption Detected'),
     indicator,
     updatedAt: data.result.status_overall?.updated || new Date().toISOString(),
     incidents,
-    components: [],
+    components,
   };
 }
 
@@ -273,41 +324,85 @@ export function normalizeAwsJson(data) {
     return createUnknownState('Unexpected format for AWS');
   }
 
-  // Status codes: '0' = normal, '1' = info, '2' = performance issues (degraded), '3' = disruption (outage)
-  const activeIssues = data.filter((item) => item.current_status === '2' || item.current_status === '3');
-  const hasOutage = activeIssues.some((item) => item.current_status === '3');
-
-  let status = 'operational';
-  let indicator = 'none';
-
-  if (hasOutage) {
-    status = 'outage';
-    indicator = 'critical';
-  } else if (activeIssues.length > 0) {
-    status = 'degraded';
-    indicator = 'minor';
+  // If data is empty array, all AWS services are operational
+  if (data.length === 0) {
+    return {
+      status: 'operational',
+      statusDescription: 'All AWS services operating normally',
+      indicator: 'none',
+      updatedAt: new Date().toISOString(),
+      incidents: [],
+      components: [
+        { id: 'aws-ec2', name: 'Amazon EC2', status: 'operational' },
+        { id: 'aws-s3', name: 'Amazon S3', status: 'operational' },
+        { id: 'aws-rds', name: 'Amazon RDS', status: 'operational' },
+        { id: 'aws-lambda', name: 'AWS Lambda', status: 'operational' },
+        { id: 'aws-bedrock', name: 'Amazon Bedrock (AI)', status: 'operational' },
+        { id: 'aws-dynamodb', name: 'Amazon DynamoDB', status: 'operational' },
+      ],
+    };
   }
 
-  const incidents = activeIssues.map((item, idx) => ({
-    id: `aws-${item.service || idx}-${item.timestamp || Date.now()}`,
-    name: item.service_name || item.service || 'AWS Service Event',
-    status: item.current_status === '3' ? 'Service Disruption' : 'Performance Degraded',
-    impact: item.current_status === '3' ? 'major' : 'minor',
-    updatedAt: item.timestamp ? new Date(item.timestamp).toISOString() : new Date().toISOString(),
-    message: `${item.service_name || item.service} is experiencing issues.`,
-  }));
+  // Active status codes in AWS: '0' = normal, '1' = info, '2' = performance degraded, '3' = disruption/outage
+  const hasOutage = data.some((item) => String(item.status) === '3' || String(item.current_status) === '3');
+  const hasDegraded = data.some((item) => String(item.status) === '2' || String(item.current_status) === '2');
 
-  const components = data.slice(0, 50).map((item, idx) => ({
-    id: `aws-comp-${item.service || idx}`,
-    name: item.service_name || item.service || 'Service',
-    status: item.current_status === '3' ? 'outage' : item.current_status === '2' ? 'degraded' : 'operational',
-  }));
+  const status = hasOutage ? 'outage' : hasDegraded ? 'degraded' : 'operational';
+  const indicator = hasOutage ? 'critical' : hasDegraded ? 'minor' : 'none';
+
+  const incidents = data.map((event, idx) => {
+    const logs = Array.isArray(event.event_log) ? event.event_log : [];
+    const latestLog = logs[logs.length - 1] || logs[0];
+    const isOutage = String(event.status) === '3' || String(event.current_status) === '3';
+    return {
+      id: event.arn || `aws-${event.date || idx}`,
+      name: `${event.region_name ? `[${event.region_name}] ` : ''}${event.summary || event.service_name || 'AWS Service Event'}`,
+      status: isOutage ? 'Service Disruption' : 'Performance Degraded',
+      impact: isOutage ? 'major' : 'minor',
+      updatedAt: latestLog?.timestamp
+        ? new Date(Number(latestLog.timestamp) * (Number(latestLog.timestamp) > 1e11 ? 1 : 1000)).toISOString()
+        : new Date().toISOString(),
+      message: latestLog?.message || latestLog?.summary || `${event.service_name || 'AWS'} incident reported.`,
+    };
+  });
+
+  const components = [];
+  data.forEach((event) => {
+    if (Array.isArray(event.impacted_service_status_changes)) {
+      event.impacted_service_status_changes.slice(0, 10).forEach((sc) => {
+        components.push({
+          id: sc.service,
+          name: sc.service_name || sc.service,
+          status: String(sc.current_status) === '3' ? 'outage' : String(sc.current_status) === '2' ? 'degraded' : 'operational',
+        });
+      });
+    }
+  });
+
+  const coreServices = [
+    { id: 'aws-ec2', name: 'Amazon EC2' },
+    { id: 'aws-s3', name: 'Amazon S3' },
+    { id: 'aws-rds', name: 'Amazon RDS' },
+    { id: 'aws-lambda', name: 'AWS Lambda' },
+    { id: 'aws-bedrock', name: 'Amazon Bedrock (AI)' },
+    { id: 'aws-dynamodb', name: 'Amazon DynamoDB' },
+  ];
+
+  coreServices.forEach((core) => {
+    if (!components.some((c) => c.name.toLowerCase() === core.name.toLowerCase())) {
+      components.push({
+        id: core.id,
+        name: core.name,
+        status: 'operational',
+      });
+    }
+  });
 
   return {
     status,
     statusDescription: status === 'operational'
       ? 'All AWS services operating normally'
-      : `${activeIssues.length} AWS service issue(s) reported`,
+      : `${data.length} AWS service event(s) reported`,
     indicator,
     updatedAt: new Date().toISOString(),
     incidents,
@@ -348,13 +443,19 @@ export function normalizeBetterstackBadge(htmlData) {
   const descMatch = html.match(/<div[^>]*class='[^']*font-medium[^']*'>\s*([^<]+)\s*<\/div>/i);
   const statusDescription = descMatch ? descMatch[1].trim() : (status === 'operational' ? 'All services are online' : 'Service Disruption Detected');
 
+  const components = [
+    { id: 'hf-hub', name: 'Model Hub & Datasets', status },
+    { id: 'hf-spaces', name: 'Spaces & Inference Endpoints', status },
+    { id: 'hf-platform', name: 'Platform, Auth & Website', status },
+  ];
+
   return {
     status,
     statusDescription,
     indicator,
     updatedAt: new Date().toISOString(),
     incidents: [],
-    components: [],
+    components,
   };
 }
 
@@ -405,6 +506,50 @@ export function normalizeOpenAiCodex(data) {
 }
 
 /**
+ * Normalizer for direct API Health probes (Mistral AI, xAI)
+ */
+export function normalizeApiHealth(data, provider) {
+  // If httpStatus is 200, 401 (auth required), or 429 (rate limit), the infrastructure is operational
+  const isHealthy = Boolean(
+    data?.operational ||
+    data?.httpStatus === 200 ||
+    data?.httpStatus === 401 ||
+    data?.httpStatus === 429 ||
+    (!data?.error && typeof data === 'object')
+  );
+
+  const status = isHealthy ? 'operational' : 'outage';
+  const indicator = isHealthy ? 'none' : 'critical';
+
+  let components = [];
+  if (provider?.id === 'mistral') {
+    components = [
+      { id: 'mistral-api', name: 'Mistral API (api.mistral.ai)', status: isHealthy ? 'operational' : 'outage' },
+      { id: 'mistral-chat', name: 'Le Chat & Model Gateway', status: isHealthy ? 'operational' : 'outage' },
+      { id: 'mistral-platform', name: 'La Plateforme Developer Console', status: isHealthy ? 'operational' : 'outage' },
+    ];
+  } else if (provider?.id === 'xai') {
+    components = [
+      { id: 'xai-api', name: 'Grok API (api.x.ai)', status: isHealthy ? 'operational' : 'outage' },
+      { id: 'xai-platform', name: 'xAI Console & Auth Gateway', status: isHealthy ? 'operational' : 'outage' },
+    ];
+  } else {
+    components = [
+      { id: `${provider?.id}-api`, name: 'Public API Gateway', status: isHealthy ? 'operational' : 'outage' },
+    ];
+  }
+
+  return {
+    status,
+    statusDescription: isHealthy ? 'All Systems Operational' : 'Service Disruption Detected',
+    indicator,
+    updatedAt: new Date().toISOString(),
+    incidents: [],
+    components,
+  };
+}
+
+/**
  * Default fallback state when data is unavailable or an error occurs
  */
 export function createUnknownState(description = 'Status currently unavailable') {
@@ -448,6 +593,9 @@ export function normalizeStatus(provider, rawData) {
 
     case 'aws-json':
       return normalizeAwsJson(rawData);
+
+    case 'api-health':
+      return normalizeApiHealth(rawData, provider);
 
     default:
       // If custom/unmapped adapter, test if it looks like standard Statuspage
