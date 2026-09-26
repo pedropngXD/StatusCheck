@@ -31,14 +31,26 @@ export default function DashboardPage() {
     deletePreset,
   } = usePresets();
 
-  // Filter providers by active preset and search query
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  const handleStatusFilterToggle = useCallback((filterType) => {
+    setStatusFilter((prev) => (prev === filterType ? 'all' : filterType));
+  }, []);
+
+  // Filter providers by active preset, status filter, and search query
   const filteredProviders = useMemo(() => {
     return STATUS_PROVIDERS.filter((provider) => {
       // 1. Preset filter
       const matchesPreset = selectedServiceIds.includes(provider.id);
       if (!matchesPreset) return false;
 
-      // 2. Search query filter
+      // 2. Status filter
+      if (statusFilter !== 'all') {
+        const serviceStatus = statuses[provider.id]?.data?.status || 'unknown';
+        if (serviceStatus !== statusFilter) return false;
+      }
+
+      // 3. Search query filter
       if (!searchQuery.trim()) return true;
       const query = searchQuery.toLowerCase().trim();
       return (
@@ -47,7 +59,7 @@ export default function DashboardPage() {
         provider.category.toLowerCase().includes(query)
       );
     });
-  }, [selectedServiceIds, searchQuery]);
+  }, [selectedServiceIds, statusFilter, statuses, searchQuery]);
 
   // Selected service status data for modal
   const selectedStatusData = selectedService ? statuses[selectedService.id]?.data : null;
@@ -60,6 +72,7 @@ export default function DashboardPage() {
   const handleResetFilter = useCallback(() => {
     setSearchQuery('');
     selectPreset('all');
+    setStatusFilter('all');
   }, [selectPreset]);
 
   const handleCloseModal = useCallback(() => {
@@ -113,24 +126,48 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Aggregate Summary Metrics */}
-        <div className="dashboard__metrics">
-          <div className="metric-badge">
-            Monitored: <strong>{summary.total}</strong>
-          </div>
-          <div className="metric-badge metric-badge--operational">
-            Operational: <strong>{summary.operational}</strong>
-          </div>
-          {summary.degraded > 0 && (
-            <div className="metric-badge metric-badge--degraded">
-              Degraded: <strong>{summary.degraded}</strong>
-            </div>
-          )}
-          {summary.outage > 0 && (
-            <div className="metric-badge metric-badge--outage">
-              Outages: <strong>{summary.outage}</strong>
-            </div>
-          )}
+        {/* Aggregate Summary Metrics / Filter Buttons */}
+        <div className="dashboard__metrics" role="group" aria-label="Status filter buttons">
+          <button
+            type="button"
+            className={`metric-badge ${statusFilter === 'all' ? 'metric-badge--active' : ''}`}
+            onClick={() => setStatusFilter('all')}
+            aria-pressed={statusFilter === 'all'}
+            aria-label={`Show all ${summary.total} monitored services`}
+          >
+            <span>Monitored:</span> <strong>{summary.total}</strong>
+          </button>
+
+          <button
+            type="button"
+            className={`metric-badge metric-badge--operational ${statusFilter === 'operational' ? 'metric-badge--active' : ''}`}
+            onClick={() => handleStatusFilterToggle('operational')}
+            aria-pressed={statusFilter === 'operational'}
+            aria-label={`Filter by ${summary.operational} operational services`}
+          >
+            <span>Operational:</span> <strong>{summary.operational}</strong>
+          </button>
+
+          <button
+            type="button"
+            className={`metric-badge metric-badge--degraded ${statusFilter === 'degraded' ? 'metric-badge--active' : ''}`}
+            onClick={() => handleStatusFilterToggle('degraded')}
+            aria-pressed={statusFilter === 'degraded'}
+            aria-label={`Filter by ${summary.degraded} degraded services`}
+          >
+            <span>Degraded:</span> <strong>{summary.degraded}</strong>
+          </button>
+
+          <button
+            type="button"
+            className={`metric-badge metric-badge--outage ${statusFilter === 'outage' ? 'metric-badge--active' : ''}`}
+            onClick={() => handleStatusFilterToggle('outage')}
+            aria-pressed={statusFilter === 'outage'}
+            aria-label={`Filter by ${summary.outage} outage services`}
+          >
+            <span>Outages:</span> <strong>{summary.outage}</strong>
+          </button>
+
           {lastCycleAt && (
             <span className="dashboard__last-check">
               <span className="dashboard__last-check-icon">✓</span>

@@ -125,19 +125,42 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
+  padding: 6px 14px;
   background: var(--bg-card);
   border: 1px solid var(--border-card);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-full);
+  font-family: var(--font-sans);
   font-size: 0.8125rem;
   font-weight: 500;
   color: var(--text-secondary);
   box-shadow: var(--shadow-card);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  line-height: 1;
+}
+
+.metric-badge:hover:not(.metric-badge--active) {
+  background: var(--bg-card-hover);
+  border-color: var(--card-hover-border);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.metric-badge:active {
+  transform: scale(0.96);
+}
+
+.metric-badge:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 2px;
 }
 
 .metric-badge strong {
   color: var(--text-primary);
   font-weight: 600;
+  transition: color 0.18s ease;
 }
 
 .metric-badge--operational strong {
@@ -150,6 +173,51 @@
 
 .metric-badge--outage strong {
   color: var(--status-outage);
+}
+
+/* Active Status Filter States */
+.metric-badge--active {
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  border-color: var(--text-primary);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.16);
+}
+
+.metric-badge--active strong {
+  color: var(--bg-primary);
+}
+
+.metric-badge--operational.metric-badge--active {
+  background: var(--status-operational);
+  color: #ffffff;
+  border-color: var(--status-operational);
+  box-shadow: 0 2px 12px rgba(52, 199, 89, 0.35);
+}
+
+.metric-badge--operational.metric-badge--active strong {
+  color: #ffffff;
+}
+
+.metric-badge--degraded.metric-badge--active {
+  background: var(--status-degraded);
+  color: #ffffff;
+  border-color: var(--status-degraded);
+  box-shadow: 0 2px 12px rgba(255, 149, 0, 0.35);
+}
+
+.metric-badge--degraded.metric-badge--active strong {
+  color: #ffffff;
+}
+
+.metric-badge--outage.metric-badge--active {
+  background: var(--status-outage);
+  color: #ffffff;
+  border-color: var(--status-outage);
+  box-shadow: 0 2px 12px rgba(255, 59, 48, 0.35);
+}
+
+.metric-badge--outage.metric-badge--active strong {
+  color: #ffffff;
 }
 
 .dashboard__last-check {
