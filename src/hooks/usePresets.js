@@ -28,19 +28,40 @@ export const DEFAULT_PRESETS = [
   },
 ];
 
+function syncPresetsWithProviders(savedPresets) {
+  const currentAllIds = STATUS_PROVIDERS.map((p) => p.id);
+  const currentAiIds = STATUS_PROVIDERS.filter((p) => p.category === 'ai').map((p) => p.id);
+  const currentDevIds = STATUS_PROVIDERS.filter((p) => p.category === 'developer' || p.category === 'cloud').map((p) => p.id);
+
+  const updatedDefaults = [
+    { id: 'all', name: 'All Services', isDefault: true, serviceIds: currentAllIds },
+    { id: 'ai-core', name: 'AI Core', isDefault: true, serviceIds: currentAiIds },
+    { id: 'dev-infra', name: 'Dev & Cloud', isDefault: true, serviceIds: currentDevIds },
+  ];
+
+  const customPresets = (savedPresets || [])
+    .filter((p) => !p.isDefault && p.id !== 'all' && p.id !== 'ai-core' && p.id !== 'dev-infra')
+    .map((p) => ({
+      ...p,
+      serviceIds: p.serviceIds.map((id) => (id === 'anthropic' ? 'claude' : id)),
+    }));
+
+  return [...updatedDefaults, ...customPresets];
+}
+
 function loadSavedPresets() {
   try {
     const raw = localStorage.getItem(STORAGE_PRESETS_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+        return syncPresetsWithProviders(parsed);
       }
     }
   } catch {
     // Ignore JSON/storage parse errors
   }
-  return DEFAULT_PRESETS;
+  return syncPresetsWithProviders(DEFAULT_PRESETS);
 }
 
 function loadSavedActivePresetId(availablePresets) {
