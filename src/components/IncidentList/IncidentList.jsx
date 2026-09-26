@@ -43,14 +43,12 @@ export default function IncidentList({ service, statusData, onClose }) {
   useEffect(() => {
     if (!service) return;
 
-    // Lock background scroll on both body and html, compensating for scrollbar width
+    // Lock background scroll on body, compensating for scrollbar width
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     const prevBodyOverflow = document.body.style.overflow;
-    const prevHtmlOverflow = document.documentElement.style.overflow;
     const prevPaddingRight = document.body.style.paddingRight;
 
     document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
     if (scrollbarWidth > 0) {
       document.body.style.paddingRight = `${scrollbarWidth}px`;
     }
@@ -65,7 +63,6 @@ export default function IncidentList({ service, statusData, onClose }) {
 
     return () => {
       document.body.style.overflow = prevBodyOverflow;
-      document.documentElement.style.overflow = prevHtmlOverflow;
       document.body.style.paddingRight = prevPaddingRight;
       window.removeEventListener('keydown', handleKeyDown);
     };
@@ -118,6 +115,10 @@ export default function IncidentList({ service, statusData, onClose }) {
       aria-modal="true"
     >
       <div className="incident-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="incident-modal__drag-handle" aria-hidden="true">
+          <div className="incident-modal__drag-bar" />
+        </div>
+
         <div className="incident-modal__header">
           <div className="incident-modal__identity">
             <div className="incident-modal__logo-wrapper">
@@ -127,7 +128,7 @@ export default function IncidentList({ service, statusData, onClose }) {
                 <span>{service.name.charAt(0)}</span>
               )}
             </div>
-            <div>
+            <div className="incident-modal__titles">
               <h2 className="incident-modal__title">{service.name}</h2>
               <StatusBadge status={status} size="sm" />
             </div>
@@ -139,7 +140,7 @@ export default function IncidentList({ service, statusData, onClose }) {
             onClick={onClose}
             aria-label="Close details modal"
           >
-            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none">
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
