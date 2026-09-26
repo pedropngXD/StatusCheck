@@ -1,0 +1,118 @@
+.service-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.875rem 1.25rem;
+  background: var(--bg-card);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+  color: inherit;
+}
+
+.service-row:hover {
+  background: var(--bg-card-hover);
+  box-shadow: var(--shadow-card-hover);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+@media (prefers-color-scheme: dark) {
+  .service-row:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+}
+
+.service-row__identity {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 180px;
+  max-width: 260px;
+  flex: 1;
+}
+
+.service-row__logo-wrapper {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+  padding: 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .service-row__logo-wrapper {
+    background: rgba(255, 255, 255, 0.08);
+  }
+}
+
+.service-row__logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.service-row__name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.service-row__desc {
+  flex: 2;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+}
+
+.service-row__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  flex-shrink: 0;
+}
+
+.service-row__link-icon {
+  width: 13px;
+  height: 13px;
+  color: var(--text-secondary);
+  opacity: 0.6;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  display: block;
+}
+
+.service-row:hover .service-row__link-icon {
+  opacity: 1;
+  transform: translate(1px, -1px);
+}
+
+@media (max-width: 768px) {
+  .service-row {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .service-row__desc {
+    display: none;
+  }
+}
