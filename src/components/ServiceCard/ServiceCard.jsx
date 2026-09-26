@@ -41,6 +41,7 @@ function ServiceCard({
       onClick={onSelect ? handleClick : undefined}
       role={onSelect ? 'button' : undefined}
       tabIndex={onSelect ? 0 : undefined}
+      aria-label={onSelect ? `View status details for ${provider.name}` : undefined}
       onKeyDown={onSelect ? handleKeyDown : undefined}
     >
       <div className="service-card__header">
