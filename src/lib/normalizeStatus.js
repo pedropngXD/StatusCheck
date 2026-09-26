@@ -362,47 +362,60 @@ export function normalizeAwsJson(data) {
       updatedAt: latestLog?.timestamp
         ? new Date(Number(latestLog.timestamp) * (Number(latestLog.timestamp) > 1e11 ? 1 : 1000)).toISOString()
         : new Date().toISOString(),
-      message: latestLog?.message || latestLog?.summary || `${event.service_name || 'AWS'} incident reported.`,
+      message: (latestLog?.message || latestLog?.summary || `${event.service_name || 'AWS'} incident reported.`).trim(),
     };
   });
 
-  const components = [];
-  data.forEach((event) => {
-    if (Array.isArray(event.impacted_service_status_changes)) {
-      event.impacted_service_status_changes.slice(0, 10).forEach((sc) => {
-        components.push({
-          id: sc.service,
-          name: sc.service_name || sc.service,
-          status: String(sc.current_status) === '3' ? 'outage' : String(sc.current_status) === '2' ? 'degraded' : 'operational',
-        });
-      });
-    }
-  });
+  const componentMap = new Map();
 
+  // Core high-visibility AWS services
   const coreServices = [
-    { id: 'aws-ec2', name: 'Amazon EC2' },
-    { id: 'aws-s3', name: 'Amazon S3' },
-    { id: 'aws-rds', name: 'Amazon RDS' },
-    { id: 'aws-lambda', name: 'AWS Lambda' },
-    { id: 'aws-bedrock', name: 'Amazon Bedrock (AI)' },
-    { id: 'aws-dynamodb', name: 'Amazon DynamoDB' },
+    { id: 'aws-bedrock', name: 'Amazon Bedrock (AI)', status: 'operational' },
+    { id: 'aws-ec2', name: 'Amazon EC2', status: 'operational' },
+    { id: 'aws-s3', name: 'Amazon S3', status: 'operational' },
+    { id: 'aws-rds', name: 'Amazon RDS', status: 'operational' },
+    { id: 'aws-lambda', name: 'AWS Lambda', status: 'operational' },
+    { id: 'aws-dynamodb', name: 'Amazon DynamoDB', status: 'operational' },
+    { id: 'aws-cloudwatch', name: 'Amazon CloudWatch', status: 'operational' },
+    { id: 'aws-iam', name: 'AWS IAM', status: 'operational' },
   ];
 
   coreServices.forEach((core) => {
-    if (!components.some((c) => c.name.toLowerCase() === core.name.toLowerCase())) {
-      components.push({
-        id: core.id,
-        name: core.name,
-        status: 'operational',
+    componentMap.set(core.name.toLowerCase(), { ...core });
+  });
+
+  // Deduplicate impacted services across regional events
+  data.forEach((event) => {
+    if (Array.isArray(event.impacted_service_status_changes)) {
+      event.impacted_service_status_changes.forEach((sc) => {
+        const name = (sc.service_name || sc.service || '').trim();
+        if (!name) return;
+        const key = name.toLowerCase();
+        const itemStatus = String(sc.current_status) === '3' ? 'outage' : String(sc.current_status) === '2' ? 'degraded' : 'operational';
+
+        if (componentMap.has(key)) {
+          const existing = componentMap.get(key);
+          if (itemStatus === 'outage' || (itemStatus === 'degraded' && existing.status !== 'outage')) {
+            existing.status = itemStatus;
+          }
+        } else {
+          componentMap.set(key, {
+            id: sc.service || `aws-${key.replace(/[^a-z0-9]/g, '-')}`,
+            name,
+            status: itemStatus,
+          });
+        }
       });
     }
   });
+
+  const components = Array.from(componentMap.values());
 
   return {
     status,
     statusDescription: status === 'operational'
       ? 'All AWS services operating normally'
-      : `${data.length} AWS service event(s) reported`,
+      : `${incidents.length} regional service ${incidents.length === 1 ? 'event' : 'events'} reported`,
     indicator,
     updatedAt: new Date().toISOString(),
     incidents,

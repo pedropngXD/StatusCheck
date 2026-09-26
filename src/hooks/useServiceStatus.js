@@ -2,8 +2,63 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { STATUS_PROVIDERS } from '../lib/statusProviders';
 import { normalizeStatus, createUnknownState } from '../lib/normalizeStatus';
 
-const REQUEST_TIMEOUT_MS = 10000;
+const REQUEST_TIMEOUT_MS = 8000;
 const CORS_PROXY_URL = 'https://api.allorigins.win/raw?url=';
+const STORAGE_TELEMETRY_CACHE_KEY = 'statuscheck_telemetry_cache';
+const NO_CORS_PROVIDERS = new Set(['aws', 'cloudflare', 'stripe', 'huggingface']);
+
+function loadCachedStatuses(providers) {
+  try {
+    const raw = localStorage.getItem(STORAGE_TELEMETRY_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return null;
+
+    const initial = {};
+    let hasData = false;
+
+    providers.forEach((p) => {
+      const entry = parsed[p.id];
+      if (entry && entry.data) {
+        hasData = true;
+        initial[p.id] = {
+          data: entry.data,
+          loading: false,
+          error: null,
+          lastFetched: entry.lastFetched ? new Date(entry.lastFetched) : null,
+        };
+      } else {
+        initial[p.id] = {
+          data: null,
+          loading: true,
+          error: null,
+          lastFetched: null,
+        };
+      }
+    });
+
+    return hasData ? initial : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveTelemetryCache(statuses) {
+  try {
+    const toSave = {};
+    Object.entries(statuses).forEach(([id, val]) => {
+      if (val && val.data) {
+        toSave[id] = {
+          data: val.data,
+          lastFetched: val.lastFetched,
+        };
+      }
+    });
+    localStorage.setItem(STORAGE_TELEMETRY_CACHE_KEY, JSON.stringify(toSave));
+  } catch {
+    // Ignore storage quota errors
+  }
+}
 
 /**
  * Attempts to fetch a provider's status, first directly, then via a CORS proxy fallback if needed.
@@ -39,6 +94,21 @@ async function fetchProviderStatus(provider, signal) {
     }
     return await res.json();
   };
+
+  // For services known to block direct browser CORS (e.g. AWS, Cloudflare, Stripe, Hugging Face),
+  // go straight to proxy to eliminate 1.5s failed handshake delay
+  if (NO_CORS_PROVIDERS.has(provider.id) || provider.adapter === 'aws-json') {
+    try {
+      const proxyUrl = `/api/status?url=${encodeURIComponent(provider.apiUrl)}&_t=${Date.now()}`;
+      const proxyRes = await fetchWithTimeout(proxyUrl);
+      if (proxyRes.ok || (provider.adapter === 'api-health' && (proxyRes.status === 401 || proxyRes.status === 429))) {
+        const proxyData = await parseResponse(proxyRes);
+        return normalizeStatus(provider, proxyData);
+      }
+    } catch {
+      // Continue to fallbacks below
+    }
+  }
 
   try {
     // 1. Direct fetch attempt
@@ -97,7 +167,11 @@ async function fetchProviderStatus(provider, signal) {
 export function useServiceStatus(providers = STATUS_PROVIDERS, options = {}) {
   const { pollingInterval = 60000, enabled = true } = options;
 
+  const cachedInitial = useMemo(() => loadCachedStatuses(providers), [providers]);
+
   const [statuses, setStatuses] = useState(() => {
+    if (cachedInitial) return cachedInitial;
+
     const initial = {};
     providers.forEach((p) => {
       initial[p.id] = {
@@ -110,9 +184,16 @@ export function useServiceStatus(providers = STATUS_PROVIDERS, options = {}) {
     return initial;
   });
 
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(!cachedInitial);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastCycleAt, setLastCycleAt] = useState(null);
+  const [lastCycleAt, setLastCycleAt] = useState(() => {
+    try {
+      const savedTime = localStorage.getItem('statuscheck_last_cycle_time');
+      return savedTime ? new Date(savedTime) : null;
+    } catch {
+      return null;
+    }
+  });
 
   const activeAbortRef = useRef(null);
 
@@ -197,9 +278,22 @@ export function useServiceStatus(providers = STATUS_PROVIDERS, options = {}) {
     const duration = Math.round(performance.now() - startTime);
     console.log(`[StatusCheck] ✓ Telemetry updated for ${providers.length} services in ${duration}ms at ${new Date().toLocaleTimeString()}.`);
 
+    const now = new Date();
     setIsInitialLoading(false);
     setIsRefreshing(false);
-    setLastCycleAt(new Date());
+    setLastCycleAt(now);
+
+    try {
+      localStorage.setItem('statuscheck_last_cycle_time', now.toISOString());
+    } catch {
+      // Ignore
+    }
+
+    // Persist cache snapshot for instant cold-starts
+    setStatuses((latest) => {
+      saveTelemetryCache(latest);
+      return latest;
+    });
   }, [providers]);
 
   // Initial fetch and polling effect
