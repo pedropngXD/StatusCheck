@@ -10,7 +10,12 @@ import './ViewToggle.css';
  */
 export default function ViewToggle({ viewMode = 'grid', onChange }) {
   return (
-    <div className="view-toggle" role="group" aria-label="View layout switch">
+    <div
+      className={`view-toggle view-toggle--${viewMode}`}
+      role="group"
+      aria-label="View layout switch"
+    >
+      <div className="view-toggle__indicator" aria-hidden="true" />
       <button
         type="button"
         className={`view-toggle__btn ${viewMode === 'grid' ? 'view-toggle__btn--active' : ''}`}
