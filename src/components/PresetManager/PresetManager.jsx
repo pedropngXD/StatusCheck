@@ -133,7 +133,7 @@ export default function PresetManager({
             onClick={() => openEditModal(presets.find((p) => p.id === activePresetId))}
             aria-label="Edit active preset"
           >
-            <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M11 2a2 2 0 0 1 2.8 2.8L4.6 14 1 15l1-3.6L11 2z" />
             </svg>
             Edit
@@ -146,9 +146,9 @@ export default function PresetManager({
           onClick={openCreateModal}
           aria-label="Create new custom preset"
         >
-          <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="8" y1="2" x2="8" y2="14" />
-            <line x1="2" y1="8" x2="14" y2="8" />
+          <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <line x1="8" y1="3" x2="8" y2="13" />
+            <line x1="3" y1="8" x2="13" y2="8" />
           </svg>
           New Preset
         </button>
@@ -264,7 +264,13 @@ export default function PresetManager({
                   type="button"
                   className="apple-btn-danger"
                   onClick={handleDelete}
+                  aria-label={`Delete preset ${editingPreset.name}`}
                 >
+                  <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M2 4h12" />
+                    <path d="M5.333 4V2.667a1.333 1.333 0 0 1 1.334-1.334h2.666a1.333 1.333 0 0 1 1.334 1.334V4" />
+                    <path d="M12.667 4v9.333a1.333 1.333 0 0 1-1.334 1.334H4.667a1.333 1.333 0 0 1-1.334-1.334V4" />
+                  </svg>
                   Delete Preset
                 </button>
               ) : (
