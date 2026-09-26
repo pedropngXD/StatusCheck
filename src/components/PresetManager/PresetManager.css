@@ -260,33 +260,129 @@
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
-  background: rgba(142, 142, 147, 0.08);
-  border: 1px solid transparent;
-  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   user-select: none;
-  transition: all 0.15s ease;
+  transition: background-color 0.16s ease,
+              border-color 0.16s ease,
+              transform 0.16s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.16s ease;
+  position: relative;
   content-visibility: auto;
-  contain-intrinsic-size: 38px;
+  contain-intrinsic-size: 40px;
 }
 
 .preset-service-check:hover {
-  background: rgba(142, 142, 147, 0.15);
+  background: var(--bg-card-hover);
+  border-color: var(--card-hover-border);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-card);
+}
+
+.preset-service-check:active {
+  transform: scale(0.98);
 }
 
 .preset-service-check--selected {
-  background: rgba(52, 199, 89, 0.1);
-  border-color: rgba(52, 199, 89, 0.4);
+  background: var(--status-operational-bg);
+  border-color: rgba(52, 199, 89, 0.38);
 }
 
-.preset-service-check input {
-  accent-color: var(--status-operational);
+.preset-service-check--selected:hover {
+  background: var(--status-operational-bg);
+  border-color: var(--status-operational);
+}
+
+/* Visually hidden native checkbox, accessible for screen readers and keyboard */
+.preset-service-check__input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+/* Custom Apple-style checkbox indicator */
+.preset-service-check__box {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1.5px solid var(--border-card);
+  background: rgba(142, 142, 147, 0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #ffffff;
+  transition: background-color 0.16s ease,
+              border-color 0.16s ease,
+              box-shadow 0.16s ease,
+              transform 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.preset-service-check:hover .preset-service-check__box {
+  border-color: var(--text-secondary);
+}
+
+.preset-service-check--selected .preset-service-check__box {
+  background: var(--status-operational);
+  border-color: var(--status-operational);
+  box-shadow: 0 2px 6px rgba(52, 199, 89, 0.35);
+  transform: scale(1.05);
+}
+
+.preset-service-check__input:focus-visible + .preset-service-check__box {
+  outline: 2px solid var(--status-operational);
+  outline-offset: 2px;
+}
+
+.preset-service-check__icon {
+  width: 11px;
+  height: 11px;
+  stroke: #ffffff;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 0.14s ease,
+              transform 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.preset-service-check--selected .preset-service-check__icon {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Service logo wrapper in preset item */
+.preset-service-logo-wrapper {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid var(--logo-wrapper-border);
+  box-shadow: var(--logo-wrapper-shadow);
+  padding: 2px;
+  overflow: hidden;
 }
 
 .preset-service-logo {
-  width: 18px;
-  height: 18px;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
+  display: block;
+}
+
+.preset-service-logo-fallback {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #1d1d1f;
+  text-transform: uppercase;
 }
 
 .preset-service-name {

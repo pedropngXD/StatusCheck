@@ -221,17 +221,35 @@ export default function PresetManager({
                       >
                         <input
                           type="checkbox"
+                          className="preset-service-check__input"
                           checked={isChecked}
                           onChange={() => toggleService(service.id)}
                         />
-                        {logoSrc && (
-                          <img
-                            src={logoSrc}
-                            alt=""
-                            className="preset-service-logo"
-                            aria-hidden="true"
-                          />
-                        )}
+                        <span className="preset-service-check__box" aria-hidden="true">
+                          <svg
+                            viewBox="0 0 16 16"
+                            className="preset-service-check__icon"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.4"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <polyline points="3.5 8.5 6.5 11.5 12.5 4.5" />
+                          </svg>
+                        </span>
+                        <div className="preset-service-logo-wrapper">
+                          {logoSrc ? (
+                            <img
+                              src={logoSrc}
+                              alt=""
+                              className="preset-service-logo"
+                              aria-hidden="true"
+                            />
+                          ) : (
+                            <span className="preset-service-logo-fallback">{service.name.charAt(0)}</span>
+                          )}
+                        </div>
                         <span className="preset-service-name">{service.name}</span>
                       </label>
                     );
