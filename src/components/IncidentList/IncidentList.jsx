@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import StatusBadge from '../StatusBadge';
 import { getLogoUrl } from '../../assets/logos';
 import './IncidentList.css';
@@ -13,8 +13,22 @@ import './IncidentList.css';
  * @param {() => void} props.onClose - Modal close handler
  */
 export default function IncidentList({ service, statusData, onClose }) {
+  const backdropRef = useRef(null);
+
   useEffect(() => {
     if (!service) return;
+
+    // Lock background scroll on both body and html, compensating for scrollbar width
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    const prevPaddingRight = document.body.style.paddingRight;
+
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
 
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
@@ -23,7 +37,31 @@ export default function IncidentList({ service, statusData, onClose }) {
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+
+    // Prevent scrolling directly on the backdrop area
+    const backdropEl = backdropRef.current;
+    const preventBackdropScroll = (e) => {
+      if (e.target === backdropEl) {
+        e.preventDefault();
+      }
+    };
+
+    if (backdropEl) {
+      backdropEl.addEventListener('wheel', preventBackdropScroll, { passive: false });
+      backdropEl.addEventListener('touchmove', preventBackdropScroll, { passive: false });
+    }
+
+    return () => {
+      document.body.style.overflow = prevBodyOverflow;
+      document.documentElement.style.overflow = prevHtmlOverflow;
+      document.body.style.paddingRight = prevPaddingRight;
+      window.removeEventListener('keydown', handleKeyDown);
+
+      if (backdropEl) {
+        backdropEl.removeEventListener('wheel', preventBackdropScroll);
+        backdropEl.removeEventListener('touchmove', preventBackdropScroll);
+      }
+    };
   }, [service, onClose]);
 
   if (!service) return null;
@@ -34,7 +72,13 @@ export default function IncidentList({ service, statusData, onClose }) {
   const status = statusData?.status || 'unknown';
 
   return (
-    <div className="incident-modal-backdrop" onClick={onClose} role="dialog" aria-modal="true">
+    <div
+      ref={backdropRef}
+      className="incident-modal-backdrop"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+    >
       <div className="incident-modal" onClick={(e) => e.stopPropagation()}>
         <div className="incident-modal__header">
           <div className="incident-modal__identity">

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getLogoUrl } from '../../assets/logos';
 import './PresetManager.css';
 
@@ -19,6 +19,7 @@ export default function PresetManager({
   const [editingPreset, setEditingPreset] = useState(null);
   const [presetName, setPresetName] = useState('');
   const [selectedIds, setSelectedIds] = useState([]);
+  const backdropRef = useRef(null);
 
   const openCreateModal = () => {
     setEditingPreset(null);
@@ -40,6 +41,53 @@ export default function PresetManager({
     setPresetName('');
     setSelectedIds([]);
   };
+
+  useEffect(() => {
+    if (!modalOpen) return;
+
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    const prevPaddingRight = document.body.style.paddingRight;
+
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        closeModal();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    const backdropEl = backdropRef.current;
+    const preventBackdropScroll = (e) => {
+      if (e.target === backdropEl) {
+        e.preventDefault();
+      }
+    };
+
+    if (backdropEl) {
+      backdropEl.addEventListener('wheel', preventBackdropScroll, { passive: false });
+      backdropEl.addEventListener('touchmove', preventBackdropScroll, { passive: false });
+    }
+
+    return () => {
+      document.body.style.overflow = prevBodyOverflow;
+      document.documentElement.style.overflow = prevHtmlOverflow;
+      document.body.style.paddingRight = prevPaddingRight;
+      window.removeEventListener('keydown', handleKeyDown);
+
+      if (backdropEl) {
+        backdropEl.removeEventListener('wheel', preventBackdropScroll);
+        backdropEl.removeEventListener('touchmove', preventBackdropScroll);
+      }
+    };
+  }, [modalOpen]);
 
   const toggleService = (id) => {
     setSelectedIds((prev) =>
@@ -125,7 +173,13 @@ export default function PresetManager({
 
       {/* Preset Modal */}
       {modalOpen && (
-        <div className="preset-modal-backdrop" onClick={closeModal} role="dialog" aria-modal="true">
+        <div
+          ref={backdropRef}
+          className="preset-modal-backdrop"
+          onClick={closeModal}
+          role="dialog"
+          aria-modal="true"
+        >
           <form className="preset-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSave}>
             <div className="preset-modal__header">
               <h3 className="preset-modal__title">
