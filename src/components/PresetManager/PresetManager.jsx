@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { getLogoUrl } from '../../assets/logos';
 import './PresetManager.css';
 
@@ -20,6 +20,46 @@ export default function PresetManager({
   const [presetName, setPresetName] = useState('');
   const [selectedIds, setSelectedIds] = useState([]);
   const backdropRef = useRef(null);
+  const scrollRef = useRef(null);
+
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const updateScrollState = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    setCanScrollLeft(scrollLeft > 6);
+    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 8);
+  }, []);
+
+  useEffect(() => {
+    updateScrollState();
+    const el = scrollRef.current;
+    if (!el) return;
+
+    let ro = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(() => {
+        updateScrollState();
+      });
+      ro.observe(el);
+    }
+
+    window.addEventListener('resize', updateScrollState);
+    return () => {
+      window.removeEventListener('resize', updateScrollState);
+      if (ro) ro.disconnect();
+    };
+  }, [updateScrollState, presets]);
+
+  const handleScrollLeft = () => {
+    scrollRef.current?.scrollBy({ left: -160, behavior: 'smooth' });
+  };
+
+  const handleScrollRight = () => {
+    scrollRef.current?.scrollBy({ left: 160, behavior: 'smooth' });
+  };
 
   const openCreateModal = () => {
     setEditingPreset(null);
@@ -103,53 +143,109 @@ export default function PresetManager({
   };
 
   return (
-    <div className="preset-manager">
-      <nav className="preset-tabs" aria-label="Service Presets">
-        {presets.map((preset) => {
-          const isActive = preset.id === activePresetId;
-          return (
-            <button
-              key={preset.id}
-              type="button"
-              className={`preset-pill ${isActive ? 'preset-pill--active' : ''}`}
-              onClick={() => onSelectPreset(preset.id)}
+    <div className="preset-manager-container">
+      {canScrollLeft && (
+        <div className="preset-scroll-fade preset-scroll-fade--left">
+          <button
+            type="button"
+            className="preset-scroll-arrow-btn"
+            onClick={handleScrollLeft}
+            aria-label="Scroll presets left"
+          >
+            <svg
+              viewBox="0 0 16 16"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
             >
-              <span>{preset.name}</span>
-              <span className="preset-pill__count">{preset.serviceIds?.length ?? 0}</span>
-            </button>
-          );
-        })}
-      </nav>
+              <polyline points="10 3 5 8 10 13" />
+            </svg>
+          </button>
+        </div>
+      )}
 
-      <div className="preset-manager__actions">
-        {/* If current preset is a custom preset, allow editing */}
-        {presets.find((p) => p.id === activePresetId && !p.isDefault) && (
+      <div
+        ref={scrollRef}
+        className="preset-manager"
+        onScroll={updateScrollState}
+      >
+        <nav className="preset-tabs" aria-label="Service Presets">
+          {presets.map((preset) => {
+            const isActive = preset.id === activePresetId;
+            return (
+              <button
+                key={preset.id}
+                type="button"
+                className={`preset-pill ${isActive ? 'preset-pill--active' : ''}`}
+                onClick={() => onSelectPreset(preset.id)}
+              >
+                <span>{preset.name}</span>
+                <span className="preset-pill__count">{preset.serviceIds?.length ?? 0}</span>
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="preset-manager__actions">
+          {/* If current preset is a custom preset, allow editing */}
+          {presets.find((p) => p.id === activePresetId && !p.isDefault) && (
+            <button
+              type="button"
+              className="preset-action-btn"
+              onClick={() => openEditModal(presets.find((p) => p.id === activePresetId))}
+              aria-label="Edit active preset"
+            >
+              <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M11 2a2 2 0 0 1 2.8 2.8L4.6 14 1 15l1-3.6L11 2z" />
+              </svg>
+              Edit
+            </button>
+          )}
+
           <button
             type="button"
             className="preset-action-btn"
-            onClick={() => openEditModal(presets.find((p) => p.id === activePresetId))}
-            aria-label="Edit active preset"
+            onClick={openCreateModal}
+            aria-label="Create new custom preset"
           >
-            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M11 2a2 2 0 0 1 2.8 2.8L4.6 14 1 15l1-3.6L11 2z" />
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <line x1="8" y1="3" x2="8" y2="13" />
+              <line x1="3" y1="8" x2="13" y2="8" />
             </svg>
-            Edit
+            New Preset
           </button>
-        )}
-
-        <button
-          type="button"
-          className="preset-action-btn"
-          onClick={openCreateModal}
-          aria-label="Create new custom preset"
-        >
-          <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <line x1="8" y1="3" x2="8" y2="13" />
-            <line x1="3" y1="8" x2="13" y2="8" />
-          </svg>
-          New Preset
-        </button>
+        </div>
       </div>
+
+      {canScrollRight && (
+        <div className="preset-scroll-fade preset-scroll-fade--right">
+          <button
+            type="button"
+            className="preset-scroll-arrow-btn"
+            onClick={handleScrollRight}
+            aria-label="Scroll presets right"
+          >
+            <svg
+              viewBox="0 0 16 16"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <polyline points="6 3 11 8 6 13" />
+            </svg>
+          </button>
+        </div>
+      )}
 
       {/* Preset Modal */}
       {modalOpen && (
