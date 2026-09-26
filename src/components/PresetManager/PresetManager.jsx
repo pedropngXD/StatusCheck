@@ -47,11 +47,9 @@ export default function PresetManager({
 
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     const prevBodyOverflow = document.body.style.overflow;
-    const prevHtmlOverflow = document.documentElement.style.overflow;
     const prevPaddingRight = document.body.style.paddingRight;
 
     document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
     if (scrollbarWidth > 0) {
       document.body.style.paddingRight = `${scrollbarWidth}px`;
     }
@@ -66,7 +64,6 @@ export default function PresetManager({
 
     return () => {
       document.body.style.overflow = prevBodyOverflow;
-      document.documentElement.style.overflow = prevHtmlOverflow;
       document.body.style.paddingRight = prevPaddingRight;
       window.removeEventListener('keydown', handleKeyDown);
     };
@@ -164,17 +161,21 @@ export default function PresetManager({
           aria-modal="true"
         >
           <form className="preset-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSave}>
+            <div className="preset-modal__drag-handle" aria-hidden="true">
+              <div className="preset-modal__drag-bar" />
+            </div>
+
             <div className="preset-modal__header">
               <h3 className="preset-modal__title">
                 {editingPreset ? `Edit "${editingPreset.name}"` : 'Create Custom Preset'}
               </h3>
               <button
                 type="button"
-                className="incident-modal__close-btn"
+                className="preset-modal__close-btn"
                 onClick={closeModal}
                 aria-label="Close preset modal"
               >
-                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none">
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
@@ -191,7 +192,6 @@ export default function PresetManager({
                   placeholder="e.g. My Daily Stack"
                   value={presetName}
                   onChange={(e) => setPresetName(e.target.value)}
-                  autoFocus
                   required
                 />
               </div>
