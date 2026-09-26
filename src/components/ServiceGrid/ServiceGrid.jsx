@@ -18,6 +18,7 @@ export default function ServiceGrid({
   statuses = {},
   viewMode = 'grid',
   loading = false,
+  refreshing = false,
   onSelectService,
   onResetFilter,
 }) {
@@ -72,7 +73,7 @@ export default function ServiceGrid({
   }
 
   return (
-    <div className={`service-grid ${isGrid ? 'service-grid--cards' : 'service-grid--rows'}`}>
+    <div className={`service-grid ${isGrid ? 'service-grid--cards' : 'service-grid--rows'} ${refreshing ? 'service-grid--refreshing' : ''}`}>
       {providers.map((provider) => {
         const statusEntry = statuses[provider.id];
         const statusData = statusEntry?.data || null;

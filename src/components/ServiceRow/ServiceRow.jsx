@@ -19,7 +19,7 @@ export default function ServiceRow({
 }) {
   const logoSrc = getLogoUrl(provider.logo);
   const status = loading ? 'loading' : (statusData?.status || 'unknown');
-  const description = statusData?.statusDescription || (loading ? 'Checking status...' : provider.description);
+  const description = loading ? 'Checking status...' : (statusData?.statusDescription || provider.description);
 
   return (
     <div

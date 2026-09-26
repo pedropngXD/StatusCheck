@@ -21,7 +21,8 @@ async function fetchProviderStatus(provider, signal) {
     try {
       const response = await fetch(url, {
         signal: controller.signal,
-        headers: { Accept: 'application/json' },
+        headers: { Accept: 'application/json, text/html, */*' },
+        cache: 'no-cache', // Bypass local browser disk/memory cache for fresh live data
       });
       clearTimeout(timer);
       return response;
@@ -56,9 +57,9 @@ async function fetchProviderStatus(provider, signal) {
       throw directErr;
     }
 
-    // 2. Try Vercel Serverless Function proxy (/api/status?url=...)
+    // 2. Try Vercel Serverless Function proxy (/api/status?url=...) with cache buster
     try {
-      const vercelProxyUrl = `/api/status?url=${encodeURIComponent(provider.apiUrl)}`;
+      const vercelProxyUrl = `/api/status?url=${encodeURIComponent(provider.apiUrl)}&_t=${Date.now()}`;
       const vercelRes = await fetchWithTimeout(vercelProxyUrl);
       if (vercelRes.ok || (provider.adapter === 'api-health' && (vercelRes.status === 401 || vercelRes.status === 429))) {
         const vercelData = await parseResponse(vercelRes);
@@ -125,9 +126,37 @@ export function useServiceStatus(providers = STATUS_PROVIDERS, options = {}) {
 
     setIsRefreshing(true);
 
+    // Immediately put every single provider into loading state so badges show 'Checking...'
+    setStatuses((prev) => {
+      const next = { ...prev };
+      providers.forEach((p) => {
+        next[p.id] = {
+          ...next[p.id],
+          loading: true,
+        };
+      });
+      return next;
+    });
+
+    const startTime = performance.now();
+    console.log(`[StatusCheck] 🔄 Fetching live status for ${providers.length} services...`);
+
     const promises = providers.map(async (provider) => {
       try {
         const normalized = await fetchProviderStatus(provider, controller.signal);
+        if (controller.signal.aborted) return null;
+
+        // Progressively update each service card as soon as its response arrives
+        setStatuses((prev) => ({
+          ...prev,
+          [provider.id]: {
+            data: normalized,
+            loading: false,
+            error: null,
+            lastFetched: new Date(),
+          },
+        }));
+
         return {
           id: provider.id,
           success: true,
@@ -138,6 +167,17 @@ export function useServiceStatus(providers = STATUS_PROVIDERS, options = {}) {
         if (controller.signal.aborted) {
           return null; // Ignore aborted requests
         }
+
+        setStatuses((prev) => ({
+          ...prev,
+          [provider.id]: {
+            data: createUnknownState(err.message || 'Fetch failed'),
+            loading: false,
+            error: err.message,
+            lastFetched: new Date(),
+          },
+        }));
+
         return {
           id: provider.id,
           success: false,
@@ -147,28 +187,15 @@ export function useServiceStatus(providers = STATUS_PROVIDERS, options = {}) {
       }
     });
 
-    const results = await Promise.allSettled(promises);
+    await Promise.allSettled(promises);
 
     // If cycle was cancelled midway, do not update state
     if (controller.signal.aborted) {
       return;
     }
 
-    setStatuses((prev) => {
-      const next = { ...prev };
-      results.forEach((item) => {
-        if (item.status === 'fulfilled' && item.value) {
-          const { id, data, error } = item.value;
-          next[id] = {
-            data,
-            loading: false,
-            error,
-            lastFetched: new Date(),
-          };
-        }
-      });
-      return next;
-    });
+    const duration = Math.round(performance.now() - startTime);
+    console.log(`[StatusCheck] ✓ Telemetry updated for ${providers.length} services in ${duration}ms at ${new Date().toLocaleTimeString()}.`);
 
     setIsInitialLoading(false);
     setIsRefreshing(false);

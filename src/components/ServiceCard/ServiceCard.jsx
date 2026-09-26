@@ -19,7 +19,7 @@ export default function ServiceCard({
 }) {
   const logoSrc = getLogoUrl(provider.logo);
   const status = loading ? 'loading' : (statusData?.status || 'unknown');
-  const description = statusData?.statusDescription || (loading ? 'Checking status...' : provider.description);
+  const description = loading ? 'Checking status...' : (statusData?.statusDescription || provider.description);
   const componentCount = statusData?.components?.length || 0;
   const activeIncidents = statusData?.incidents?.length || 0;
 

@@ -58,6 +58,13 @@
   border: 1px solid rgba(52, 199, 89, 0.2);
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  transition: all 0.2s ease;
+}
+
+.dashboard__live-tag--updating {
+  color: var(--status-degraded);
+  background: var(--status-degraded-bg);
+  border-color: rgba(255, 149, 0, 0.3);
 }
 
 .dashboard__live-dot {
@@ -145,6 +152,27 @@
 
 .metric-badge--outage strong {
   color: var(--status-outage);
+}
+
+.dashboard__last-check {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--bg-card);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-card);
+  font-family: var(--font-mono);
+}
+
+.dashboard__last-check-icon {
+  color: var(--status-operational);
+  font-weight: 700;
+  font-family: var(--font-sans);
 }
 
 /* Controls Toolbar */

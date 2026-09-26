@@ -62,9 +62,9 @@ export default function DashboardPage() {
           </div>
 
           <div className="dashboard__telemetry">
-            <span className="dashboard__live-tag">
+            <span className={`dashboard__live-tag ${refreshing ? 'dashboard__live-tag--updating' : ''}`}>
               <span className="dashboard__live-dot" />
-              Live
+              {refreshing ? 'Checking telemetry...' : 'Live'}
             </span>
 
             <button
@@ -89,7 +89,7 @@ export default function DashboardPage() {
                 <path d="M14.5 8a6.5 6.5 0 0 1-11.23 4.46L1.5 11" />
                 <path d="M1.5 14.5V11h3.5" />
               </svg>
-              <span>{refreshing ? 'Updating...' : 'Refresh'}</span>
+              <span>{refreshing ? 'Checking...' : 'Refresh'}</span>
             </button>
           </div>
         </div>
@@ -113,7 +113,8 @@ export default function DashboardPage() {
             </div>
           )}
           {lastCycleAt && (
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginLeft: 'auto' }}>
+            <span className="dashboard__last-check">
+              <span className="dashboard__last-check-icon">✓</span>
               Checked at {lastCycleAt.toLocaleTimeString()}
             </span>
           )}
@@ -177,6 +178,7 @@ export default function DashboardPage() {
         statuses={statuses}
         viewMode={viewMode}
         loading={loading}
+        refreshing={refreshing}
         onSelectService={(service) => setSelectedService(service)}
         onResetFilter={() => {
           setSearchQuery('');
