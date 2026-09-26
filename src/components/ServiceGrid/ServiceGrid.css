@@ -93,3 +93,36 @@
   max-width: 380px;
   margin: 0 0 1.5rem 0;
 }
+
+.service-grid__empty-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.service-grid__empty-btn:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+}
+
+.service-grid__empty-btn:active {
+  transform: scale(0.96);
+}
+
+.service-grid__empty-btn:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 2px;
+}

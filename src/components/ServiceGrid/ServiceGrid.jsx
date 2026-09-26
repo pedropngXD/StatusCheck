@@ -62,10 +62,14 @@ export default function ServiceGrid({
         {onResetFilter && (
           <button
             type="button"
-            className="apple-button-secondary"
+            className="service-grid__empty-btn"
             onClick={onResetFilter}
           >
-            Show All Services
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M1.5 8a6.5 6.5 0 0 1 11.23-4.46L14.5 5" />
+              <path d="M14.5 1.5v3.5h-3.5" />
+            </svg>
+            <span>Show All Services</span>
           </button>
         )}
       </div>
