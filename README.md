@@ -2,6 +2,8 @@
 
 Dashboard de telemetria e monitoramento de integridade em tempo real para 22 serviços de IA e infraestrutura.
 
+Acesse: [status-check-eosin.vercel.app](https://status-check-eosin.vercel.app)
+
 ## Visão Geral
 
 Interface unificada desenvolvida com React 19 e Vite para acompanhar o status operacional, componentes e incidentes de serviços essenciais de inteligência artificial e computação em nuvem.
@@ -63,7 +65,9 @@ StatusCheck/
 
 ## Deploy
 
-Configurado para deploy imediato na [Vercel](https://vercel.com). A pasta `api/` é detectada e implantada automaticamente como Serverless Functions.
+Aplicação em produção: [status-check-eosin.vercel.app](https://status-check-eosin.vercel.app)
+
+A pasta `api/` é detectada e implantada automaticamente como Serverless Functions.
 
 ## Licença
 
