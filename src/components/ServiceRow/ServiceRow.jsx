@@ -1,7 +1,6 @@
 import { memo } from 'react';
 import StatusBadge from '../StatusBadge';
 import { getLogoUrl } from '../../assets/logos';
-import './ServiceRow.css';
 
 function ServiceRow({
   provider,
@@ -26,48 +25,47 @@ function ServiceRow({
 
   return (
     <div
-      className="service-row"
+      className="flex items-center justify-between gap-4 px-5 py-3.5 bg-[var(--bg-card)] border border-[var(--border-card)] rounded-[var(--radius-md)] shadow-[var(--shadow-card)] transition-all duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform no-underline text-inherit cursor-pointer select-none hover:bg-[var(--bg-card-hover)] hover:shadow-[var(--shadow-card-hover)] hover:border-[var(--card-hover-border)] active:scale-[0.99] active:duration-75 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] group max-md:flex-nowrap max-md:gap-2.5 max-md:px-3.5 max-md:py-3"
       onClick={onSelect ? handleClick : undefined}
       role={onSelect ? 'button' : undefined}
       tabIndex={onSelect ? 0 : undefined}
       aria-label={onSelect ? `View status details for ${provider.name}` : undefined}
       onKeyDown={onSelect ? handleKeyDown : undefined}
     >
-      <div className="service-row__identity">
-        <div className="service-row__logo-wrapper">
+      <div className="flex items-center gap-3 min-w-[180px] max-w-[260px] flex-1 max-md:min-w-0 max-md:max-w-none max-md:gap-2.5">
+        <div className="w-7 h-7 rounded-[var(--radius-sm)] bg-white flex items-center justify-center shrink-0 shadow-[var(--logo-wrapper-shadow)] border border-[var(--logo-wrapper-border)] overflow-hidden p-1">
           {logoSrc ? (
             <img
               src={logoSrc}
               alt={`${provider.name} logo`}
-              className="service-row__logo"
+              className="w-full h-full object-contain block"
               loading="lazy"
             />
           ) : (
-            <span className="service-row__logo-fallback">{provider.name.charAt(0)}</span>
+            <span className="text-[0.6875rem] font-bold text-[#1d1d1f] uppercase">{provider.name.charAt(0)}</span>
           )}
         </div>
-        <h3 className="service-row__name">{provider.name}</h3>
+        <h3 className="text-[0.9375rem] font-semibold m-0 text-[var(--text-primary)] whitespace-nowrap overflow-hidden text-ellipsis max-md:text-[0.875rem]">{provider.name}</h3>
       </div>
 
-      <p className="service-row__desc">{description}</p>
+      <p className="flex-[2] text-[0.8125rem] text-[var(--text-secondary)] whitespace-nowrap overflow-hidden text-ellipsis m-0 max-md:hidden">{description}</p>
 
-      <div className="service-row__actions">
+      <div className="flex items-center gap-3.5 shrink-0 max-md:gap-2">
         <StatusBadge status={status} size="sm" />
 
         <a
           href={provider.pageUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="service-row__link"
+          className="inline-flex items-center justify-center w-8 h-8 rounded-[var(--radius-sm)] text-[var(--text-secondary)] bg-[rgba(142,142,147,0.08)] border border-[var(--border-subtle)] no-underline shrink-0 transition-all duration-[180ms] ease-out group-hover:border-[var(--card-hover-border)] group-hover:text-[var(--text-primary)] hover:!bg-[rgba(142,142,147,0.22)] hover:!border-[var(--text-secondary)] hover:!text-[var(--text-primary)] hover:-translate-y-px active:scale-[0.92] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)]"
           onClick={(e) => e.stopPropagation()}
           aria-label={`Open official status page for ${provider.name}`}
           title={`Open official status page for ${provider.name}`}
         >
           <svg
-            className="service-row__link-icon"
+            className="w-[15px] h-[15px] stroke-currentColor transition-transform duration-[180ms] ease-out block hover:translate-x-px hover:-translate-y-px"
             viewBox="0 0 16 16"
             fill="none"
-            stroke="currentColor"
             strokeWidth="1.8"
             strokeLinecap="round"
             strokeLinejoin="round"
