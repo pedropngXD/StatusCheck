@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { getLogoUrl } from '../../assets/logos';
-import './PresetManager.css';
 
 export default function PresetManager({
   presets = [],
@@ -136,26 +135,16 @@ export default function PresetManager({
   };
 
   return (
-    <div className="preset-manager-container">
+    <div className="relative w-full mb-5">
       {canScrollLeft && (
-        <div className="preset-scroll-fade preset-scroll-fade--left">
+        <div className="absolute top-0 bottom-[6px] w-12 pointer-events-none flex items-center z-10 transition-opacity duration-200 left-0 justify-start bg-gradient-to-l from-transparent to-[var(--bg-primary)] to-75% pl-0.5">
           <button
             type="button"
-            className="preset-scroll-arrow-btn"
+            className="pointer-events-auto w-7 h-7 rounded-full bg-[var(--bg-card)] border border-[var(--border-card)] shadow-[0_2px_8px_rgba(0,0,0,0.18)] flex items-center justify-center text-[var(--text-primary)] cursor-pointer transition-all duration-[160ms] ease-[cubic-bezier(0.16,1,0.3,1)] p-0 shrink-0 hover:bg-[var(--bg-card-hover)] hover:border-[var(--card-hover-border)] hover:scale-105 active:scale-[0.92]"
             onClick={handleScrollLeft}
             aria-label="Scroll presets left"
           >
-            <svg
-              viewBox="0 0 16 16"
-              width="14"
-              height="14"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
+            <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <polyline points="10 3 5 8 10 13" />
             </svg>
           </button>
@@ -164,31 +153,33 @@ export default function PresetManager({
 
       <div
         ref={scrollRef}
-        className="preset-manager"
+        className="flex items-center justify-between gap-3 w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pb-1.5 scroll-smooth"
         onScroll={updateScrollState}
       >
-        <nav className="preset-tabs" aria-label="Service Presets">
+        <nav className="flex items-center gap-2 shrink-0" aria-label="Service Presets">
           {presets.map((preset) => {
             const isActive = preset.id === activePresetId;
             return (
               <button
                 key={preset.id}
                 type="button"
-                className={`preset-pill ${isActive ? 'preset-pill--active' : ''}`}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 border rounded-full font-sans text-[0.8125rem] font-medium cursor-pointer whitespace-nowrap transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] ${isActive ? 'bg-[var(--text-primary)] text-[var(--bg-primary)] border-[var(--text-primary)] shadow-[0_2px_8px_rgba(0,0,0,0.15)]' : 'bg-[var(--bg-card)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-card-hover)] hover:text-[var(--text-primary)] hover:border-black/15'}`}
                 onClick={() => onSelectPreset(preset.id)}
               >
                 <span>{preset.name}</span>
-                <span className="preset-pill__count">{preset.serviceIds?.length ?? 0}</span>
+                <span className={`text-xs px-1.5 rounded-full ${isActive ? 'bg-white/25' : 'bg-[rgba(142,142,147,0.2)] opacity-75'}`}>
+                  {preset.serviceIds?.length ?? 0}
+                </span>
               </button>
             );
           })}
         </nav>
 
-        <div className="preset-manager__actions">
+        <div className="flex items-center gap-2">
           {presets.find((p) => p.id === activePresetId && !p.isDefault) && (
             <button
               type="button"
-              className="preset-action-btn"
+              className="inline-flex items-center gap-1.5 px-3.5 h-8 bg-[rgba(142,142,147,0.08)] border border-[var(--border-subtle)] text-[var(--text-secondary)] rounded-full font-sans text-[0.8125rem] font-medium cursor-pointer whitespace-nowrap transition-all duration-[160ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-[var(--card-hover-border)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card-hover)] hover:-translate-y-px hover:shadow-[var(--shadow-card)] active:scale-95"
               onClick={() => openEditModal(presets.find((p) => p.id === activePresetId))}
               aria-label="Edit active preset"
             >
@@ -201,7 +192,7 @@ export default function PresetManager({
 
           <button
             type="button"
-            className="preset-action-btn"
+            className="inline-flex items-center gap-1.5 px-3.5 h-8 bg-[rgba(142,142,147,0.08)] border border-[var(--border-subtle)] text-[var(--text-secondary)] rounded-full font-sans text-[0.8125rem] font-medium cursor-pointer whitespace-nowrap transition-all duration-[160ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-[var(--card-hover-border)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card-hover)] hover:-translate-y-px hover:shadow-[var(--shadow-card)] active:scale-[0.96]"
             onClick={openCreateModal}
             aria-label="Create new custom preset"
           >
@@ -215,24 +206,14 @@ export default function PresetManager({
       </div>
 
       {canScrollRight && (
-        <div className="preset-scroll-fade preset-scroll-fade--right">
+        <div className="absolute top-0 bottom-[6px] w-12 pointer-events-none flex items-center z-10 transition-opacity duration-200 right-0 justify-end bg-gradient-to-r from-transparent to-[var(--bg-primary)] to-75% pr-0.5">
           <button
             type="button"
-            className="preset-scroll-arrow-btn"
+            className="pointer-events-auto w-7 h-7 rounded-full bg-[var(--bg-card)] border border-[var(--border-card)] shadow-[0_2px_8px_rgba(0,0,0,0.18)] flex items-center justify-center text-[var(--text-primary)] cursor-pointer transition-all duration-[160ms] ease-[cubic-bezier(0.16,1,0.3,1)] p-0 shrink-0 hover:bg-[var(--bg-card-hover)] hover:border-[var(--card-hover-border)] hover:scale-105 active:scale-[0.92]"
             onClick={handleScrollRight}
             aria-label="Scroll presets right"
           >
-            <svg
-              viewBox="0 0 16 16"
-              width="14"
-              height="14"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
+            <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <polyline points="6 3 11 8 6 13" />
             </svg>
           </button>
@@ -242,23 +223,27 @@ export default function PresetManager({
       {modalOpen && (
         <div
           ref={backdropRef}
-          className="preset-modal-backdrop"
+          className="fixed inset-0 bg-black/45 backdrop-blur-[8px] z-[1000] flex items-center justify-center p-6 animate-[modal-fade-in_0.18s_cubic-bezier(0.16,1,0.3,1)] overscroll-contain max-md:p-0 max-md:items-end"
           onClick={closeModal}
           role="dialog"
           aria-modal="true"
         >
-          <form className="preset-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSave}>
-            <div className="preset-modal__drag-handle" aria-hidden="true">
-              <div className="preset-modal__drag-bar" />
+          <form 
+            className="bg-[var(--bg-card)] border border-[var(--border-card)] rounded-[var(--radius-lg)] shadow-[0_24px_48px_rgba(0,0,0,0.28)] w-full max-w-[580px] max-h-[min(85vh,760px)] flex flex-col overflow-hidden overscroll-contain relative max-md:max-w-full max-md:h-[88dvh] max-md:max-h-[88dvh] max-md:rounded-t-[20px] max-md:rounded-b-none max-md:border-b-0 max-md:border-x-0 max-md:shadow-[0_-8px_32px_rgba(0,0,0,0.25)] max-md:animate-[modal-sheet-slide-up_0.24s_cubic-bezier(0.16,1,0.3,1)]" 
+            onClick={(e) => e.stopPropagation()} 
+            onSubmit={handleSave}
+          >
+            <div className="hidden max-md:flex items-center justify-center pt-2.5 pb-0.5 bg-[var(--bg-card)] shrink-0" aria-hidden="true">
+              <div className="w-9 h-[5px] rounded-[3px] bg-[rgba(142,142,147,0.35)]" />
             </div>
 
-            <div className="preset-modal__header">
-              <h3 className="preset-modal__title">
+            <div className="flex items-center justify-between p-5 border-b border-[var(--border-subtle)] shrink-0 bg-[var(--bg-card)] max-md:py-3 max-md:px-5 max-md:sticky max-md:top-0 max-md:z-10">
+              <h3 className="m-0 text-[1.125rem] font-semibold text-[var(--text-primary)]">
                 {editingPreset ? `Edit "${editingPreset.name}"` : 'Create Custom Preset'}
               </h3>
               <button
                 type="button"
-                className="preset-modal__close-btn"
+                className="bg-[rgba(142,142,147,0.15)] border-none w-8 h-8 rounded-full flex items-center justify-center text-[var(--text-secondary)] cursor-pointer shrink-0 transition-all duration-200 hover:bg-[rgba(142,142,147,0.25)] hover:text-[var(--text-primary)] active:scale-[0.92] max-md:w-9 max-md:h-9"
                 onClick={closeModal}
                 aria-label="Close preset modal"
               >
@@ -269,13 +254,13 @@ export default function PresetManager({
               </button>
             </div>
 
-            <div className="preset-modal__body">
-              <div className="preset-input-group">
-                <label htmlFor="preset-name-input">Preset Name</label>
+            <div className="flex-1 min-h-0 p-6 overflow-y-auto overscroll-contain flex flex-col gap-5 [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:rgba(142,142,147,0.35)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-[rgba(142,142,147,0.3)] [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-[rgba(142,142,147,0.55)] max-md:p-5 max-md:gap-4">
+              <div>
+                <label htmlFor="preset-name-input" className="block text-[0.8125rem] font-semibold text-[var(--text-secondary)] uppercase tracking-[0.04em] mb-2">Preset Name</label>
                 <input
                   id="preset-name-input"
                   type="text"
-                  className="preset-input"
+                  className="w-full p-3 font-sans text-[0.9375rem] rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--input-bg)] text-[var(--text-primary)] outline-none transition-all duration-200 focus:border-[var(--text-primary)] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.08)]"
                   placeholder="e.g. My Daily Stack"
                   value={presetName}
                   onChange={(e) => setPresetName(e.target.value)}
@@ -284,19 +269,19 @@ export default function PresetManager({
               </div>
 
               <div>
-                <div className="preset-selector-header">
-                  <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-[0.8125rem] font-semibold text-[var(--text-secondary)]">
                     Monitored Services ({selectedIds.length}/{allServices.length})
                   </label>
-                  <div className="preset-quick-btns">
-                    <button type="button" className="preset-quick-btn" onClick={selectAll}>All</button>
-                    <button type="button" className="preset-quick-btn" onClick={selectAiOnly}>AI</button>
-                    <button type="button" className="preset-quick-btn" onClick={selectDevOnly}>Dev</button>
-                    <button type="button" className="preset-quick-btn" onClick={clearAll}>Clear</button>
+                  <div className="flex gap-1.5">
+                    <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectAll}>All</button>
+                    <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectAiOnly}>AI</button>
+                    <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectDevOnly}>Dev</button>
+                    <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={clearAll}>Clear</button>
                   </div>
                 </div>
 
-                <div className="preset-services-grid" style={{ marginTop: '0.75rem' }}>
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-2 max-h-[280px] overflow-y-auto overscroll-contain p-0.5 [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:rgba(142,142,147,0.35)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-[rgba(142,142,147,0.3)] [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-[rgba(142,142,147,0.55)] max-md:grid-cols-[repeat(auto-fill,minmax(130px,1fr))] max-md:max-h-none max-md:overflow-visible">
                   {allServices.map((service) => {
                     const isChecked = selectedIds.includes(service.id);
                     const logoSrc = getLogoUrl(service.logo);
@@ -304,20 +289,19 @@ export default function PresetManager({
                     return (
                       <label
                         key={service.id}
-                        className={`preset-service-check ${isChecked ? 'preset-service-check--selected' : ''}`}
+                        className={`flex items-center gap-2 px-2.5 py-2 bg-[var(--bg-card)] border rounded-[var(--radius-sm)] cursor-pointer select-none transition-all duration-[160ms] ease-[cubic-bezier(0.16,1,0.3,1)] relative [content-visibility:auto] [contain-intrinsic-size:40px] hover:-translate-y-px hover:shadow-[var(--shadow-card)] active:scale-[0.98] ${isChecked ? 'bg-[var(--status-operational-bg)] border-[rgba(52,199,89,0.38)] hover:border-[var(--status-operational)]' : 'border-[var(--border-subtle)] hover:bg-[var(--bg-card-hover)] hover:border-[var(--card-hover-border)]'} group`}
                       >
                         <input
                           type="checkbox"
-                          className="preset-service-check__input"
+                          className="absolute opacity-0 w-0 h-0 m-0 pointer-events-none peer"
                           checked={isChecked}
                           onChange={() => toggleService(service.id)}
                         />
-                        <span className="preset-service-check__box" aria-hidden="true">
+                        <span className={`w-[18px] h-[18px] rounded-[5px] border-[1.5px] inline-flex items-center justify-center shrink-0 text-white transition-all duration-[160ms] ease-[cubic-bezier(0.16,1,0.3,1)] shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[var(--status-operational)] group-hover:border-[var(--text-secondary)] ${isChecked ? 'bg-[var(--status-operational)] border-[var(--status-operational)] shadow-[0_2px_6px_rgba(52,199,89,0.35)] scale-105' : 'bg-[rgba(142,142,147,0.08)] border-[var(--border-card)]'}`} aria-hidden="true">
                           <svg
                             viewBox="0 0 16 16"
-                            className="preset-service-check__icon"
+                            className={`w-[11px] h-[11px] stroke-white transition-all duration-[160ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${isChecked ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}
                             fill="none"
-                            stroke="currentColor"
                             strokeWidth="2.4"
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -325,19 +309,19 @@ export default function PresetManager({
                             <polyline points="3.5 8.5 6.5 11.5 12.5 4.5" />
                           </svg>
                         </span>
-                        <div className="preset-service-logo-wrapper">
+                        <div className="w-[22px] h-[22px] rounded-[6px] bg-white flex items-center justify-center shrink-0 border border-[var(--logo-wrapper-border)] shadow-[var(--logo-wrapper-shadow)] p-[2px] overflow-hidden">
                           {logoSrc ? (
                             <img
                               src={logoSrc}
                               alt=""
-                              className="preset-service-logo"
+                              className="w-full h-full object-contain block"
                               aria-hidden="true"
                             />
                           ) : (
-                            <span className="preset-service-logo-fallback">{service.name.charAt(0)}</span>
+                            <span className="text-[0.6875rem] font-bold text-[#1d1d1f] uppercase">{service.name.charAt(0)}</span>
                           )}
                         </div>
-                        <span className="preset-service-name">{service.name}</span>
+                        <span className="text-[0.8125rem] font-medium text-[var(--text-primary)] whitespace-nowrap overflow-hidden text-ellipsis">{service.name}</span>
                       </label>
                     );
                   })}
@@ -345,11 +329,11 @@ export default function PresetManager({
               </div>
             </div>
 
-            <div className="preset-modal__footer">
+            <div className="shrink-0 p-4 px-6 border-t border-[var(--border-subtle)] flex items-center justify-between bg-[rgba(0,0,0,0.02)] gap-4 max-md:p-3.5 max-md:px-5 max-md:pb-[calc(0.875rem+env(safe-area-inset-bottom,12px))] max-md:flex-col-reverse max-md:items-stretch max-md:gap-2.5 max-md:sticky max-md:bottom-0 max-md:z-10 max-md:bg-[var(--bg-card)]">
               {editingPreset && !editingPreset.isDefault ? (
                 <button
                   type="button"
-                  className="apple-btn-danger"
+                  className="bg-[var(--status-outage-bg)] text-[var(--status-outage)] border border-[rgba(255,59,48,0.25)] rounded-[var(--radius-sm)] font-sans text-[0.875rem] font-medium cursor-pointer py-2.5 px-4 inline-flex items-center gap-1.5 transition-all duration-[160ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[var(--status-outage)] hover:text-white hover:border-[var(--status-outage)] hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(255,59,48,0.3)] active:scale-[0.97] max-md:w-full max-md:justify-center max-md:p-2.5 max-md:px-4"
                   onClick={handleDelete}
                   aria-label={`Delete preset ${editingPreset.name}`}
                 >
@@ -366,7 +350,7 @@ export default function PresetManager({
 
               <button
                 type="submit"
-                className="apple-btn-primary"
+                className="bg-[var(--text-primary)] text-[var(--bg-primary)] border border-transparent py-2.5 px-5 rounded-[var(--radius-sm)] font-sans font-semibold text-[0.875rem] cursor-pointer shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.06)] transition-all duration-[160ms] ease-[cubic-bezier(0.16,1,0.3,1)] inline-flex items-center justify-center gap-1.5 hover:not(:disabled):opacity-92 hover:not(:disabled):-translate-y-px hover:not(:disabled):shadow-[0_4px_12px_rgba(0,0,0,0.15)] active:not(:disabled):scale-[0.97] disabled:opacity-35 disabled:cursor-not-allowed disabled:shadow-none disabled:transform-none max-md:w-full max-md:justify-center max-md:p-2.5 max-md:px-4"
                 disabled={!presetName.trim() || selectedIds.length === 0}
               >
                 {editingPreset ? 'Save Changes' : 'Create Preset'}
