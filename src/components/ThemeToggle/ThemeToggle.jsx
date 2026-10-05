@@ -1,20 +1,18 @@
-import './ThemeToggle.css';
-
 export default function ThemeToggle({ theme = 'light', onToggle }) {
   const isDark = theme === 'dark';
 
   return (
     <button
       type="button"
-      className="theme-toggle-btn"
+      className="inline-flex items-center gap-1.5 bg-[var(--bg-card)] border border-[var(--border-card)] px-3 py-1.5 rounded-[var(--radius-md)] text-[var(--text-primary)] font-sans text-[0.8125rem] font-medium cursor-pointer shadow-[var(--shadow-card)] transition-all duration-200 select-none hover:bg-[var(--bg-card-hover)] hover:shadow-[var(--shadow-card-hover)] group"
       onClick={onToggle}
       aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
       title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
     >
-      <div className="theme-toggle-btn__icon-wrapper">
+      <div className="flex items-center justify-center w-3.5 h-3.5">
         {isDark ? (
           <svg
-            className="theme-toggle-btn__icon theme-toggle-btn__icon--sun"
+            className="w-3.5 h-3.5 transition-transform duration-300 group-hover:rotate-[20deg] group-hover:scale-110 text-[#ff9500]"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -35,7 +33,7 @@ export default function ThemeToggle({ theme = 'light', onToggle }) {
           </svg>
         ) : (
           <svg
-            className="theme-toggle-btn__icon theme-toggle-btn__icon--moon"
+            className="w-3.5 h-3.5 transition-transform duration-300 group-hover:rotate-[20deg] group-hover:scale-110 text-[var(--text-primary)]"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -48,7 +46,7 @@ export default function ThemeToggle({ theme = 'light', onToggle }) {
           </svg>
         )}
       </div>
-      <span className="theme-toggle-btn__label">{isDark ? 'Light' : 'Dark'}</span>
+      <span className="text-[0.8125rem]">{isDark ? 'Light' : 'Dark'}</span>
     </button>
   );
 }
