@@ -15,7 +15,6 @@ import IncidentList from '../components/IncidentList';
 import ThemeToggle from '../components/ThemeToggle';
 import StatusSummary from '../components/StatusSummary';
 import SocialLinks from '../components/SocialLinks';
-import ToastContainer from '../components/ToastContainer';
 
 function getServiceStatus(statuses, id) {
   return statuses[id]?.data?.status || 'unknown';
@@ -43,7 +42,7 @@ export default function DashboardPage() {
     deletePreset,
   } = usePresets();
 
-  const { notifications, dismissNotification, isMuted, toggleMute } = useStatusNotifications(statuses, selectedServiceIds);
+  const { isMuted, toggleMute } = useStatusNotifications(statuses, selectedServiceIds);
 
   useEffect(() => {
     const handleShortcut = (e) => {
@@ -271,8 +270,6 @@ export default function DashboardPage() {
         </div>
         <SocialLinks />
       </footer>
-
-      <ToastContainer notifications={notifications} onDismiss={dismissNotification} />
     </main>
   );
 }

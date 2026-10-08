@@ -1,5 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { STATUS_PROVIDERS } from '../lib/statusProviders';
+import { getLogoUrl } from '../assets/logos';
+
+function getStatusEmoji(status) {
+  const s = (status || '').toLowerCase();
+  if (s.includes('operational') || s === 'up' || s === 'resolved') return '✅';
+  if (s.includes('degraded') || s.includes('partial') || s.includes('maintenance')) return '⚠️';
+  if (s.includes('outage') || s.includes('major') || s === 'down') return '🚨';
+  return 'ℹ️';
+}
 
 function playNotificationSound() {
   try {
@@ -26,7 +35,6 @@ function playNotificationSound() {
 
 export function useStatusNotifications(statuses, selectedServiceIds) {
   const previousStatusesRef = useRef(statuses);
-  const [notifications, setNotifications] = useState([]);
   const isFirstRender = useRef(true);
 
   const [isMuted, setIsMuted] = useState(() => {
@@ -42,9 +50,18 @@ export function useStatusNotifications(statuses, selectedServiceIds) {
       localStorage.setItem('statuscheck_notifications_muted', String(newVal));
       
       // Request native notification permission if unmuting and haven't asked yet
-      if (!newVal && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission();
+      if (!newVal && typeof window !== 'undefined' && 'Notification' in window) {
+        if (Notification.permission === 'default') {
+          Notification.requestPermission();
+        } else if (Notification.permission === 'granted') {
+          // Fire a native test notification to show it's working
+          new Notification('🔔 Notificações Ativadas', {
+            body: 'O som e os alertas push estão funcionando perfeitamente!'
+          });
+          playNotificationSound();
+        }
       }
+
       return newVal;
     });
   };
@@ -64,7 +81,7 @@ export function useStatusNotifications(statuses, selectedServiceIds) {
     }
 
     const previous = previousStatusesRef.current;
-    let newNotifications = [];
+    let didNotify = false;
 
     selectedServiceIds.forEach(id => {
       const oldData = previous[id]?.data;
@@ -74,49 +91,30 @@ export function useStatusNotifications(statuses, selectedServiceIds) {
       if (oldData && newData && oldData.status && newData.status && oldData.status !== newData.status) {
         const provider = STATUS_PROVIDERS.find(p => p.id === id);
         if (provider) {
-          const notifId = Date.now() + '-' + id;
-          newNotifications.push({
-            id: notifId,
-            serviceName: provider.name,
-            oldStatus: oldData.status,
-            newStatus: newData.status,
-            timestamp: new Date()
-          });
+          if (!isMuted && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+             const logoUrl = getLogoUrl(provider.logo);
+             const iconUrl = logoUrl ? new URL(logoUrl, window.location.origin).href : undefined;
+             const emoji = getStatusEmoji(newData.status);
+             const oldStatusText = oldData.status.replace(/_/g, ' ').toUpperCase();
+             const newStatusText = newData.status.replace(/_/g, ' ').toUpperCase();
 
-          if (!isMuted && 'Notification' in window && Notification.permission === 'granted') {
-             new Notification(`Status Change: ${provider.name}`, {
-               body: `Status changed from ${oldData.status} to ${newData.status}`
+             new Notification(`${emoji} Status Alterado: ${provider.name}`, {
+               body: `O status mudou de ${oldStatusText} para ${newStatusText}`,
+               icon: iconUrl
              });
+             didNotify = true;
           }
         }
       }
     });
 
-    if (newNotifications.length > 0) {
-      if (!isMuted) {
-        playNotificationSound();
-      }
-
-      setNotifications(prev => {
-        const updated = [...prev, ...newNotifications].slice(-5);
-        return updated;
-      });
-
-      // Auto-dismiss after 6 seconds
-      newNotifications.forEach(n => {
-        setTimeout(() => {
-          setNotifications(prev => prev.filter(x => x.id !== n.id));
-        }, 6000);
-      });
+    if (didNotify) {
+      playNotificationSound();
     }
 
     previousStatusesRef.current = statuses;
   }, [statuses, selectedServiceIds, isMuted]);
 
-  const dismissNotification = (id) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
-  };
-
-  return { notifications, dismissNotification, isMuted, toggleMute };
+  return { isMuted, toggleMute };
 }
 
