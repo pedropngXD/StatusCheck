@@ -253,21 +253,19 @@ export default function DashboardPage() {
         summary={presetSummary}
       />
 
-      <div className="mt-5 md:mt-6">
-        <PresetManager
-          ref={presetManagerRef}
-          presets={presets}
-          activePresetId={activePresetId}
-          onSelectPreset={selectPreset}
-          onCreatePreset={createPreset}
-          onUpdatePreset={updatePreset}
-          onDeletePreset={deletePreset}
-          allServices={STATUS_PROVIDERS}
-          listClassName="max-md:hidden"
-        />
-      </div>
+      <PresetManager
+        ref={presetManagerRef}
+        presets={presets}
+        activePresetId={activePresetId}
+        onSelectPreset={selectPreset}
+        onCreatePreset={createPreset}
+        onUpdatePreset={updatePreset}
+        onDeletePreset={deletePreset}
+        allServices={STATUS_PROVIDERS}
+        listClassName="hidden"
+      />
 
-      <div className="flex flex-col items-start gap-4 mt-8 mb-6 w-full">
+      <div className="flex flex-col items-start gap-4 mt-6 md:mt-8 mb-6 w-full">
         <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3 w-full">
           <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full xl:w-auto flex-1">
             <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-2 w-full md:w-auto md:flex-1 md:max-w-[400px]">
@@ -347,6 +345,26 @@ export default function DashboardPage() {
                 activePresetId={activePresetId}
                 onSelect={selectPreset}
               />
+
+              {presets.find((p) => p.id === activePresetId && !p.isDefault) && (
+                <button
+                  type="button"
+                  onClick={() => handleOpenEditPreset(presets.find((p) => p.id === activePresetId))}
+                  className="inline-flex items-center justify-center gap-1.5 px-3 h-[38px] rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-secondary)] font-medium text-[0.875rem] transition-colors hover:text-[var(--text-primary)] hover:border-[var(--text-secondary)]"
+                  title="Edit Filter"
+                >
+                  <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 2a2 2 0 0 1 2.8 2.8L4.6 14 1 15l1-3.6L11 2z" /></svg>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={handleOpenCreatePreset}
+                className="inline-flex items-center justify-center gap-1.5 px-3 h-[38px] rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] font-medium text-[0.875rem] transition-colors hover:bg-[var(--bg-card-hover)]"
+              >
+                <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="3" x2="8" y2="13" /><line x1="3" y1="8" x2="13" y2="8" /></svg>
+                Create
+              </button>
             </div>
           </div>
 
