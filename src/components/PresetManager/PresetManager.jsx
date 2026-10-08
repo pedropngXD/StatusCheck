@@ -455,6 +455,7 @@ const PresetManager = forwardRef(function PresetManager({
           </form>
         </div>
       )}
+    </div>
     </>
   );
 });
