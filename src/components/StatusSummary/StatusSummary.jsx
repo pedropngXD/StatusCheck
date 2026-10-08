@@ -5,7 +5,7 @@ const FILTERS = [
 ];
 
 const BASE_BUTTON =
-  'flex flex-col items-start gap-0.5 md:flex-row md:items-center md:gap-1.5 px-3 py-2 md:py-1.5 border rounded-[var(--radius-md)] md:rounded-full font-sans text-[0.75rem] md:text-[0.8125rem] font-medium cursor-pointer select-none transition-all duration-[180ms] leading-none active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)]';
+  'flex flex-row items-center justify-between gap-1.5 px-3 py-2 md:py-1.5 border rounded-[var(--radius-md)] md:rounded-full font-sans text-[0.75rem] md:text-[0.8125rem] font-medium cursor-pointer select-none transition-all duration-[180ms] leading-none active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] w-full md:w-auto';
 const IDLE_BUTTON =
   'bg-[var(--bg-card)] border-[var(--border-card)] text-[var(--text-secondary)] hover:bg-[var(--bg-card-hover)] hover:border-[var(--card-hover-border)] hover:text-[var(--text-primary)]';
 const ACTIVE_BUTTON = 'bg-[var(--text-primary)] text-[var(--bg-primary)] border-[var(--text-primary)]';
@@ -20,11 +20,19 @@ export default function StatusSummary({ summary, selected = [], onToggle, onClea
   ].filter((segment) => segment.count > 0);
 
   return (
-    <section aria-label="Status summary">
-      <div className="grid grid-cols-3 gap-2 md:flex md:flex-wrap md:items-center" role="group" aria-label="Status filters">
+    <section aria-label="Status summary" className="mt-2">
+      <div className="mb-2 flex items-center justify-between">
+        <h3 className="text-[0.875rem] font-semibold text-[var(--text-secondary)] uppercase tracking-[0.04em] m-0">
+          Filtros de Status
+        </h3>
+        <span className="text-xs text-[var(--text-secondary)]">
+          Selecione para filtrar os serviços
+        </span>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:flex md:flex-wrap md:items-center" role="group" aria-label="Status filters">
         <button
           type="button"
-          className={`${BASE_BUTTON} hidden md:inline-flex ${noneSelected ? ACTIVE_BUTTON : IDLE_BUTTON}`}
+          className={`${BASE_BUTTON} ${noneSelected ? ACTIVE_BUTTON : IDLE_BUTTON}`}
           onClick={onClear}
           aria-pressed={noneSelected}
           aria-label={`Show all ${summary.total} monitored services`}
@@ -48,10 +56,9 @@ export default function StatusSummary({ summary, selected = [], onToggle, onClea
             >
               <span className="inline-flex items-center gap-1.5">
                 <span className={`w-1.5 h-1.5 rounded-full ${dot}`} aria-hidden="true" />
-                <strong className={`md:hidden text-[1rem] font-semibold ${active ? '' : text}`}>{count}</strong>
+                <span>{label}</span>
               </span>
-              <span>{label}</span>
-              <strong className={`hidden md:inline font-semibold ${active ? '' : text}`}>{count}</strong>
+              <strong className={`font-semibold ${active ? '' : text}`}>{count}</strong>
             </button>
           );
         })}

@@ -2,6 +2,7 @@ import { memo } from 'react';
 import StatusBadge from '../StatusBadge';
 import ServiceLogo from '../ServiceLogo';
 import UptimeBar from '../UptimeBar';
+import ExternalLinkButton from '../ExternalLinkButton';
 import { getStatusMeta } from '../../lib/statusMeta';
 
 const TONES = {
@@ -39,6 +40,7 @@ function AttentionCard({ provider, statusData, bars, onSelect }) {
           <p className="hidden md:block text-[0.75rem] text-[var(--text-secondary)] m-0 mt-0.5 truncate">{provider.description}</p>
         </div>
         <StatusBadge status={status} size="sm" />
+        <ExternalLinkButton href={provider.pageUrl} name={provider.name} />
       </div>
 
       <p className="hidden md:block text-[0.9375rem] font-semibold text-[var(--text-primary)] m-0">{description}</p>

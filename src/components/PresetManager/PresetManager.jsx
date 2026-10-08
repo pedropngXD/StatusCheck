@@ -111,6 +111,7 @@ export default function PresetManager({
   const clearAll = () => setSelectedIds([]);
   const selectAiOnly = () => setSelectedIds(allServices.filter((s) => s.category === 'ai').map((s) => s.id));
   const selectDevOnly = () => setSelectedIds(allServices.filter((s) => s.category === 'developer' || s.category === 'cloud').map((s) => s.id));
+  const selectWebAppsOnly = () => setSelectedIds(allServices.filter((s) => s.category === 'web-apps').map((s) => s.id));
 
   const handleSave = (e) => {
     e.preventDefault();
@@ -277,6 +278,7 @@ export default function PresetManager({
                     <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectAll}>All</button>
                     <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectAiOnly}>AI</button>
                     <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectDevOnly}>Dev</button>
+                    <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectWebAppsOnly}>Web/Apps</button>
                     <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={clearAll}>Clear</button>
                   </div>
                 </div>
