@@ -45,12 +45,13 @@ export default function CategoryDropdown({ categories, selected, onChange }) {
             </button>
             {categories.map((cat) => (
               <button
-                key={cat}
+                key={cat.name}
                 type="button"
-                onClick={() => { onChange(cat); setIsOpen(false); }}
-                className={`w-full flex items-center px-3 py-2 text-[0.875rem] font-medium capitalize rounded-[var(--radius-md)] transition-colors text-left ${selected === cat ? 'bg-[var(--bg-card-hover)] text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-card-hover)] hover:text-[var(--text-primary)]'}`}
+                onClick={() => { onChange(cat.name); setIsOpen(false); }}
+                className={`w-full flex items-center justify-between px-3 py-2 text-[0.875rem] font-medium capitalize rounded-[var(--radius-md)] transition-colors text-left ${selected === cat.name ? 'bg-[var(--bg-card-hover)] text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-card-hover)] hover:text-[var(--text-primary)]'}`}
               >
-                {cat}
+                <span>{cat.name}</span>
+                <span className="text-[0.75rem] text-[var(--text-secondary)] opacity-60 font-mono">{cat.count}</span>
               </button>
             ))}
           </div>
