@@ -14,6 +14,7 @@ export default function PresetManager({
   const [editingPreset, setEditingPreset] = useState(null);
   const [presetName, setPresetName] = useState('');
   const [selectedIds, setSelectedIds] = useState([]);
+  const [presetSearchQuery, setPresetSearchQuery] = useState('');
   const backdropRef = useRef(null);
   const scrollRef = useRef(null);
 
@@ -60,6 +61,7 @@ export default function PresetManager({
     setEditingPreset(null);
     setPresetName('');
     setSelectedIds([]);
+    setPresetSearchQuery('');
     setModalOpen(true);
   };
 
@@ -67,6 +69,7 @@ export default function PresetManager({
     setEditingPreset(preset);
     setPresetName(preset.name);
     setSelectedIds([...preset.serviceIds]);
+    setPresetSearchQuery('');
     setModalOpen(true);
   };
 
@@ -75,6 +78,7 @@ export default function PresetManager({
     setEditingPreset(null);
     setPresetName('');
     setSelectedIds([]);
+    setPresetSearchQuery('');
   };
 
   useEffect(() => {
@@ -134,6 +138,10 @@ export default function PresetManager({
       closeModal();
     }
   };
+
+  const filteredServices = presetSearchQuery.trim()
+    ? allServices.filter((s) => s.name.toLowerCase().includes(presetSearchQuery.toLowerCase().trim()))
+    : allServices;
 
   return (
     <div className="relative w-full mb-5">
@@ -270,21 +278,46 @@ export default function PresetManager({
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-3">
-                  <label className="text-[0.8125rem] font-semibold text-[var(--text-secondary)]">
-                    Monitored Services ({selectedIds.length}/{allServices.length})
-                  </label>
-                  <div className="flex gap-1.5">
-                    <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectAll}>All</button>
-                    <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectAiOnly}>AI</button>
-                    <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectDevOnly}>Dev</button>
-                    <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectWebAppsOnly}>Web/Apps</button>
-                    <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={clearAll}>Clear</button>
+                <div className="flex flex-col gap-3 mb-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[0.8125rem] font-semibold text-[var(--text-secondary)]">
+                      Monitored Services ({selectedIds.length}/{allServices.length})
+                    </label>
+                    <div className="flex gap-1.5 flex-wrap justify-end">
+                      <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectAll}>All</button>
+                      <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectAiOnly}>AI</button>
+                      <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectDevOnly}>Dev</button>
+                      <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectWebAppsOnly}>Web/Apps</button>
+                      <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={clearAll}>Clear</button>
+                    </div>
+                  </div>
+
+                  <div className="relative">
+                    <svg
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <circle cx="11" cy="11" r="8" />
+                      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    <input
+                      type="search"
+                      className="w-full py-2 pl-9 pr-3 font-sans text-[0.875rem] rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--input-bg)] text-[var(--text-primary)] outline-none transition-all duration-200 focus:border-[var(--text-primary)] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.08)]"
+                      placeholder="Search services by name..."
+                      value={presetSearchQuery}
+                      onChange={(e) => setPresetSearchQuery(e.target.value)}
+                    />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-2 max-h-[280px] overflow-y-auto overscroll-contain p-0.5 [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:rgba(142,142,147,0.35)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-[rgba(142,142,147,0.3)] [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-[rgba(142,142,147,0.55)] max-md:grid-cols-[repeat(auto-fill,minmax(130px,1fr))] max-md:max-h-none max-md:overflow-visible">
-                  {allServices.map((service) => {
+                  {filteredServices.map((service) => {
                     const isChecked = selectedIds.includes(service.id);
                     const logoSrc = getLogoUrl(service.logo);
 

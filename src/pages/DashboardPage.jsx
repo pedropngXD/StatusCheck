@@ -16,26 +16,14 @@ import StatusSummary from '../components/StatusSummary';
 import AttentionCard from '../components/AttentionCard';
 import SocialLinks from '../components/SocialLinks';
 
-const SEVERITY = { outage: 0, degraded: 1 };
-
 function getServiceStatus(statuses, id) {
   return statuses[id]?.data?.status || 'unknown';
-}
-
-function SectionHeading({ title, meta }) {
-  return (
-    <div className="flex items-baseline gap-2 mb-3">
-      <h2 className="text-[1rem] md:text-[1.0625rem] font-semibold text-[var(--text-primary)] m-0">{title}</h2>
-      <span className="text-xs text-[var(--text-secondary)]">{meta}</span>
-    </div>
-  );
 }
 
 export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedService, setSelectedService] = useState(null);
   const [statusFilters, setStatusFilters] = useState([]);
-  const [showAllOperational, setShowAllOperational] = useState(false);
   const searchInputRef = useRef(null);
 
   const { theme, toggleTheme } = useTheme();
@@ -102,35 +90,8 @@ export default function DashboardPage() {
         provider.description.toLowerCase().includes(query) ||
         provider.category.toLowerCase().includes(query)
       );
-    });
+    }).sort((a, b) => a.name.localeCompare(b.name));
   }, [selectedServiceIds, statusFilters, statuses, searchQuery]);
-
-  const groups = useMemo(() => {
-    const attention = [];
-    const operational = [];
-    const unknown = [];
-
-    filteredProviders.forEach((provider) => {
-      const type = getServiceStatus(statuses, provider.id);
-      if (type === 'operational') operational.push(provider);
-      else if (type in SEVERITY) attention.push(provider);
-      else unknown.push(provider);
-    });
-
-    attention.sort(
-      (a, b) =>
-        SEVERITY[getServiceStatus(statuses, a.id)] - SEVERITY[getServiceStatus(statuses, b.id)] ||
-        a.name.localeCompare(b.name)
-    );
-
-    return { attention, operational, unknown };
-  }, [filteredProviders, statuses]);
-
-  const operationalLimit = viewMode === 'grid' ? 12 : 8;
-  const visibleOperational = showAllOperational
-    ? groups.operational
-    : groups.operational.slice(0, operationalLimit);
-  const hiddenOperationalCount = groups.operational.length - visibleOperational.length;
 
   const selectedStatusData = selectedService ? statuses[selectedService.id]?.data : null;
 
@@ -266,55 +227,7 @@ export default function DashboardPage() {
       {filteredProviders.length === 0 ? (
         <ServiceGrid providers={[]} onResetFilter={handleResetFilter} />
       ) : (
-        <div className="flex flex-col gap-7 md:gap-8">
-          {groups.attention.length > 0 && (
-            <section aria-label="Services that need attention">
-              <SectionHeading
-                title="Needs attention"
-                meta={`${groups.attention.length} ${groups.attention.length === 1 ? 'service' : 'services'} · sorted by severity`}
-              />
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4">
-                {groups.attention.map((provider) => (
-                  <AttentionCard
-                    key={provider.id}
-                    provider={provider}
-                    statusData={statuses[provider.id]?.data}
-                    bars={getBars(provider.id)}
-                    onSelect={handleSelectService}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {groups.operational.length > 0 && (
-            <section aria-label="Operational services">
-              <SectionHeading title="Operational" meta={`${groups.operational.length} services`} />
-              <ServiceGrid providers={visibleOperational} {...gridProps} />
-              {hiddenOperationalCount > 0 && (
-                <div className="flex justify-center mt-4">
-                  <button
-                    type="button"
-                    className="px-4 py-2 bg-[var(--bg-card)] border border-[var(--border-card)] rounded-[var(--radius-md)] text-[var(--text-primary)] font-sans text-[0.8125rem] font-medium cursor-pointer transition-all duration-200 hover:bg-[var(--bg-card-hover)] hover:border-[var(--card-hover-border)] active:scale-[0.97]"
-                    onClick={() => setShowAllOperational(true)}
-                  >
-                    Show {hiddenOperationalCount} more operational services
-                  </button>
-                </div>
-              )}
-            </section>
-          )}
-
-          {groups.unknown.length > 0 && (
-            <section aria-label="Services with unknown status">
-              <SectionHeading
-                title={loading ? 'Checking status' : 'Status unknown'}
-                meta={`${groups.unknown.length} services`}
-              />
-              <ServiceGrid providers={groups.unknown} loading={loading} {...gridProps} />
-            </section>
-          )}
-        </div>
+        <ServiceGrid providers={filteredProviders} loading={loading} {...gridProps} />
       )}
 
       <IncidentList
