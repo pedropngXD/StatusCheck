@@ -287,24 +287,25 @@ export default function DashboardPage() {
                 <button
                   type="button"
                   onClick={handleOpenCreatePreset}
-                  className="flex-1 px-4 inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] font-medium text-[0.875rem] shadow-sm active:scale-95 transition-all"
+                  className="flex-1 px-2 inline-flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] font-medium text-[0.8125rem] shadow-sm active:scale-95 transition-all"
                 >
-                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="3" x2="8" y2="13" /><line x1="3" y1="8" x2="13" y2="8" /></svg>
-                  Create filter
+                  <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="3" x2="8" y2="13" /><line x1="3" y1="8" x2="13" y2="8" /></svg>
+                  <span className="truncate">Create filter</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsMobileFiltersOpen(true)}
-                  className="flex-1 px-4 inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] font-medium text-[0.875rem] shadow-sm active:scale-95 transition-all"
+                  className="flex-1 px-2 inline-flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] font-medium text-[0.8125rem] shadow-sm active:scale-95 transition-all"
                 >
-                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-                  Filters
+                  <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                  <span className="truncate">Filters</span>
                   {(statusFilters.length > 0 || categoryFilter !== 'all') && (
-                    <span className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--text-primary)] text-[var(--bg-primary)] text-[0.6875rem] font-bold ml-1 shrink-0">
+                    <span className="flex items-center justify-center w-4 h-4 rounded-full bg-[var(--text-primary)] text-[var(--bg-primary)] text-[0.625rem] font-bold shrink-0">
                       {statusFilters.length + (categoryFilter !== 'all' ? 1 : 0)}
                     </span>
                   )}
                 </button>
+                <ViewToggle viewMode={viewMode} onChange={setViewMode} className="flex-1 flex" />
               </div>
             </div>
 
@@ -323,7 +324,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="shrink-0 flex items-center w-full xl:w-auto">
+          <div className="shrink-0 hidden md:flex items-center w-full xl:w-auto">
             <ViewToggle viewMode={viewMode} onChange={setViewMode} className="w-full md:w-auto flex md:inline-flex" />
           </div>
         </div>

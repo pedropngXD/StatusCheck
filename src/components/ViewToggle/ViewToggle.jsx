@@ -11,7 +11,7 @@ export default function ViewToggle({ viewMode = 'grid', onChange, className = ''
       />
       <button
         type="button"
-        className={`relative z-20 flex-1 inline-flex h-full items-center justify-center gap-1.5 px-2.5 sm:px-3.5 border-none bg-transparent font-sans text-[0.8125rem] rounded-[calc(var(--radius-md)-3px)] cursor-pointer transition-colors duration-[180ms] leading-none whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--text-primary)] ${viewMode === 'grid' ? 'text-[var(--toggle-active-color)] font-semibold' : 'text-[var(--text-secondary)] font-medium hover:text-[var(--text-primary)]'}`}
+        className={`relative z-20 flex-1 inline-flex h-full items-center justify-center gap-1.5 px-2 sm:px-3.5 border-none bg-transparent font-sans text-[0.8125rem] rounded-[calc(var(--radius-md)-3px)] cursor-pointer transition-colors duration-[180ms] leading-none whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--text-primary)] ${viewMode === 'grid' ? 'text-[var(--toggle-active-color)] font-semibold' : 'text-[var(--text-secondary)] font-medium hover:text-[var(--text-primary)]'}`}
         onClick={() => onChange('grid')}
         aria-pressed={viewMode === 'grid'}
         aria-label="Grid view"
@@ -31,12 +31,12 @@ export default function ViewToggle({ viewMode = 'grid', onChange, className = ''
           <rect x="2" y="9" width="5" height="5" rx="1.5" />
           <rect x="9" y="9" width="5" height="5" rx="1.5" />
         </svg>
-        <span>Grid</span>
+        <span className="hidden min-[400px]:inline">Grid</span>
       </button>
 
       <button
         type="button"
-        className={`relative z-20 flex-1 inline-flex h-full items-center justify-center gap-1.5 px-2.5 sm:px-3.5 border-none bg-transparent font-sans text-[0.8125rem] rounded-[calc(var(--radius-md)-3px)] cursor-pointer transition-colors duration-[180ms] leading-none whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--text-primary)] ${viewMode === 'row' ? 'text-[var(--toggle-active-color)] font-semibold' : 'text-[var(--text-secondary)] font-medium hover:text-[var(--text-primary)]'}`}
+        className={`relative z-20 flex-1 inline-flex h-full items-center justify-center gap-1.5 px-2 sm:px-3.5 border-none bg-transparent font-sans text-[0.8125rem] rounded-[calc(var(--radius-md)-3px)] cursor-pointer transition-colors duration-[180ms] leading-none whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--text-primary)] ${viewMode === 'row' ? 'text-[var(--toggle-active-color)] font-semibold' : 'text-[var(--text-secondary)] font-medium hover:text-[var(--text-primary)]'}`}
         onClick={() => onChange('row')}
         aria-pressed={viewMode === 'row'}
         aria-label="Rows view"
@@ -55,7 +55,7 @@ export default function ViewToggle({ viewMode = 'grid', onChange, className = ''
           <line x1="2" y1="8" x2="14" y2="8" />
           <line x1="2" y1="12" x2="14" y2="12" />
         </svg>
-        <span>Rows</span>
+        <span className="hidden min-[400px]:inline">Rows</span>
       </button>
     </div>
   );
