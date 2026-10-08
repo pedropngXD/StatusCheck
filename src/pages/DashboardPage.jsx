@@ -48,7 +48,16 @@ export default function DashboardPage() {
     deletePreset,
   } = usePresets();
 
-  const { isMuted, toggleMute } = useStatusNotifications(statuses, selectedServiceIds);
+  const notifiedServiceIds = useMemo(() => {
+    const customPresets = presets.filter(p => !p.isDefault);
+    if (customPresets.length === 0) return [];
+    
+    const ids = new Set();
+    customPresets.forEach(p => p.serviceIds.forEach(id => ids.add(id)));
+    return Array.from(ids);
+  }, [presets]);
+
+  const { isMuted, toggleMute } = useStatusNotifications(statuses, notifiedServiceIds);
 
   useEffect(() => {
     const handleShortcut = (e) => {
