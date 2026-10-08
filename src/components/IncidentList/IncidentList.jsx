@@ -121,17 +121,17 @@ export default function IncidentList({ service, statusData, onClose }) {
   return (
     <div
       ref={backdropRef}
-      className={`fixed inset-0 bg-black/50 backdrop-blur-[4px] z-[1000] flex items-center justify-center p-6 overscroll-contain will-change-[opacity] max-md:p-0 max-md:items-end ${isClosing ? 'animate-[modal-fade-out_0.2s_ease-out_forwards]' : 'animate-[modal-fade-in_0.15s_cubic-bezier(0.16,1,0.3,1)]'}`}
+      className={`fixed inset-0 bg-black/50 backdrop-blur-[4px] z-[1000] flex items-center justify-center p-6 overscroll-contain will-change-[opacity] max-md:p-0 max-md:items-end ${isClosing ? 'animate-[modal-fade-out_0.2s_ease-out_forwards]' : 'animate-[modal-fade-in_0.15s_ease-out]'}`}
       onClick={handleClose}
       role="dialog"
       aria-modal="true"
     >
       <div 
-        className={`bg-[var(--bg-card)] border border-[var(--border-card)] rounded-[var(--radius-lg)] shadow-[0_24px_48px_rgba(0,0,0,0.28)] w-full max-w-[620px] max-h-[min(85vh,780px)] flex flex-col overflow-hidden overscroll-contain relative max-md:max-w-full max-md:h-[88dvh] max-md:max-h-[88dvh] max-md:rounded-t-[20px] max-md:rounded-b-none max-md:border-b-0 max-md:border-x-0 max-md:shadow-[0_-8px_32px_rgba(0,0,0,0.25)] will-change-[transform,opacity] ${isClosing ? 'max-md:animate-[modal-sheet-slide-down_0.2s_ease-out_forwards] animate-[modal-scale-out_0.2s_ease-out_forwards]' : 'max-md:animate-[modal-sheet-slide-up_0.24s_cubic-bezier(0.16,1,0.3,1)] animate-[modal-scale-in_0.18s_cubic-bezier(0.16,1,0.3,1)]'}`}
+        className={`bg-[var(--bg-card)] border border-[var(--border-card)] rounded-[var(--radius-lg)] shadow-[0_24px_48px_rgba(0,0,0,0.28)] w-full max-w-[620px] max-h-[min(85vh,780px)] flex flex-col overflow-hidden overscroll-contain relative max-md:max-w-full max-md:h-[88dvh] max-md:max-h-[88dvh] max-md:rounded-t-[20px] max-md:rounded-b-none max-md:border-b-0 max-md:border-x-0 max-md:shadow-[0_-8px_32px_rgba(0,0,0,0.25)] will-change-[transform,opacity] ${isClosing ? 'max-md:animate-[modal-sheet-slide-down_0.2s_ease-out_forwards] animate-[modal-scale-out_0.2s_ease-out_forwards]' : 'max-md:animate-[modal-sheet-slide-up_0.24s_ease-out] animate-[modal-scale-in_0.18s_ease-out]'}`}
         onClick={(e) => e.stopPropagation()}
         style={{ 
           transform: (dragY > 0 && !isClosing) ? `translateY(${dragY}px)` : '',
-          transition: (dragY === 0 && !isClosing) ? 'transform 0.2s cubic-bezier(0.16,1,0.3,1)' : 'none'
+          transition: (dragY === 0 && !isClosing) ? 'transform 0.2s ease-out' : 'none'
         }}
       >
         <div 
