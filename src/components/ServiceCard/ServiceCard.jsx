@@ -27,16 +27,16 @@ function ServiceCard({
 
   return (
     <article
-      className="relative flex flex-col justify-between bg-[var(--bg-card)] border border-[var(--border-card)] rounded-[var(--radius-lg)] p-5 shadow-[var(--shadow-card)] transition-all duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform no-underline text-inherit overflow-hidden cursor-pointer select-none hover:-translate-y-[2px] hover:bg-[var(--bg-card-hover)] hover:shadow-[var(--shadow-card-hover)] hover:border-[var(--card-hover-border)] active:scale-[0.985] active:shadow-[var(--shadow-card)] active:duration-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] group max-md:p-3.5 max-md:rounded-[var(--radius-md)]"
+      className="relative flex flex-col justify-between bg-[var(--bg-card)] border border-[var(--border-card)] rounded-[var(--radius-md)] md:rounded-[var(--radius-lg)] p-3.5 md:p-5 shadow-[var(--shadow-card)] transition-all duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform no-underline text-inherit overflow-hidden cursor-pointer select-none hover:-translate-y-[2px] hover:bg-[var(--bg-card-hover)] hover:shadow-[var(--shadow-card-hover)] hover:border-[var(--card-hover-border)] active:scale-[0.985] active:shadow-[var(--shadow-card)] active:duration-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] group"
       onClick={onSelect ? handleClick : undefined}
       role={onSelect ? 'button' : undefined}
       tabIndex={onSelect ? 0 : undefined}
       aria-label={onSelect ? `View status details for ${provider.name}` : undefined}
       onKeyDown={onSelect ? handleKeyDown : undefined}
     >
-      <div className="flex items-start justify-between gap-3 mb-3.5 max-md:flex-col max-md:mb-2 max-md:gap-2">
-        <div className="flex items-center gap-3 min-w-0 max-md:w-full max-md:gap-2">
-          <div className="w-[38px] h-[38px] rounded-[var(--radius-md)] bg-white flex items-center justify-center shrink-0 shadow-[var(--logo-wrapper-shadow)] border border-[var(--logo-wrapper-border)] overflow-hidden p-1.5 max-md:w-7 max-md:h-7 max-md:p-1 max-md:rounded-[var(--radius-sm)]">
+      <div className="flex items-start justify-between flex-col md:flex-row gap-2 md:gap-3 mb-2 md:mb-3.5">
+        <div className="flex items-center gap-2 md:gap-3 min-w-0 w-full md:w-auto">
+          <div className="w-7 h-7 md:w-[38px] md:h-[38px] p-1 md:p-1.5 rounded-[var(--radius-sm)] md:rounded-[var(--radius-md)] bg-white flex items-center justify-center shrink-0 shadow-[var(--logo-wrapper-shadow)] border border-[var(--logo-wrapper-border)] overflow-hidden">
             {logoSrc ? (
               <img
                 src={logoSrc}
@@ -49,20 +49,20 @@ function ServiceCard({
             )}
           </div>
           <div className="min-w-0">
-            <h3 className="text-base font-semibold m-0 text-[var(--text-primary)] tracking-[-0.015em] whitespace-nowrap overflow-hidden text-ellipsis max-md:text-[0.875rem]">{provider.name}</h3>
-            <p className="text-[0.775rem] text-[var(--text-secondary)] m-0 mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis max-md:hidden">{provider.description}</p>
+            <h3 className="text-[0.875rem] md:text-base font-semibold m-0 text-[var(--text-primary)] tracking-[-0.015em] whitespace-nowrap overflow-hidden text-ellipsis">{provider.name}</h3>
+            <p className="hidden md:block text-[0.775rem] text-[var(--text-secondary)] m-0 mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">{provider.description}</p>
           </div>
         </div>
 
         <StatusBadge status={status} size="sm" />
       </div>
 
-      <div className="my-2 mb-4 max-md:mt-1 max-md:mb-2">
-        <p className="text-[0.85rem] text-[var(--text-primary)] font-medium leading-[1.4] m-0 line-clamp-2 max-md:text-[0.775rem] max-md:leading-[1.35]">{description}</p>
+      <div className="mt-1 mb-2 md:mt-2 md:mb-4">
+        <p className="text-[0.775rem] leading-[1.35] md:text-[0.85rem] md:leading-[1.4] text-[var(--text-primary)] font-medium m-0 line-clamp-2">{description}</p>
       </div>
 
-      <div className="flex items-center justify-between pt-3 border-t border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] max-md:pt-2 max-md:text-[0.72rem]">
-        <span className="inline-flex items-center gap-1 max-md:whitespace-nowrap max-md:overflow-hidden max-md:text-ellipsis max-md:min-w-0">
+      <div className="flex items-center justify-between pt-2 md:pt-3 border-t border-[var(--border-subtle)] text-[0.72rem] md:text-xs text-[var(--text-secondary)]">
+        <span className="inline-flex items-center gap-1 whitespace-nowrap overflow-hidden text-ellipsis min-w-0 md:whitespace-normal md:overflow-visible">
           {activeIncidents > 0 ? (
             <span className="text-[var(--status-degraded)] font-semibold">
               {activeIncidents} active {activeIncidents === 1 ? 'incident' : 'incidents'}
@@ -78,15 +78,16 @@ function ServiceCard({
           href={provider.pageUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center justify-center w-8 h-8 rounded-[var(--radius-sm)] text-[var(--text-secondary)] bg-[rgba(142,142,147,0.08)] border border-[var(--border-subtle)] no-underline shrink-0 transition-all duration-[180ms] ease-out group-hover:border-[var(--card-hover-border)] group-hover:text-[var(--text-primary)] hover:!bg-[rgba(142,142,147,0.22)] hover:!border-[var(--text-secondary)] hover:!text-[var(--text-primary)] hover:-translate-y-px active:scale-[0.92] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] max-md:w-[26px] max-md:h-[26px]"
+          className="inline-flex items-center justify-center w-[26px] h-[26px] md:w-8 md:h-8 rounded-[var(--radius-sm)] text-[var(--text-secondary)] bg-[rgba(142,142,147,0.08)] border border-[var(--border-subtle)] no-underline shrink-0 transition-all duration-[180ms] ease-out group-hover:border-[var(--card-hover-border)] group-hover:text-[var(--text-primary)] hover:!bg-[rgba(142,142,147,0.22)] hover:!border-[var(--text-secondary)] hover:!text-[var(--text-primary)] hover:-translate-y-px active:scale-[0.92] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)]"
           onClick={(e) => e.stopPropagation()}
           aria-label={`Open official status page for ${provider.name}`}
           title={`Open official status page for ${provider.name}`}
         >
           <svg
-            className="w-[15px] h-[15px] stroke-currentColor transition-transform duration-[180ms] ease-out hover:translate-x-px hover:-translate-y-px max-md:w-[13px] max-md:h-[13px]"
+            className="w-[13px] h-[13px] md:w-[15px] md:h-[15px] transition-transform duration-[180ms] ease-out hover:translate-x-px hover:-translate-y-px"
             viewBox="0 0 16 16"
             fill="none"
+            stroke="currentColor"
             strokeWidth="1.8"
             strokeLinecap="round"
             strokeLinejoin="round"

@@ -108,17 +108,17 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <main className="w-full max-w-[1240px] mx-auto px-6 pt-10 pb-16 max-md:px-4 max-md:pt-5 max-md:pb-12">
-      <header className="mb-8 max-md:mb-5">
-        <div className="flex items-start justify-between gap-6 flex-wrap max-md:gap-3.5">
+    <main className="w-full max-w-[1240px] mx-auto px-4 md:px-6 pt-5 md:pt-10 pb-12 md:pb-16">
+      <header className="mb-5 md:mb-8">
+        <div className="flex items-start justify-between gap-3.5 md:gap-6 flex-wrap">
           <div className="max-w-[580px]">
-            <h1 className="text-[2.25rem] font-bold tracking-[-0.03em] m-0 text-[var(--text-primary)] leading-[1.15] max-md:text-[1.75rem] max-md:leading-[1.2]">Status Check</h1>
-            <p className="text-base text-[var(--text-secondary)] m-0 mt-2 leading-snug max-md:text-[0.875rem] max-md:leading-[1.4] max-md:mt-1.5">
+            <h1 className="text-[1.75rem] md:text-[2.25rem] font-bold tracking-[-0.03em] m-0 text-[var(--text-primary)] leading-[1.2] md:leading-[1.15]">Status Check</h1>
+            <p className="text-[0.875rem] md:text-base text-[var(--text-secondary)] m-0 mt-1.5 md:mt-2 leading-[1.4] md:leading-snug">
               Real-time telemetry and health monitoring for leading AI services and developer platforms.
             </p>
           </div>
 
-          <div className="flex items-center gap-3.5 max-md:w-full max-md:gap-2 max-md:flex-wrap">
+          <div className="flex items-center gap-2 md:gap-3.5 w-full md:w-auto flex-wrap md:flex-nowrap">
             <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border tracking-[0.04em] uppercase transition-all duration-200 ${refreshing ? 'text-[var(--status-degraded)] bg-[var(--status-degraded-bg)] border-[rgba(255,149,0,0.3)]' : 'text-[var(--status-operational)] bg-[var(--status-operational-bg)] border-[rgba(52,199,89,0.2)]'}`}>
               <span className={`w-1.5 h-1.5 rounded-full shadow-[0_0_6px_var(--status-operational)] bg-[var(--status-operational)] animate-[pulse_2s_infinite_ease-in-out]`} />
               {refreshing ? 'Checking telemetry...' : 'Live'}
@@ -153,10 +153,10 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 mt-6 flex-wrap max-md:grid max-md:grid-cols-2 max-md:gap-2 max-md:mt-4 max-md:w-full" role="group" aria-label="Status filter buttons">
+        <div className="grid grid-cols-2 md:flex md:items-center gap-2 md:gap-3 mt-4 md:mt-6 w-full md:w-auto md:flex-wrap" role="group" aria-label="Status filter buttons">
           <button
             type="button"
-            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[var(--bg-card)] border rounded-full font-sans text-[0.8125rem] font-medium shadow-[var(--shadow-card)] cursor-pointer select-none transition-all duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] leading-none max-md:justify-between max-md:px-3.5 max-md:py-2 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] ${statusFilter === 'all' ? 'bg-[var(--text-primary)] text-[var(--bg-primary)] border-[var(--text-primary)] shadow-[0_2px_10px_rgba(0,0,0,0.16)]' : 'border-[var(--border-card)] text-[var(--text-secondary)] hover:bg-[var(--bg-card-hover)] hover:border-[var(--card-hover-border)] hover:text-[var(--text-primary)] hover:-translate-y-px hover:shadow-[var(--shadow-card-hover)]'}`}
+            className={`inline-flex items-center justify-between md:justify-center gap-1.5 px-3.5 py-2 md:py-1.5 bg-[var(--bg-card)] border rounded-full font-sans text-[0.8125rem] font-medium shadow-[var(--shadow-card)] cursor-pointer select-none transition-all duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] leading-none active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] ${statusFilter === 'all' ? 'bg-[var(--text-primary)] text-[var(--bg-primary)] border-[var(--text-primary)] shadow-[0_2px_10px_rgba(0,0,0,0.16)]' : 'border-[var(--border-card)] text-[var(--text-secondary)] hover:bg-[var(--bg-card-hover)] hover:border-[var(--card-hover-border)] hover:text-[var(--text-primary)] hover:-translate-y-px hover:shadow-[var(--shadow-card-hover)]'}`}
             onClick={() => setStatusFilter('all')}
             aria-pressed={statusFilter === 'all'}
             aria-label={`Show all ${presetSummary.total} monitored services`}
@@ -166,7 +166,7 @@ export default function DashboardPage() {
 
           <button
             type="button"
-            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[var(--bg-card)] border rounded-full font-sans text-[0.8125rem] font-medium shadow-[var(--shadow-card)] cursor-pointer select-none transition-all duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] leading-none max-md:justify-between max-md:px-3.5 max-md:py-2 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] ${statusFilter === 'operational' ? 'bg-[var(--status-operational)] text-white border-[var(--status-operational)] shadow-[0_2px_12px_rgba(52,199,89,0.35)]' : 'border-[var(--border-card)] text-[var(--text-secondary)] hover:bg-[var(--bg-card-hover)] hover:border-[var(--card-hover-border)] hover:text-[var(--text-primary)] hover:-translate-y-px hover:shadow-[var(--shadow-card-hover)]'}`}
+            className={`inline-flex items-center justify-between md:justify-center gap-1.5 px-3.5 py-2 md:py-1.5 bg-[var(--bg-card)] border rounded-full font-sans text-[0.8125rem] font-medium shadow-[var(--shadow-card)] cursor-pointer select-none transition-all duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] leading-none active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] ${statusFilter === 'operational' ? 'bg-[var(--status-operational)] text-white border-[var(--status-operational)] shadow-[0_2px_12px_rgba(52,199,89,0.35)]' : 'border-[var(--border-card)] text-[var(--text-secondary)] hover:bg-[var(--bg-card-hover)] hover:border-[var(--card-hover-border)] hover:text-[var(--text-primary)] hover:-translate-y-px hover:shadow-[var(--shadow-card-hover)]'}`}
             onClick={() => handleStatusFilterToggle('operational')}
             aria-pressed={statusFilter === 'operational'}
             aria-label={`Filter by ${presetSummary.operational} operational services`}
@@ -176,7 +176,7 @@ export default function DashboardPage() {
 
           <button
             type="button"
-            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[var(--bg-card)] border rounded-full font-sans text-[0.8125rem] font-medium shadow-[var(--shadow-card)] cursor-pointer select-none transition-all duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] leading-none max-md:justify-between max-md:px-3.5 max-md:py-2 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] ${statusFilter === 'degraded' ? 'bg-[var(--status-degraded)] text-white border-[var(--status-degraded)] shadow-[0_2px_12px_rgba(255,149,0,0.35)]' : 'border-[var(--border-card)] text-[var(--text-secondary)] hover:bg-[var(--bg-card-hover)] hover:border-[var(--card-hover-border)] hover:text-[var(--text-primary)] hover:-translate-y-px hover:shadow-[var(--shadow-card-hover)]'}`}
+            className={`inline-flex items-center justify-between md:justify-center gap-1.5 px-3.5 py-2 md:py-1.5 bg-[var(--bg-card)] border rounded-full font-sans text-[0.8125rem] font-medium shadow-[var(--shadow-card)] cursor-pointer select-none transition-all duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] leading-none active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] ${statusFilter === 'degraded' ? 'bg-[var(--status-degraded)] text-white border-[var(--status-degraded)] shadow-[0_2px_12px_rgba(255,149,0,0.35)]' : 'border-[var(--border-card)] text-[var(--text-secondary)] hover:bg-[var(--bg-card-hover)] hover:border-[var(--card-hover-border)] hover:text-[var(--text-primary)] hover:-translate-y-px hover:shadow-[var(--shadow-card-hover)]'}`}
             onClick={() => handleStatusFilterToggle('degraded')}
             aria-pressed={statusFilter === 'degraded'}
             aria-label={`Filter by ${presetSummary.degraded} degraded services`}
@@ -186,7 +186,7 @@ export default function DashboardPage() {
 
           <button
             type="button"
-            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[var(--bg-card)] border rounded-full font-sans text-[0.8125rem] font-medium shadow-[var(--shadow-card)] cursor-pointer select-none transition-all duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] leading-none max-md:justify-between max-md:px-3.5 max-md:py-2 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] ${statusFilter === 'outage' ? 'bg-[var(--status-outage)] text-white border-[var(--status-outage)] shadow-[0_2px_12px_rgba(255,59,48,0.35)]' : 'border-[var(--border-card)] text-[var(--text-secondary)] hover:bg-[var(--bg-card-hover)] hover:border-[var(--card-hover-border)] hover:text-[var(--text-primary)] hover:-translate-y-px hover:shadow-[var(--shadow-card-hover)]'}`}
+            className={`inline-flex items-center justify-between md:justify-center gap-1.5 px-3.5 py-2 md:py-1.5 bg-[var(--bg-card)] border rounded-full font-sans text-[0.8125rem] font-medium shadow-[var(--shadow-card)] cursor-pointer select-none transition-all duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] leading-none active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] ${statusFilter === 'outage' ? 'bg-[var(--status-outage)] text-white border-[var(--status-outage)] shadow-[0_2px_12px_rgba(255,59,48,0.35)]' : 'border-[var(--border-card)] text-[var(--text-secondary)] hover:bg-[var(--bg-card-hover)] hover:border-[var(--card-hover-border)] hover:text-[var(--text-primary)] hover:-translate-y-px hover:shadow-[var(--shadow-card-hover)]'}`}
             onClick={() => handleStatusFilterToggle('outage')}
             aria-pressed={statusFilter === 'outage'}
             aria-label={`Filter by ${presetSummary.outage} outage services`}
@@ -195,7 +195,7 @@ export default function DashboardPage() {
           </button>
 
           {lastCycleAt && (
-            <span className="text-xs text-[var(--text-secondary)] ml-auto inline-flex items-center gap-1.5 bg-[var(--bg-card)] px-2.5 py-1 rounded-full border border-[var(--border-subtle)] shadow-[var(--shadow-card)] font-mono max-md:col-[1/-1] max-md:ml-0 max-md:w-full max-md:justify-center max-md:mt-0.5 max-md:text-[0.72rem] max-md:px-2.5 max-md:py-1">
+            <span className="text-[0.72rem] md:text-xs text-[var(--text-secondary)] col-[1/-1] md:ml-auto inline-flex items-center justify-center md:justify-start gap-1.5 bg-[var(--bg-card)] px-2.5 py-1 rounded-full border border-[var(--border-subtle)] shadow-[var(--shadow-card)] font-mono w-full md:w-auto mt-0.5 md:mt-0">
               <span className="text-[var(--status-operational)] font-bold font-sans">✓</span>
               Checked at {lastCycleAt.toLocaleTimeString()}
             </span>
@@ -213,10 +213,10 @@ export default function DashboardPage() {
         allServices={STATUS_PROVIDERS}
       />
 
-      <div className="flex items-center justify-between gap-4 mb-5 flex-wrap max-md:flex-row max-md:gap-2 max-md:mb-4">
-        <div className="relative flex-1 min-w-[240px] max-w-[360px] max-md:min-w-0 max-md:max-w-none">
+      <div className="flex items-center justify-between gap-2 md:gap-4 mb-4 md:mb-5 flex-col md:flex-row w-full md:w-auto">
+        <div className="relative flex-1 min-w-0 md:min-w-[240px] w-full md:max-w-[360px]">
           <svg
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-[15px] h-[15px] text-[var(--text-secondary)] pointer-events-none max-md:left-2.5 max-md:w-3.5 max-md:h-3.5"
+            className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 w-3.5 md:w-[15px] h-3.5 md:h-[15px] text-[var(--text-secondary)] pointer-events-none"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -230,7 +230,7 @@ export default function DashboardPage() {
           </svg>
           <input
             type="search"
-            className="w-full py-2 pr-3 pl-9 font-sans text-[0.875rem] rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] outline-none transition-all duration-200 focus:border-[var(--text-primary)] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)] max-md:text-[0.8125rem] max-md:py-2 max-md:px-2.5 max-md:pl-8"
+            className="w-full py-2 px-2.5 md:px-3 pl-8 md:pl-9 font-sans text-[0.8125rem] md:text-[0.875rem] rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] outline-none transition-all duration-200 focus:border-[var(--text-primary)] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)]"
             placeholder="Filter services by name or category..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -249,7 +249,9 @@ export default function DashboardPage() {
           )}
         </div>
 
-        <ViewToggle viewMode={viewMode} onChange={setViewMode} />
+        <div className="w-full md:w-auto">
+          <ViewToggle viewMode={viewMode} onChange={setViewMode} />
+        </div>
       </div>
 
       <ServiceGrid
@@ -269,7 +271,7 @@ export default function DashboardPage() {
         onClose={handleCloseModal}
       />
 
-      <footer className="mt-16 pt-6 border-t border-[var(--border-subtle)] flex items-center justify-between flex-wrap gap-4 text-[0.8125rem] text-[var(--text-secondary)] max-md:flex-col max-md:text-center max-md:mt-10">
+      <footer className="mt-10 md:mt-16 pt-6 border-t border-[var(--border-subtle)] flex items-center justify-between flex-col md:flex-row gap-4 text-[0.8125rem] text-[var(--text-secondary)] text-center md:text-left">
         <span>Status Check — Real-time telemetry dashboard for AI & cloud services.</span>
         <span>Auto-refreshes every 60 seconds • Direct API telemetry</span>
       </footer>

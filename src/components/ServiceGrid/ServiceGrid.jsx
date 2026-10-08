@@ -14,11 +14,11 @@ export default function ServiceGrid({
 
   if (loading && providers.length === 0) {
     return (
-      <div className={`w-full ${isGrid ? 'grid grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-5 max-md:grid-cols-2 max-md:gap-2.5' : 'flex flex-col gap-2.5'}`}>
+      <div className={`w-full ${isGrid ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5' : 'flex flex-col gap-2.5'}`}>
         {Array.from({ length: 6 }).map((_, index) => (
           <div
             key={`skeleton-${index}`}
-            className={`bg-[var(--bg-card)] border border-[var(--border-card)] relative overflow-hidden animate-pulse ${isGrid ? 'rounded-[var(--radius-lg)] p-5 min-h-[140px] max-md:p-3.5 max-md:rounded-[var(--radius-md)] max-md:min-h-[130px]' : 'rounded-[var(--radius-md)] min-h-[58px] px-5 py-3.5'}`}
+            className={`bg-[var(--bg-card)] border border-[var(--border-card)] relative overflow-hidden animate-pulse ${isGrid ? 'rounded-[var(--radius-md)] md:rounded-[var(--radius-lg)] p-4 md:p-5 min-h-[130px] md:min-h-[140px]' : 'rounded-[var(--radius-md)] min-h-[58px] px-5 py-3.5'}`}
           />
         ))}
       </div>
@@ -65,7 +65,7 @@ export default function ServiceGrid({
   }
 
   return (
-    <div className={`w-full transition-opacity duration-200 ${refreshing ? 'opacity-85' : ''} ${isGrid ? 'grid grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-5 max-md:grid-cols-2 max-md:gap-2.5' : 'flex flex-col gap-2.5'}`}>
+    <div className={`w-full transition-opacity duration-200 ${refreshing ? 'opacity-85' : ''} ${isGrid ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5' : 'flex flex-col gap-2.5'}`}>
       {providers.map((provider) => {
         const statusEntry = statuses[provider.id];
         const statusData = statusEntry?.data || null;

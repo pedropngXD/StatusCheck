@@ -25,14 +25,14 @@ function ServiceRow({
 
   return (
     <div
-      className="flex items-center justify-between gap-4 px-5 py-3.5 bg-[var(--bg-card)] border border-[var(--border-card)] rounded-[var(--radius-md)] shadow-[var(--shadow-card)] transition-all duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform no-underline text-inherit cursor-pointer select-none hover:bg-[var(--bg-card-hover)] hover:shadow-[var(--shadow-card-hover)] hover:border-[var(--card-hover-border)] active:scale-[0.99] active:duration-75 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] group max-md:flex-nowrap max-md:gap-2.5 max-md:px-3.5 max-md:py-3"
+      className="flex items-center justify-between gap-2.5 md:gap-4 px-3.5 md:px-5 py-3 md:py-3.5 bg-[var(--bg-card)] border border-[var(--border-card)] rounded-[var(--radius-md)] shadow-[var(--shadow-card)] transition-all duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform no-underline text-inherit cursor-pointer select-none hover:bg-[var(--bg-card-hover)] hover:shadow-[var(--shadow-card-hover)] hover:border-[var(--card-hover-border)] active:scale-[0.99] active:duration-75 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] group flex-nowrap"
       onClick={onSelect ? handleClick : undefined}
       role={onSelect ? 'button' : undefined}
       tabIndex={onSelect ? 0 : undefined}
       aria-label={onSelect ? `View status details for ${provider.name}` : undefined}
       onKeyDown={onSelect ? handleKeyDown : undefined}
     >
-      <div className="flex items-center gap-3 min-w-[180px] max-w-[260px] flex-1 max-md:min-w-0 max-md:max-w-none max-md:gap-2.5">
+      <div className="flex items-center gap-2.5 md:gap-3 min-w-0 md:min-w-[180px] max-w-none md:max-w-[260px] flex-1">
         <div className="w-7 h-7 rounded-[var(--radius-sm)] bg-white flex items-center justify-center shrink-0 shadow-[var(--logo-wrapper-shadow)] border border-[var(--logo-wrapper-border)] overflow-hidden p-1">
           {logoSrc ? (
             <img
@@ -45,12 +45,12 @@ function ServiceRow({
             <span className="text-[0.6875rem] font-bold text-[#1d1d1f] uppercase">{provider.name.charAt(0)}</span>
           )}
         </div>
-        <h3 className="text-[0.9375rem] font-semibold m-0 text-[var(--text-primary)] whitespace-nowrap overflow-hidden text-ellipsis max-md:text-[0.875rem]">{provider.name}</h3>
+        <h3 className="text-[0.875rem] md:text-[0.9375rem] font-semibold m-0 text-[var(--text-primary)] whitespace-nowrap overflow-hidden text-ellipsis">{provider.name}</h3>
       </div>
 
-      <p className="flex-[2] text-[0.8125rem] text-[var(--text-secondary)] whitespace-nowrap overflow-hidden text-ellipsis m-0 max-md:hidden">{description}</p>
+      <p className="flex-[2] text-[0.8125rem] text-[var(--text-secondary)] whitespace-nowrap overflow-hidden text-ellipsis m-0 hidden md:block">{description}</p>
 
-      <div className="flex items-center gap-3.5 shrink-0 max-md:gap-2">
+      <div className="flex items-center gap-2 md:gap-3.5 shrink-0">
         <StatusBadge status={status} size="sm" />
 
         <a
@@ -63,9 +63,10 @@ function ServiceRow({
           title={`Open official status page for ${provider.name}`}
         >
           <svg
-            className="w-[15px] h-[15px] stroke-currentColor transition-transform duration-[180ms] ease-out block hover:translate-x-px hover:-translate-y-px"
+            className="w-[15px] h-[15px] transition-transform duration-[180ms] ease-out block hover:translate-x-px hover:-translate-y-px"
             viewBox="0 0 16 16"
             fill="none"
+            stroke="currentColor"
             strokeWidth="1.8"
             strokeLinecap="round"
             strokeLinejoin="round"
