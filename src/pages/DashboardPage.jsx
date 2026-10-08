@@ -6,6 +6,7 @@ import { useRelativeTime } from '../hooks/useRelativeTime';
 import { useViewMode } from '../hooks/useViewMode';
 import { usePresets } from '../hooks/usePresets';
 import { useTheme } from '../hooks/useTheme';
+import { useStatusNotifications } from '../hooks/useStatusNotifications';
 
 import ServiceGrid from '../components/ServiceGrid';
 import ViewToggle from '../components/ViewToggle';
@@ -13,8 +14,8 @@ import PresetManager from '../components/PresetManager';
 import IncidentList from '../components/IncidentList';
 import ThemeToggle from '../components/ThemeToggle';
 import StatusSummary from '../components/StatusSummary';
-import AttentionCard from '../components/AttentionCard';
 import SocialLinks from '../components/SocialLinks';
+import ToastContainer from '../components/ToastContainer';
 
 function getServiceStatus(statuses, id) {
   return statuses[id]?.data?.status || 'unknown';
@@ -41,6 +42,8 @@ export default function DashboardPage() {
     updatePreset,
     deletePreset,
   } = usePresets();
+
+  const { notifications, dismissNotification, isMuted, toggleMute } = useStatusNotifications(statuses, selectedServiceIds);
 
   useEffect(() => {
     const handleShortcut = (e) => {
@@ -164,6 +167,30 @@ export default function DashboardPage() {
               <span className="hidden md:inline">{refreshing ? 'Checking...' : 'Refresh'}</span>
             </button>
 
+            <button
+              type="button"
+              className="inline-flex items-center justify-center bg-[var(--bg-card)] border border-[var(--border-card)] w-9 h-9 md:w-auto md:h-auto md:px-3 md:py-1.5 rounded-[var(--radius-md)] text-[var(--text-primary)] font-sans text-[0.8125rem] font-medium cursor-pointer shadow-[var(--shadow-card)] transition-all duration-200 hover:bg-[var(--bg-card-hover)] hover:shadow-[var(--shadow-card-hover)]"
+              onClick={toggleMute}
+              aria-label={isMuted ? "Enable browser notifications" : "Disable browser notifications"}
+              title={isMuted ? "Enable browser notifications" : "Disable browser notifications"}
+            >
+              {isMuted ? (
+                <svg className="w-4 h-4 md:mr-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                  <path d="M18.63 13A17.89 17.89 0 0 1 18 8" />
+                  <path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14" />
+                  <path d="M18 8a6 6 0 0 0-9.33-5" />
+                  <line x1="1" y1="1" x2="23" y2="23" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4 md:mr-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+              )}
+              <span className="hidden md:inline">{isMuted ? 'Muted' : 'Alerts On'}</span>
+            </button>
+
             <ThemeToggle theme={theme} onToggle={toggleTheme} />
           </div>
         </div>
@@ -244,6 +271,8 @@ export default function DashboardPage() {
         </div>
         <SocialLinks />
       </footer>
+
+      <ToastContainer notifications={notifications} onDismiss={dismissNotification} />
     </main>
   );
 }
