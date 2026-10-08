@@ -232,7 +232,7 @@ export default function DashboardPage() {
           <input
             ref={searchInputRef}
             type="search"
-            className="w-full py-2.5 md:py-2 pl-[34px] md:pl-9 pr-9 font-sans text-[0.875rem] rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] outline-none transition-all duration-200 focus:border-[var(--text-primary)] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)]"
+            className="w-full h-[44px] md:h-[38px] pl-[34px] md:pl-9 pr-9 font-sans text-[0.875rem] rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] outline-none transition-all duration-200 focus:border-[var(--text-primary)] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)]"
             placeholder="Filter services by name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}

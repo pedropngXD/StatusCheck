@@ -5,7 +5,7 @@ const FILTERS = [
 ];
 
 const BASE_BUTTON =
-  'flex flex-row items-center justify-between gap-1.5 px-3 py-2 md:py-1.5 border rounded-[var(--radius-md)] md:rounded-full font-sans text-[0.75rem] md:text-[0.8125rem] font-medium cursor-pointer select-none transition-all duration-[180ms] leading-none active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] w-full md:w-auto';
+  'flex flex-col items-start justify-center p-2.5 sm:p-3 border rounded-[var(--radius-md)] font-sans cursor-pointer select-none transition-all duration-[180ms] leading-none active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] w-full';
 const IDLE_BUTTON =
   'bg-[var(--bg-card)] border-[var(--border-card)] text-[var(--text-secondary)] hover:bg-[var(--bg-card-hover)] hover:border-[var(--card-hover-border)] hover:text-[var(--text-primary)]';
 const ACTIVE_BUTTON = 'bg-[var(--text-primary)] text-[var(--bg-primary)] border-[var(--text-primary)]';
@@ -21,15 +21,15 @@ export default function StatusSummary({ summary, selected = [], onToggle, onClea
 
   return (
     <section aria-label="Status summary" className="mt-2">
-      <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-[0.875rem] font-semibold text-[var(--text-secondary)] uppercase tracking-[0.04em] m-0">
-          Filtros de Status
+      <div className="mb-2.5 flex items-center justify-between">
+        <h3 className="text-[0.8125rem] font-semibold text-[var(--text-secondary)] uppercase tracking-[0.04em] m-0">
+          Status Filters
         </h3>
-        <span className="text-xs text-[var(--text-secondary)]">
+        <span className="text-[0.75rem] text-[var(--text-secondary)] hidden sm:inline">
           Selecione para filtrar os serviços
         </span>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:flex md:flex-wrap md:items-center" role="group" aria-label="Status filters">
+      <div className="grid grid-cols-4 gap-2" role="group" aria-label="Status filters">
         <button
           type="button"
           className={`${BASE_BUTTON} ${noneSelected ? ACTIVE_BUTTON : IDLE_BUTTON}`}
@@ -37,8 +37,11 @@ export default function StatusSummary({ summary, selected = [], onToggle, onClea
           aria-pressed={noneSelected}
           aria-label={`Show all ${summary.total} monitored services`}
         >
-          <span>All</span>
-          <strong className="font-semibold opacity-70">{summary.total}</strong>
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <span className={`w-1.5 h-1.5 rounded-full ${noneSelected ? 'bg-[var(--bg-primary)]' : 'bg-[var(--text-secondary)]'}`} aria-hidden="true" />
+            <strong className={`text-[0.95rem] font-bold ${noneSelected ? 'text-[var(--bg-primary)]' : 'text-[var(--text-primary)]'}`}>{summary.total}</strong>
+          </div>
+          <span className="text-[0.75rem] font-medium">All</span>
         </button>
 
         {FILTERS.map(({ type, label, dot, text }) => {
@@ -54,18 +57,14 @@ export default function StatusSummary({ summary, selected = [], onToggle, onClea
               aria-pressed={active}
               aria-label={`Filter by ${count} ${label.toLowerCase()} services`}
             >
-              <span className="inline-flex items-center gap-1.5">
-                <span className={`w-1.5 h-1.5 rounded-full ${dot}`} aria-hidden="true" />
-                <span>{label}</span>
-              </span>
-              <strong className={`font-semibold ${active ? '' : text}`}>{count}</strong>
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <span className={`w-1.5 h-1.5 rounded-full ${active ? 'bg-[var(--bg-primary)]' : dot.replace('bg-', 'bg-')}`} style={active ? {} : { backgroundColor: `var(--status-${type})` }} aria-hidden="true" />
+                <strong className={`text-[0.95rem] font-bold ${active ? 'text-[var(--bg-primary)]' : text}`}>{count}</strong>
+              </div>
+              <span className="text-[0.75rem] font-medium">{label}</span>
             </button>
           );
         })}
-
-        <span className="hidden md:inline text-xs text-[var(--text-secondary)] ml-1">
-          Multi-select to combine filters
-        </span>
       </div>
 
       <div
