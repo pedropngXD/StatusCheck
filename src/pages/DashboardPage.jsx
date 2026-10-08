@@ -17,6 +17,7 @@ import StatusSummary from '../components/StatusSummary';
 import StatusDropdown from '../components/StatusDropdown/StatusDropdown';
 import CategoryDropdown from '../components/CategoryDropdown/CategoryDropdown';
 import SavedViewsDropdown from '../components/SavedViewsDropdown/SavedViewsDropdown';
+import MobileFiltersModal from '../components/MobileFiltersModal/MobileFiltersModal';
 import SocialLinks from '../components/SocialLinks';
 
 function getServiceStatus(statuses, id) {
@@ -102,7 +103,17 @@ export default function DashboardPage() {
   }, [selectedServiceIds, statusFilters, statuses, searchQuery, categoryFilter]);
 
   const selectedStatusData = selectedService ? statuses[selectedService.id]?.data : null;
-  const categories = useMemo(() => Array.from(new Set(STATUS_PROVIDERS.map(p => p.category))), []);
+  const categories = useMemo(() => {
+    const counts = {};
+    STATUS_PROVIDERS.forEach(p => {
+      counts[p.category] = (counts[p.category] || 0) + 1;
+    });
+    return Array.from(new Set(STATUS_PROVIDERS.map(p => p.category))).map(name => ({
+      name,
+      count: counts[name]
+    }));
+  }, []);
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
   const handleSelectService = useCallback((service) => {
     setSelectedService(service);
@@ -207,7 +218,7 @@ export default function DashboardPage() {
         summary={presetSummary}
       />
 
-      <div className="mt-5 md:mt-6">
+      <div className="mt-5 md:mt-6 max-md:hidden">
         <PresetManager
           presets={presets}
           activePresetId={activePresetId}
@@ -251,16 +262,34 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              <div className="shrink-0">
+              {/* Desktop Status Dropdown */}
+              <div className="shrink-0 hidden md:block">
                 <StatusDropdown
                   selected={statusFilters}
                   onToggle={handleStatusFilterToggle}
                   summary={presetSummary}
                 />
               </div>
+
+              {/* Mobile Filters Button */}
+              <div className="shrink-0 md:hidden h-[44px]">
+                <button
+                  type="button"
+                  onClick={() => setIsMobileFiltersOpen(true)}
+                  className="h-full px-4 inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] font-medium text-[0.875rem] shadow-sm active:scale-95 transition-all"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                  Filters
+                  {(statusFilters.length > 0 || categoryFilter !== 'all') && (
+                    <span className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--text-primary)] text-[var(--bg-primary)] text-[0.6875rem] font-bold ml-1">
+                      {statusFilters.length + (categoryFilter !== 'all' ? 1 : 0)}
+                    </span>
+                  )}
+                </button>
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 md:flex md:items-center gap-2 w-full md:w-auto">
+            <div className="hidden md:flex md:items-center gap-2 w-full md:w-auto">
               <CategoryDropdown
                 categories={categories}
                 selected={categoryFilter}
@@ -275,7 +304,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="shrink-0 flex items-center w-full xl:w-auto">
+          <div className="shrink-0 hidden md:flex items-center w-full xl:w-auto">
             <ViewToggle viewMode={viewMode} onChange={setViewMode} className="w-full md:w-auto flex md:inline-flex" />
           </div>
         </div>
@@ -338,6 +367,19 @@ export default function DashboardPage() {
       ) : (
         <ServiceGrid providers={filteredProviders} loading={loading} {...gridProps} />
       )}
+
+      <MobileFiltersModal
+        isOpen={isMobileFiltersOpen}
+        onClose={() => setIsMobileFiltersOpen(false)}
+        statusFilters={statusFilters}
+        onToggleStatus={handleStatusFilterToggle}
+        categoryFilter={categoryFilter}
+        onChangeCategory={setCategoryFilter}
+        categories={categories}
+        summary={presetSummary}
+        filteredCount={filteredProviders.length}
+        onClearAll={handleResetFilter}
+      />
 
       <IncidentList
         key={selectedService?.id || 'none'}

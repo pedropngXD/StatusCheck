@@ -127,7 +127,7 @@ export default function IncidentList({ service, statusData, onClose }) {
       aria-modal="true"
     >
       <div 
-        className={`bg-[var(--bg-card)] border border-[var(--border-card)] rounded-[var(--radius-lg)] shadow-[0_24px_48px_rgba(0,0,0,0.28)] w-full max-w-[620px] max-h-[min(85vh,780px)] flex flex-col overflow-hidden overscroll-contain relative max-md:max-w-full max-md:h-[88dvh] max-md:max-h-[88dvh] max-md:rounded-t-[20px] max-md:rounded-b-none max-md:border-b-0 max-md:border-x-0 max-md:shadow-[0_-8px_32px_rgba(0,0,0,0.25)] will-change-[transform,opacity] ${isClosing ? 'max-md:animate-[modal-sheet-slide-down_0.2s_ease-out_forwards] animate-[modal-scale-out_0.2s_ease-out_forwards]' : 'max-md:animate-[modal-sheet-slide-up_0.24s_ease-out] animate-[modal-scale-in_0.18s_ease-out]'}`}
+        className={`bg-[var(--bg-card)] border border-[var(--border-card)] rounded-[var(--radius-lg)] shadow-[0_24px_48px_rgba(0,0,0,0.28)] w-full max-w-[620px] max-h-[min(85vh,780px)] flex flex-col overflow-hidden overscroll-contain relative max-md:max-w-full max-md:h-[88dvh] max-md:max-h-[88dvh] max-md:rounded-t-[20px] max-md:rounded-b-none max-md:border-b-0 max-md:border-x-0 max-md:shadow-[0_-8px_32px_rgba(0,0,0,0.25)] will-change-[transform,opacity] ${isClosing ? 'max-md:animate-[modal-sheet-slide-down_0.2s_ease-out_forwards] md:animate-[modal-scale-out_0.2s_ease-out_forwards]' : 'max-md:animate-[modal-sheet-slide-up_0.24s_ease-out] md:animate-[modal-scale-in_0.18s_ease-out]'}`}
         onClick={(e) => e.stopPropagation()}
         style={{ 
           transform: (dragY > 0 && !isClosing) ? `translateY(${dragY}px)` : '',
