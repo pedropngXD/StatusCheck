@@ -15,6 +15,8 @@ import IncidentList from '../components/IncidentList';
 import ThemeToggle from '../components/ThemeToggle';
 import StatusSummary from '../components/StatusSummary';
 import StatusDropdown from '../components/StatusDropdown/StatusDropdown';
+import CategoryDropdown from '../components/CategoryDropdown/CategoryDropdown';
+import SavedViewsDropdown from '../components/SavedViewsDropdown/SavedViewsDropdown';
 import SocialLinks from '../components/SocialLinks';
 
 function getServiceStatus(statuses, id) {
@@ -25,6 +27,7 @@ export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedService, setSelectedService] = useState(null);
   const [statusFilters, setStatusFilters] = useState([]);
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const searchInputRef = useRef(null);
 
   const { theme, toggleTheme } = useTheme();
@@ -83,6 +86,8 @@ export default function DashboardPage() {
     return STATUS_PROVIDERS.filter((provider) => {
       if (!selectedServiceIds.includes(provider.id)) return false;
 
+      if (categoryFilter !== 'all' && provider.category !== categoryFilter) return false;
+
       if (statusFilters.length > 0 && !statusFilters.includes(getServiceStatus(statuses, provider.id))) {
         return false;
       }
@@ -94,9 +99,10 @@ export default function DashboardPage() {
         provider.category.toLowerCase().includes(query)
       );
     }).sort((a, b) => a.name.localeCompare(b.name));
-  }, [selectedServiceIds, statusFilters, statuses, searchQuery]);
+  }, [selectedServiceIds, statusFilters, statuses, searchQuery, categoryFilter]);
 
   const selectedStatusData = selectedService ? statuses[selectedService.id]?.data : null;
+  const categories = useMemo(() => Array.from(new Set(STATUS_PROVIDERS.map(p => p.category))), []);
 
   const handleSelectService = useCallback((service) => {
     setSelectedService(service);
@@ -106,6 +112,7 @@ export default function DashboardPage() {
     setSearchQuery('');
     selectPreset('all');
     setStatusFilters([]);
+    setCategoryFilter('all');
   }, [selectPreset]);
 
   const handleCloseModal = useCallback(() => {
@@ -249,16 +256,17 @@ export default function DashboardPage() {
               summary={presetSummary}
             />
 
-            <button type="button" className="inline-flex items-center gap-2 px-3 h-[44px] md:h-[38px] rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[0.875rem] text-[var(--text-secondary)] font-medium hover:border-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
-              Category All
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </button>
+            <CategoryDropdown
+              categories={categories}
+              selected={categoryFilter}
+              onChange={setCategoryFilter}
+            />
 
-            <button type="button" className="inline-flex items-center gap-2 px-3 h-[44px] md:h-[38px] rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[0.875rem] text-[var(--text-secondary)] font-medium hover:border-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
-              Saved views
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </button>
+            <SavedViewsDropdown
+              presets={presets}
+              activePresetId={activePresetId}
+              onSelect={selectPreset}
+            />
           </div>
 
           <div className="shrink-0 flex items-center w-full xl:w-auto">
@@ -266,7 +274,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {(searchQuery || statusFilters.length > 0) && (
+        {(searchQuery || statusFilters.length > 0 || categoryFilter !== 'all') && (
           <div className="flex flex-wrap items-center gap-3 text-[0.875rem]">
             <span className="font-bold text-[var(--text-primary)]">
               Showing {filteredProviders.length} of {presetSummary.total}
@@ -284,6 +292,18 @@ export default function DashboardPage() {
                 </button>
               </span>
             ))}
+            {categoryFilter !== 'all' && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] font-medium text-[0.8125rem] capitalize">
+                Category: {categoryFilter}
+                <button
+                  type="button"
+                  onClick={() => setCategoryFilter('all')}
+                  className="w-4 h-4 rounded-full inline-flex items-center justify-center hover:bg-[var(--bg-card-hover)] text-[var(--text-secondary)] transition-colors ml-1"
+                >
+                  <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+              </span>
+            )}
             {searchQuery && (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] font-medium text-[0.8125rem]">
                 Search: {searchQuery}
