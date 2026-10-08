@@ -146,13 +146,6 @@ export default function MobileFiltersModal({
           <div>
             <h3 className="text-[0.6875rem] font-bold text-[var(--text-secondary)] uppercase tracking-wider m-0 mb-3">Saved Views</h3>
             <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => onSelectPreset('all')}
-                className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full border text-[0.875rem] font-medium transition-colors ${activePresetId === 'all' ? 'bg-[var(--text-primary)] border-[var(--text-primary)] text-[var(--bg-primary)]' : 'bg-transparent border-[var(--border-subtle)] text-[var(--text-primary)]'}`}
-              >
-                All Services
-              </button>
               {presets.map((preset) => (
                 <div key={preset.id} className={`inline-flex items-center rounded-full border transition-colors ${activePresetId === preset.id ? 'bg-[var(--text-primary)] border-[var(--text-primary)] text-[var(--bg-primary)]' : 'bg-transparent border-[var(--border-subtle)] text-[var(--text-primary)]'}`}>
                   <button

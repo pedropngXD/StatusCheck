@@ -37,13 +37,6 @@ export default function SavedViewsDropdown({ presets, activePresetId, onSelect }
       {isOpen && (
         <div className="absolute top-full left-0 mt-2 w-[240px] bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[var(--radius-lg)] shadow-xl z-50 overflow-hidden">
           <div className="p-2 flex flex-col gap-1">
-            <button
-              type="button"
-              onClick={() => { onSelect('all'); setIsOpen(false); }}
-              className={`w-full flex items-center px-3 py-2 text-[0.875rem] font-medium rounded-[var(--radius-md)] transition-colors text-left ${activePresetId === 'all' ? 'bg-[var(--bg-card-hover)] text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-card-hover)] hover:text-[var(--text-primary)]'}`}
-            >
-              All Services
-            </button>
             {presets.map((preset) => (
               <button
                 key={preset.id}
