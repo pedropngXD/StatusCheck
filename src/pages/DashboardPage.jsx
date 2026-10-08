@@ -14,6 +14,7 @@ import IncidentList from '../components/IncidentList';
 import ThemeToggle from '../components/ThemeToggle';
 import StatusSummary from '../components/StatusSummary';
 import AttentionCard from '../components/AttentionCard';
+import SocialLinks from '../components/SocialLinks';
 
 const SEVERITY = { outage: 0, degraded: 1 };
 
@@ -324,8 +325,11 @@ export default function DashboardPage() {
       />
 
       <footer className="mt-10 md:mt-16 pt-6 border-t border-[var(--border-subtle)] flex items-center justify-between flex-col md:flex-row gap-4 text-[0.8125rem] text-[var(--text-secondary)] text-center md:text-left">
-        <span>Status Check — Real-time telemetry dashboard for AI &amp; cloud services.</span>
-        <span>Auto-refreshes every 60 seconds • Direct API telemetry</span>
+        <div className="flex flex-col gap-1">
+          <span>Status Check — Real-time telemetry dashboard for AI &amp; cloud services.</span>
+          <span>Auto-refreshes every 60 seconds • Direct API telemetry</span>
+        </div>
+        <SocialLinks />
       </footer>
     </main>
   );
