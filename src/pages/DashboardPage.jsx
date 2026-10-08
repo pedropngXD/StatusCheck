@@ -14,6 +14,7 @@ import PresetManager from '../components/PresetManager';
 import IncidentList from '../components/IncidentList';
 import ThemeToggle from '../components/ThemeToggle';
 import StatusSummary from '../components/StatusSummary';
+import StatusDropdown from '../components/StatusDropdown/StatusDropdown';
 import SocialLinks from '../components/SocialLinks';
 
 function getServiceStatus(statuses, id) {
@@ -197,9 +198,6 @@ export default function DashboardPage() {
 
       <StatusSummary
         summary={presetSummary}
-        selected={statusFilters}
-        onToggle={handleStatusFilterToggle}
-        onClear={handleClearStatusFilters}
       />
 
       <div className="mt-5 md:mt-6">
@@ -214,40 +212,99 @@ export default function DashboardPage() {
         />
       </div>
 
-      <div className="flex flex-col md:flex-row items-center justify-between gap-3 md:gap-4 mt-3 mb-5 w-full">
-        <div className="relative w-full md:flex-1 min-w-0 md:max-w-[360px]">
-          <svg
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-[15px] md:h-[15px] text-[var(--text-secondary)] pointer-events-none"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <input
-            ref={searchInputRef}
-            type="search"
-            className="w-full h-[44px] md:h-[38px] pl-[34px] md:pl-9 pr-9 font-sans text-[0.875rem] rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] outline-none transition-all duration-200 focus:border-[var(--text-primary)] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)]"
-            placeholder="Filter services by name..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            aria-label="Filter services"
-          />
-          {!searchQuery && (
-            <kbd className="hidden md:inline-flex absolute right-2.5 top-1/2 -translate-y-1/2 items-center justify-center w-5 h-5 rounded-[5px] border border-[var(--border-subtle)] bg-[rgba(142,142,147,0.1)] text-[0.6875rem] font-mono text-[var(--text-secondary)] pointer-events-none">
-              /
-            </kbd>
-          )}
+      <div className="flex flex-col items-start gap-4 mt-8 mb-6 w-full">
+        <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3 w-full">
+          <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto flex-1">
+            <div className="relative flex-1 min-w-[200px] max-w-[400px]">
+              <svg
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                ref={searchInputRef}
+                type="search"
+                className="w-full h-[44px] md:h-[38px] pl-9 pr-9 text-[0.875rem] rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] outline-none transition-all focus:border-[var(--text-primary)]"
+                placeholder="Filter services by name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {!searchQuery && (
+                <kbd className="hidden md:inline-flex absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 items-center justify-center rounded border border-[var(--border-subtle)] bg-[rgba(142,142,147,0.1)] text-[0.6875rem] font-mono text-[var(--text-secondary)]">
+                  /
+                </kbd>
+              )}
+            </div>
+
+            <StatusDropdown
+              selected={statusFilters}
+              onToggle={handleStatusFilterToggle}
+              summary={presetSummary}
+            />
+
+            <button type="button" className="inline-flex items-center gap-2 px-3 h-[44px] md:h-[38px] rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[0.875rem] text-[var(--text-secondary)] font-medium hover:border-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
+              Category All
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+
+            <button type="button" className="inline-flex items-center gap-2 px-3 h-[44px] md:h-[38px] rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[0.875rem] text-[var(--text-secondary)] font-medium hover:border-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+              Saved views
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+          </div>
+
+          <div className="shrink-0 flex items-center w-full xl:w-auto">
+            <ViewToggle viewMode={viewMode} onChange={setViewMode} className="w-full md:w-auto flex md:inline-flex" />
+          </div>
         </div>
 
-        <div className="shrink-0 flex items-center w-full md:w-auto">
-          <ViewToggle viewMode={viewMode} onChange={setViewMode} className="w-full md:w-auto flex md:inline-flex" />
-        </div>
+        {(searchQuery || statusFilters.length > 0) && (
+          <div className="flex flex-wrap items-center gap-3 text-[0.875rem]">
+            <span className="font-bold text-[var(--text-primary)]">
+              Showing {filteredProviders.length} of {presetSummary.total}
+            </span>
+            {statusFilters.map(filter => (
+              <span key={filter} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--radius-md)] border border-[#4d4422] bg-[#221f11] text-[#e5c158] font-medium text-[0.8125rem]">
+                Status: {filter.charAt(0).toUpperCase() + filter.slice(1)}
+                <button
+                  type="button"
+                  onClick={() => handleStatusFilterToggle(filter)}
+                  className="w-4 h-4 rounded-full inline-flex items-center justify-center hover:bg-[#3d361c] text-[#e5c158] transition-colors ml-1"
+                  aria-label={`Remove ${filter} filter`}
+                >
+                  <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+              </span>
+            ))}
+            {searchQuery && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] font-medium text-[0.8125rem]">
+                Search: {searchQuery}
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="w-4 h-4 rounded-full inline-flex items-center justify-center hover:bg-[var(--bg-card-hover)] text-[var(--text-secondary)] transition-colors ml-1"
+                >
+                  <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={handleResetFilter}
+              className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors font-medium ml-1"
+            >
+              Clear filters
+            </button>
+          </div>
+        )}
       </div>
 
       {filteredProviders.length === 0 ? (
