@@ -113,14 +113,31 @@ export default function DashboardPage() {
   const selectedStatusData = selectedService ? statuses[selectedService.id]?.data : null;
   const categories = useMemo(() => {
     const counts = {};
-    STATUS_PROVIDERS.forEach(p => {
-      counts[p.category] = (counts[p.category] || 0) + 1;
+    const query = searchQuery.toLowerCase().trim();
+    
+    STATUS_PROVIDERS.forEach((provider) => {
+      if (!selectedServiceIds.includes(provider.id)) return;
+      
+      if (statusFilters.length > 0 && !statusFilters.includes(getServiceStatus(statuses, provider.id))) {
+        return;
+      }
+      
+      if (query && !(
+        provider.name.toLowerCase().includes(query) ||
+        provider.description.toLowerCase().includes(query) ||
+        provider.category.toLowerCase().includes(query)
+      )) {
+        return;
+      }
+
+      counts[provider.category] = (counts[provider.category] || 0) + 1;
     });
+
     return Array.from(new Set(STATUS_PROVIDERS.map(p => p.category))).map(name => ({
       name,
-      count: counts[name]
+      count: counts[name] || 0
     }));
-  }, []);
+  }, [selectedServiceIds, statusFilters, statuses, searchQuery]);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
   const handleSelectService = useCallback((service) => {

@@ -127,7 +127,7 @@ export default function MobileFiltersModal({
                 onClick={() => onChangeCategory('all')}
                 className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full border text-[0.875rem] font-medium transition-colors ${categoryFilter === 'all' ? 'bg-[var(--text-primary)] border-[var(--text-primary)] text-[var(--bg-primary)]' : 'bg-transparent border-[var(--border-subtle)] text-[var(--text-primary)]'}`}
               >
-                All <span className={`text-[0.75rem] ${categoryFilter === 'all' ? 'text-[var(--bg-secondary)]' : 'text-[var(--text-secondary)]'}`}>{summary ? summary.total : 0}</span>
+                All <span className={`text-[0.75rem] ${categoryFilter === 'all' ? 'text-[var(--bg-secondary)]' : 'text-[var(--text-secondary)]'}`}>{categories.reduce((sum, cat) => sum + cat.count, 0)}</span>
               </button>
               {categories.map((cat) => (
                 <button

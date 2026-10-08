@@ -39,9 +39,10 @@ export default function CategoryDropdown({ categories, selected, onChange }) {
             <button
               type="button"
               onClick={() => { onChange('all'); setIsOpen(false); }}
-              className={`w-full flex items-center px-3 py-2 text-[0.875rem] font-medium rounded-[var(--radius-md)] transition-colors text-left ${selected === 'all' ? 'bg-[var(--bg-card-hover)] text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-card-hover)] hover:text-[var(--text-primary)]'}`}
+              className={`w-full flex items-center justify-between px-3 py-2 text-[0.875rem] font-medium rounded-[var(--radius-md)] transition-colors text-left ${selected === 'all' ? 'bg-[var(--bg-card-hover)] text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-card-hover)] hover:text-[var(--text-primary)]'}`}
             >
-              All Categories
+              <span>All Categories</span>
+              <span className="text-[0.75rem] text-[var(--text-secondary)] opacity-60 font-mono">{categories.reduce((sum, cat) => sum + cat.count, 0)}</span>
             </button>
             {categories.map((cat) => (
               <button
