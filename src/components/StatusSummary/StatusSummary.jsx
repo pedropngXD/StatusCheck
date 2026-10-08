@@ -29,7 +29,7 @@ export default function StatusSummary({ summary, selected = [], onToggle, onClea
           Selecione para filtrar os serviços
         </span>
       </div>
-      <div className="grid grid-cols-4 gap-2" role="group" aria-label="Status filters">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3" role="group" aria-label="Status filters">
         <button
           type="button"
           className={`${BASE_BUTTON} ${noneSelected ? ACTIVE_BUTTON : IDLE_BUTTON}`}

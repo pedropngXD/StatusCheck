@@ -1,7 +1,7 @@
-export default function ViewToggle({ viewMode = 'grid', onChange }) {
+export default function ViewToggle({ viewMode = 'grid', onChange, className = '' }) {
   return (
     <div
-      className="relative inline-flex items-center bg-[rgba(142,142,147,0.12)] p-[3px] rounded-[var(--radius-md)] border border-[var(--border-subtle)] select-none isolate h-[44px] md:h-[38px]"
+      className={`relative inline-flex items-center bg-[rgba(142,142,147,0.12)] p-[3px] rounded-[var(--radius-md)] border border-[var(--border-subtle)] select-none isolate h-[44px] md:h-[38px] ${className}`}
       role="group"
       aria-label="View layout switch"
     >
@@ -31,7 +31,7 @@ export default function ViewToggle({ viewMode = 'grid', onChange }) {
           <rect x="2" y="9" width="5" height="5" rx="1.5" />
           <rect x="9" y="9" width="5" height="5" rx="1.5" />
         </svg>
-        <span className="hidden sm:inline">Grid</span>
+        <span>Grid</span>
       </button>
 
       <button
@@ -55,7 +55,7 @@ export default function ViewToggle({ viewMode = 'grid', onChange }) {
           <line x1="2" y1="8" x2="14" y2="8" />
           <line x1="2" y1="12" x2="14" y2="12" />
         </svg>
-        <span className="hidden sm:inline">Rows</span>
+        <span>Rows</span>
       </button>
     </div>
   );

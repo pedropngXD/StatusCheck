@@ -11,6 +11,7 @@ export default function PresetManager({
   allServices = [],
 }) {
   const [modalOpen, setModalOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const [editingPreset, setEditingPreset] = useState(null);
   const [presetName, setPresetName] = useState('');
   const [selectedIds, setSelectedIds] = useState([]);
@@ -35,8 +36,9 @@ export default function PresetManager({
   const handleTouchEnd = () => {
     if (dragY > 100) {
       closeModal();
+    } else {
+      setDragY(0);
     }
-    setDragY(0);
     touchStartY.current = null;
   };
 
@@ -85,6 +87,8 @@ export default function PresetManager({
     setSelectedIds([]);
     setPresetSearchQuery('');
     setModalOpen(true);
+    setIsClosing(false);
+    setDragY(0);
   };
 
   const openEditModal = (preset) => {
@@ -93,15 +97,21 @@ export default function PresetManager({
     setSelectedIds([...preset.serviceIds]);
     setPresetSearchQuery('');
     setModalOpen(true);
+    setIsClosing(false);
+    setDragY(0);
   };
 
   const closeModal = () => {
-    setModalOpen(false);
-    setEditingPreset(null);
-    setPresetName('');
-    setSelectedIds([]);
-    setPresetSearchQuery('');
-    setDragY(0);
+    setIsClosing(true);
+    setTimeout(() => {
+      setModalOpen(false);
+      setIsClosing(false);
+      setEditingPreset(null);
+      setPresetName('');
+      setSelectedIds([]);
+      setPresetSearchQuery('');
+      setDragY(0);
+    }, 200);
   };
 
   useEffect(() => {
@@ -256,18 +266,24 @@ export default function PresetManager({
       {modalOpen && (
         <div
           ref={backdropRef}
-          className="fixed inset-0 bg-black/45 backdrop-blur-[8px] z-[1000] flex items-center justify-center p-6 animate-[modal-fade-in_0.18s_cubic-bezier(0.16,1,0.3,1)] overscroll-contain max-md:p-0 max-md:items-end"
+          className={`fixed inset-0 bg-black/45 backdrop-blur-[8px] z-[1000] flex items-center justify-center p-6 overscroll-contain max-md:p-0 max-md:items-end ${
+            isClosing ? 'animate-[modal-fade-out_0.2s_ease-out_forwards]' : 'animate-[modal-fade-in_0.18s_cubic-bezier(0.16,1,0.3,1)]'
+          }`}
           onClick={closeModal}
           role="dialog"
           aria-modal="true"
         >
           <form 
-            className="bg-[var(--bg-card)] border border-[var(--border-card)] rounded-[var(--radius-lg)] shadow-[0_24px_48px_rgba(0,0,0,0.28)] w-full max-w-[580px] max-h-[min(85vh,760px)] flex flex-col overflow-hidden overscroll-contain relative max-md:max-w-full max-md:h-[88dvh] max-md:max-h-[88dvh] max-md:rounded-t-[20px] max-md:rounded-b-none max-md:border-b-0 max-md:border-x-0 max-md:shadow-[0_-8px_32px_rgba(0,0,0,0.25)] max-md:animate-[modal-sheet-slide-up_0.24s_cubic-bezier(0.16,1,0.3,1)]" 
+            className={`bg-[var(--bg-card)] border border-[var(--border-card)] rounded-[var(--radius-lg)] shadow-[0_24px_48px_rgba(0,0,0,0.28)] w-full max-w-[580px] max-h-[min(85vh,760px)] flex flex-col overflow-hidden overscroll-contain relative max-md:max-w-full max-md:h-[88dvh] max-md:max-h-[88dvh] max-md:rounded-t-[20px] max-md:rounded-b-none max-md:border-b-0 max-md:border-x-0 max-md:shadow-[0_-8px_32px_rgba(0,0,0,0.25)] ${
+              isClosing 
+                ? 'max-md:animate-[modal-sheet-slide-down_0.2s_ease-out_forwards] animate-[modal-scale-out_0.2s_ease-out_forwards]' 
+                : 'max-md:animate-[modal-sheet-slide-up_0.24s_cubic-bezier(0.16,1,0.3,1)] animate-[modal-scale-in_0.24s_cubic-bezier(0.16,1,0.3,1)]'
+            }`} 
             onClick={(e) => e.stopPropagation()} 
             onSubmit={handleSave}
             style={{ 
-              transform: dragY > 0 ? `translateY(${dragY}px)` : '',
-              transition: dragY === 0 ? 'transform 0.2s cubic-bezier(0.16,1,0.3,1)' : 'none'
+              transform: dragY > 0 && !isClosing ? `translateY(${dragY}px)` : '',
+              transition: dragY === 0 || isClosing ? 'transform 0.2s cubic-bezier(0.16,1,0.3,1)' : 'none'
             }}
           >
             <div 
@@ -291,7 +307,7 @@ export default function PresetManager({
               </h3>
               <button
                 type="button"
-                className="bg-[rgba(142,142,147,0.15)] border-none w-8 h-8 rounded-full flex items-center justify-center text-[var(--text-secondary)] cursor-pointer shrink-0 transition-all duration-200 hover:bg-[rgba(142,142,147,0.25)] hover:text-[var(--text-primary)] active:scale-[0.92] max-md:hidden"
+                className="bg-[rgba(142,142,147,0.15)] border-none w-8 h-8 rounded-full hidden md:flex items-center justify-center text-[var(--text-secondary)] cursor-pointer shrink-0 transition-all duration-200 hover:bg-[rgba(142,142,147,0.25)] hover:text-[var(--text-primary)] active:scale-[0.92]"
                 onClick={closeModal}
                 aria-label="Close preset modal"
               >
