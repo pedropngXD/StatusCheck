@@ -92,10 +92,6 @@ const PresetManager = forwardRef(function PresetManager({
     setDragY(0);
   };
 
-  useImperativeHandle(ref, () => ({
-    openCreateModal
-  }));
-
   const openEditModal = (preset) => {
     setEditingPreset(preset);
     setPresetName(preset.name);
@@ -105,6 +101,11 @@ const PresetManager = forwardRef(function PresetManager({
     setIsClosing(false);
     setDragY(0);
   };
+
+  useImperativeHandle(ref, () => ({
+    openCreateModal,
+    openEditModal
+  }));
 
   const closeModal = () => {
     setIsClosing(true);
@@ -268,6 +269,7 @@ const PresetManager = forwardRef(function PresetManager({
           </button>
         </div>
       )}
+      </div>
 
       {modalOpen && (
         <div
@@ -455,7 +457,6 @@ const PresetManager = forwardRef(function PresetManager({
           </form>
         </div>
       )}
-    </div>
     </>
   );
 });

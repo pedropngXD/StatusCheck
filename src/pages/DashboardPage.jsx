@@ -68,8 +68,6 @@ export default function DashboardPage() {
     );
   }, []);
 
-  const handleClearStatusFilters = useCallback(() => setStatusFilters([]), []);
-
   const presetSummary = useMemo(() => {
     const summary = { total: 0, operational: 0, degraded: 0, outage: 0, unknown: 0 };
 
@@ -129,6 +127,16 @@ export default function DashboardPage() {
 
   const handleCloseModal = useCallback(() => {
     setSelectedService(null);
+  }, []);
+
+  const handleOpenCreatePreset = useCallback(() => {
+    setIsMobileFiltersOpen(false);
+    setTimeout(() => presetManagerRef.current?.openCreateModal(), 150);
+  }, []);
+
+  const handleOpenEditPreset = useCallback((preset) => {
+    setIsMobileFiltersOpen(false);
+    setTimeout(() => presetManagerRef.current?.openEditModal(preset), 150);
   }, []);
 
   const gridProps = {
@@ -278,7 +286,7 @@ export default function DashboardPage() {
               <div className="flex md:hidden gap-2 w-full h-[44px] shrink-0">
                 <button
                   type="button"
-                  onClick={() => presetManagerRef.current?.openCreateModal()}
+                  onClick={handleOpenCreatePreset}
                   className="flex-1 px-4 inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] font-medium text-[0.875rem] shadow-sm active:scale-95 transition-all"
                 >
                   <svg className="w-4 h-4 shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="3" x2="8" y2="13" /><line x1="3" y1="8" x2="13" y2="8" /></svg>
@@ -393,6 +401,7 @@ export default function DashboardPage() {
         presets={presets}
         activePresetId={activePresetId}
         onSelectPreset={selectPreset}
+        onEditPreset={handleOpenEditPreset}
       />
 
       <IncidentList

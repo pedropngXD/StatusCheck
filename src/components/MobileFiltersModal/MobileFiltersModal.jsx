@@ -21,6 +21,7 @@ export default function MobileFiltersModal({
   presets = [],
   activePresetId = 'all',
   onSelectPreset,
+  onEditPreset,
 }) {
   const [isClosing, setIsClosing] = useState(false);
   const backdropRef = useRef(null);
@@ -30,7 +31,6 @@ export default function MobileFiltersModal({
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
-      setIsClosing(false);
     }
     return () => {
       document.body.style.overflow = '';
@@ -154,14 +154,25 @@ export default function MobileFiltersModal({
                 All Services
               </button>
               {presets.map((preset) => (
-                <button
-                  key={preset.id}
-                  type="button"
-                  onClick={() => onSelectPreset(preset.id)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full border text-[0.875rem] font-medium transition-colors ${activePresetId === preset.id ? 'bg-[var(--text-primary)] border-[var(--text-primary)] text-[var(--bg-primary)]' : 'bg-transparent border-[var(--border-subtle)] text-[var(--text-primary)]'}`}
-                >
-                  {preset.name}
-                </button>
+                <div key={preset.id} className={`inline-flex items-center rounded-full border transition-colors ${activePresetId === preset.id ? 'bg-[var(--text-primary)] border-[var(--text-primary)] text-[var(--bg-primary)]' : 'bg-transparent border-[var(--border-subtle)] text-[var(--text-primary)]'}`}>
+                  <button
+                    type="button"
+                    onClick={() => onSelectPreset(preset.id)}
+                    className="pl-3 pr-2 py-2 text-[0.875rem] font-medium"
+                  >
+                    {preset.name}
+                  </button>
+                  {!preset.isDefault && (
+                    <button
+                      type="button"
+                      onClick={() => onEditPreset(preset)}
+                      className={`pr-3 pl-1 py-2 flex items-center justify-center ${activePresetId === preset.id ? 'text-[var(--bg-primary)] opacity-80 hover:opacity-100' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                      aria-label={`Edit ${preset.name}`}
+                    >
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 2a2 2 0 0 1 2.8 2.8L4.6 14 1 15l1-3.6L11 2z" /></svg>
+                    </button>
+                  )}
+                </div>
               ))}
             </div>
           </div>
