@@ -18,6 +18,9 @@ export default function MobileFiltersModal({
   summary,
   filteredCount,
   onClearAll,
+  presets = [],
+  activePresetId = 'all',
+  onSelectPreset,
 }) {
   const [isClosing, setIsClosing] = useState(false);
   const backdropRef = useRef(null);
@@ -142,13 +145,25 @@ export default function MobileFiltersModal({
           {/* SAVED VIEWS */}
           <div>
             <h3 className="text-[0.6875rem] font-bold text-[var(--text-secondary)] uppercase tracking-wider m-0 mb-3">Saved Views</h3>
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full border border-dashed border-[var(--border-subtle)] text-[0.875rem] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--text-secondary)] transition-colors"
-            >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              Save current filters
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => onSelectPreset('all')}
+                className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full border text-[0.875rem] font-medium transition-colors ${activePresetId === 'all' ? 'bg-[var(--text-primary)] border-[var(--text-primary)] text-[var(--bg-primary)]' : 'bg-transparent border-[var(--border-subtle)] text-[var(--text-primary)]'}`}
+              >
+                All Services
+              </button>
+              {presets.map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => onSelectPreset(preset.id)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full border text-[0.875rem] font-medium transition-colors ${activePresetId === preset.id ? 'bg-[var(--text-primary)] border-[var(--text-primary)] text-[var(--bg-primary)]' : 'bg-transparent border-[var(--border-subtle)] text-[var(--text-primary)]'}`}
+                >
+                  {preset.name}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -165,3 +180,4 @@ export default function MobileFiltersModal({
     </div>
   );
 }
+

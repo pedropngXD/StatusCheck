@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { getLogoUrl } from '../../assets/logos';
 
-export default function PresetManager({
+const PresetManager = forwardRef(function PresetManager({
   presets = [],
   activePresetId = 'all',
   onSelectPreset,
@@ -9,7 +9,8 @@ export default function PresetManager({
   onUpdatePreset,
   onDeletePreset,
   allServices = [],
-}) {
+  listClassName = '',
+}, ref) {
   const [modalOpen, setModalOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [editingPreset, setEditingPreset] = useState(null);
@@ -90,6 +91,10 @@ export default function PresetManager({
     setIsClosing(false);
     setDragY(0);
   };
+
+  useImperativeHandle(ref, () => ({
+    openCreateModal
+  }));
 
   const openEditModal = (preset) => {
     setEditingPreset(preset);
@@ -178,7 +183,8 @@ export default function PresetManager({
   ).sort((a, b) => a.name.localeCompare(b.name));
 
   return (
-    <div className="relative w-full mb-5">
+    <>
+      <div className={`relative w-full mb-5 ${listClassName}`}>
       {canScrollLeft && (
         <div className="absolute top-0 bottom-[6px] w-12 pointer-events-none flex items-center z-10 transition-opacity duration-200 left-0 justify-start bg-gradient-to-l from-transparent to-[var(--bg-primary)] to-75% pl-0.5">
           <button
@@ -449,6 +455,8 @@ export default function PresetManager({
           </form>
         </div>
       )}
-    </div>
+    </>
   );
-}
+});
+
+export default PresetManager;

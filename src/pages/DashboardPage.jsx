@@ -30,6 +30,7 @@ export default function DashboardPage() {
   const [statusFilters, setStatusFilters] = useState([]);
   const [categoryFilter, setCategoryFilter] = useState('all');
   const searchInputRef = useRef(null);
+  const presetManagerRef = useRef(null);
 
   const { theme, toggleTheme } = useTheme();
   const { viewMode, setViewMode } = useViewMode('grid');
@@ -218,8 +219,9 @@ export default function DashboardPage() {
         summary={presetSummary}
       />
 
-      <div className="mt-5 md:mt-6 max-md:hidden">
+      <div className="mt-5 md:mt-6">
         <PresetManager
+          ref={presetManagerRef}
           presets={presets}
           activePresetId={activePresetId}
           onSelectPreset={selectPreset}
@@ -227,14 +229,15 @@ export default function DashboardPage() {
           onUpdatePreset={updatePreset}
           onDeletePreset={deletePreset}
           allServices={STATUS_PROVIDERS}
+          listClassName="max-md:hidden"
         />
       </div>
 
       <div className="flex flex-col items-start gap-4 mt-8 mb-6 w-full">
         <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3 w-full">
           <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full xl:w-auto flex-1">
-            <div className="flex items-center gap-2 w-full md:w-auto md:flex-1 md:max-w-[400px]">
-              <div className="relative flex-1 min-w-0">
+            <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-2 w-full md:w-auto md:flex-1 md:max-w-[400px]">
+              <div className="relative w-full md:flex-1 min-w-0">
                 <svg
                   className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none"
                   viewBox="0 0 24 24"
@@ -271,17 +274,25 @@ export default function DashboardPage() {
                 />
               </div>
 
-              {/* Mobile Filters Button */}
-              <div className="shrink-0 md:hidden h-[44px]">
+              {/* Mobile Buttons */}
+              <div className="flex md:hidden gap-2 w-full h-[44px] shrink-0">
+                <button
+                  type="button"
+                  onClick={() => presetManagerRef.current?.openCreateModal()}
+                  className="flex-1 px-4 inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] font-medium text-[0.875rem] shadow-sm active:scale-95 transition-all"
+                >
+                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="3" x2="8" y2="13" /><line x1="3" y1="8" x2="13" y2="8" /></svg>
+                  Create filter
+                </button>
                 <button
                   type="button"
                   onClick={() => setIsMobileFiltersOpen(true)}
-                  className="h-full px-4 inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] font-medium text-[0.875rem] shadow-sm active:scale-95 transition-all"
+                  className="flex-1 px-4 inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] font-medium text-[0.875rem] shadow-sm active:scale-95 transition-all"
                 >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
                   Filters
                   {(statusFilters.length > 0 || categoryFilter !== 'all') && (
-                    <span className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--text-primary)] text-[var(--bg-primary)] text-[0.6875rem] font-bold ml-1">
+                    <span className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--text-primary)] text-[var(--bg-primary)] text-[0.6875rem] font-bold ml-1 shrink-0">
                       {statusFilters.length + (categoryFilter !== 'all' ? 1 : 0)}
                     </span>
                   )}
@@ -379,6 +390,9 @@ export default function DashboardPage() {
         summary={presetSummary}
         filteredCount={filteredProviders.length}
         onClearAll={handleResetFilter}
+        presets={presets}
+        activePresetId={activePresetId}
+        onSelectPreset={selectPreset}
       />
 
       <IncidentList
