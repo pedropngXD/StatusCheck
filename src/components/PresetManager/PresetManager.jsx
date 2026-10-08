@@ -15,8 +15,30 @@ export default function PresetManager({
   const [presetName, setPresetName] = useState('');
   const [selectedIds, setSelectedIds] = useState([]);
   const [presetSearchQuery, setPresetSearchQuery] = useState('');
+  const [dragY, setDragY] = useState(0);
+  const touchStartY = useRef(null);
   const backdropRef = useRef(null);
   const scrollRef = useRef(null);
+
+  const handleTouchStart = (e) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchMove = (e) => {
+    if (touchStartY.current === null) return;
+    const deltaY = e.touches[0].clientY - touchStartY.current;
+    if (deltaY > 0) {
+      setDragY(deltaY);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (dragY > 100) {
+      closeModal();
+    }
+    setDragY(0);
+    touchStartY.current = null;
+  };
 
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -79,6 +101,7 @@ export default function PresetManager({
     setPresetName('');
     setSelectedIds([]);
     setPresetSearchQuery('');
+    setDragY(0);
   };
 
   useEffect(() => {
@@ -139,9 +162,10 @@ export default function PresetManager({
     }
   };
 
-  const filteredServices = presetSearchQuery.trim()
+  const filteredServices = (presetSearchQuery.trim()
     ? allServices.filter((s) => s.name.toLowerCase().includes(presetSearchQuery.toLowerCase().trim()))
-    : allServices;
+    : [...allServices]
+  ).sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <div className="relative w-full mb-5">
@@ -241,18 +265,33 @@ export default function PresetManager({
             className="bg-[var(--bg-card)] border border-[var(--border-card)] rounded-[var(--radius-lg)] shadow-[0_24px_48px_rgba(0,0,0,0.28)] w-full max-w-[580px] max-h-[min(85vh,760px)] flex flex-col overflow-hidden overscroll-contain relative max-md:max-w-full max-md:h-[88dvh] max-md:max-h-[88dvh] max-md:rounded-t-[20px] max-md:rounded-b-none max-md:border-b-0 max-md:border-x-0 max-md:shadow-[0_-8px_32px_rgba(0,0,0,0.25)] max-md:animate-[modal-sheet-slide-up_0.24s_cubic-bezier(0.16,1,0.3,1)]" 
             onClick={(e) => e.stopPropagation()} 
             onSubmit={handleSave}
+            style={{ 
+              transform: dragY > 0 ? `translateY(${dragY}px)` : '',
+              transition: dragY === 0 ? 'transform 0.2s cubic-bezier(0.16,1,0.3,1)' : 'none'
+            }}
           >
-            <div className="hidden max-md:flex items-center justify-center pt-2.5 pb-0.5 bg-[var(--bg-card)] shrink-0" aria-hidden="true">
-              <div className="w-9 h-[5px] rounded-[3px] bg-[rgba(142,142,147,0.35)]" />
+            <div 
+              className="hidden max-md:flex items-center justify-center pt-2.5 pb-0.5 bg-[var(--bg-card)] shrink-0 touch-none" 
+              aria-hidden="true"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
+              <div className="w-9 h-[5px] rounded-[3px] bg-[rgba(142,142,147,0.35)] pointer-events-none" />
             </div>
 
-            <div className="flex items-center justify-between p-5 border-b border-[var(--border-subtle)] shrink-0 bg-[var(--bg-card)] max-md:py-3 max-md:px-5 max-md:sticky max-md:top-0 max-md:z-10">
-              <h3 className="m-0 text-[1.125rem] font-semibold text-[var(--text-primary)]">
+            <div 
+              className="flex items-center justify-between p-5 border-b border-[var(--border-subtle)] shrink-0 bg-[var(--bg-card)] max-md:py-3 max-md:px-5 max-md:sticky max-md:top-0 max-md:z-10 max-md:touch-none"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
+              <h3 className="m-0 text-[1.125rem] font-semibold text-[var(--text-primary)] pointer-events-none">
                 {editingPreset ? `Edit "${editingPreset.name}"` : 'Create Custom Preset'}
               </h3>
               <button
                 type="button"
-                className="bg-[rgba(142,142,147,0.15)] border-none w-8 h-8 rounded-full flex items-center justify-center text-[var(--text-secondary)] cursor-pointer shrink-0 transition-all duration-200 hover:bg-[rgba(142,142,147,0.25)] hover:text-[var(--text-primary)] active:scale-[0.92] max-md:w-9 max-md:h-9"
+                className="bg-[rgba(142,142,147,0.15)] border-none w-8 h-8 rounded-full flex items-center justify-center text-[var(--text-secondary)] cursor-pointer shrink-0 transition-all duration-200 hover:bg-[rgba(142,142,147,0.25)] hover:text-[var(--text-primary)] active:scale-[0.92] max-md:hidden"
                 onClick={closeModal}
                 aria-label="Close preset modal"
               >

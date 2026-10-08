@@ -26,6 +26,30 @@ function IncidentMessage({ message }) {
 
 export default function IncidentList({ service, statusData, onClose }) {
   const backdropRef = useRef(null);
+  const [dragY, setDragY] = useState(0);
+  const touchStartY = useRef(null);
+
+  const handleTouchStart = (e) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchMove = (e) => {
+    if (touchStartY.current === null) return;
+    const deltaY = e.touches[0].clientY - touchStartY.current;
+    if (deltaY > 0) {
+      setDragY(deltaY);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (dragY > 100) {
+      setDragY(0);
+      onClose();
+    } else {
+      setDragY(0);
+    }
+    touchStartY.current = null;
+  };
 
   useEffect(() => {
     if (!service) return;
@@ -98,13 +122,28 @@ export default function IncidentList({ service, statusData, onClose }) {
       <div 
         className="bg-[var(--bg-card)] border border-[var(--border-card)] rounded-[var(--radius-lg)] shadow-[0_24px_48px_rgba(0,0,0,0.28)] w-full max-w-[620px] max-h-[min(85vh,780px)] flex flex-col overflow-hidden overscroll-contain animate-[modal-scale-in_0.18s_cubic-bezier(0.16,1,0.3,1)] will-change-[transform,opacity] relative max-md:max-w-full max-md:h-[88dvh] max-md:max-h-[88dvh] max-md:rounded-t-[20px] max-md:rounded-b-none max-md:border-b-0 max-md:border-x-0 max-md:shadow-[0_-8px_32px_rgba(0,0,0,0.25)] max-md:animate-[modal-sheet-slide-up_0.24s_cubic-bezier(0.16,1,0.3,1)]" 
         onClick={(e) => e.stopPropagation()}
+        style={{ 
+          transform: dragY > 0 ? `translateY(${dragY}px)` : '',
+          transition: dragY === 0 ? 'transform 0.2s cubic-bezier(0.16,1,0.3,1)' : 'none'
+        }}
       >
-        <div className="hidden max-md:flex items-center justify-center pt-2.5 pb-0.5 bg-[var(--bg-card)] shrink-0" aria-hidden="true">
-          <div className="w-9 h-[5px] rounded-[3px] bg-[rgba(142,142,147,0.35)]" />
+        <div 
+          className="hidden max-md:flex items-center justify-center pt-2.5 pb-0.5 bg-[var(--bg-card)] shrink-0 touch-none" 
+          aria-hidden="true"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          <div className="w-9 h-[5px] rounded-[3px] bg-[rgba(142,142,147,0.35)] pointer-events-none" />
         </div>
 
-        <div className="flex items-center justify-between p-5 border-b border-[var(--border-subtle)] shrink-0 bg-[var(--bg-card)] max-md:py-3 max-md:px-5 max-md:sticky max-md:top-0 max-md:z-10">
-          <div className="flex items-center gap-3.5 min-w-0">
+        <div 
+          className="flex items-center justify-between p-5 border-b border-[var(--border-subtle)] shrink-0 bg-[var(--bg-card)] max-md:py-3 max-md:px-5 max-md:sticky max-md:top-0 max-md:z-10 max-md:touch-none"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          <div className="flex items-center gap-3.5 min-w-0 pointer-events-none">
             <div className="w-9 h-9 rounded-[var(--radius-sm)] bg-white p-[5px] flex items-center justify-center shadow-[var(--logo-wrapper-shadow)] border border-[var(--logo-wrapper-border)] overflow-hidden shrink-0">
               {logoSrc ? (
                 <img src={logoSrc} alt={`${service.name} logo`} className="w-full h-full object-contain" />
@@ -120,7 +159,7 @@ export default function IncidentList({ service, statusData, onClose }) {
 
           <button
             type="button"
-            className="bg-[rgba(142,142,147,0.15)] border-none w-8 h-8 rounded-full flex items-center justify-center text-[var(--text-secondary)] cursor-pointer shrink-0 transition-all duration-200 hover:bg-[rgba(142,142,147,0.25)] hover:text-[var(--text-primary)] active:scale-[0.92] max-md:w-9 max-md:h-9"
+            className="bg-[rgba(142,142,147,0.15)] border-none w-8 h-8 rounded-full flex items-center justify-center text-[var(--text-secondary)] cursor-pointer shrink-0 transition-all duration-200 hover:bg-[rgba(142,142,147,0.25)] hover:text-[var(--text-primary)] active:scale-[0.92] max-md:hidden"
             onClick={onClose}
             aria-label="Close details modal"
           >
