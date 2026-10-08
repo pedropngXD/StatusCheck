@@ -17,11 +17,11 @@ export default function SavedViewsDropdown({ presets, activePresetId, onSelect }
   const activePreset = activePresetId ? presets.find(p => p.id === activePresetId) : null;
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative w-full md:w-auto" ref={dropdownRef}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`inline-flex items-center gap-2 px-3 h-[44px] md:h-[38px] rounded-[var(--radius-md)] border text-[0.875rem] font-medium transition-colors ${
+        className={`inline-flex items-center justify-between md:justify-start gap-2 px-3 h-[44px] md:h-[38px] rounded-[var(--radius-md)] border text-[0.875rem] font-medium transition-colors w-full md:w-auto ${
           isOpen || activePresetId !== 'all'
             ? 'bg-[var(--bg-card)] border-[var(--text-secondary)] text-[var(--text-primary)]'
             : 'bg-[var(--bg-card)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:border-[var(--text-secondary)] hover:text-[var(--text-primary)]'
@@ -60,3 +60,4 @@ export default function SavedViewsDropdown({ presets, activePresetId, onSelect }
     </div>
   );
 }
+

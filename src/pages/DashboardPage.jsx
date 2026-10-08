@@ -221,52 +221,58 @@ export default function DashboardPage() {
 
       <div className="flex flex-col items-start gap-4 mt-8 mb-6 w-full">
         <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3 w-full">
-          <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto flex-1">
-            <div className="relative flex-1 min-w-[200px] max-w-[400px]">
-              <svg
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              <input
-                ref={searchInputRef}
-                type="search"
-                className="w-full h-[44px] md:h-[38px] pl-9 pr-9 text-[0.875rem] rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] outline-none transition-all focus:border-[var(--text-primary)]"
-                placeholder="Filter services by name..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              {!searchQuery && (
-                <kbd className="hidden md:inline-flex absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 items-center justify-center rounded border border-[var(--border-subtle)] bg-[rgba(142,142,147,0.1)] text-[0.6875rem] font-mono text-[var(--text-secondary)]">
-                  /
-                </kbd>
-              )}
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full xl:w-auto flex-1">
+            <div className="flex items-center gap-2 w-full md:w-auto md:flex-1 md:max-w-[400px]">
+              <div className="relative flex-1 min-w-0">
+                <svg
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input
+                  ref={searchInputRef}
+                  type="search"
+                  className="w-full h-[44px] md:h-[38px] pl-9 pr-9 text-[0.875rem] rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] outline-none transition-all focus:border-[var(--text-primary)]"
+                  placeholder="Filter services by name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {!searchQuery && (
+                  <kbd className="hidden md:inline-flex absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 items-center justify-center rounded border border-[var(--border-subtle)] bg-[rgba(142,142,147,0.1)] text-[0.6875rem] font-mono text-[var(--text-secondary)]">
+                    /
+                  </kbd>
+                )}
+              </div>
+
+              <div className="shrink-0">
+                <StatusDropdown
+                  selected={statusFilters}
+                  onToggle={handleStatusFilterToggle}
+                  summary={presetSummary}
+                />
+              </div>
             </div>
 
-            <StatusDropdown
-              selected={statusFilters}
-              onToggle={handleStatusFilterToggle}
-              summary={presetSummary}
-            />
+            <div className="grid grid-cols-2 md:flex md:items-center gap-2 w-full md:w-auto">
+              <CategoryDropdown
+                categories={categories}
+                selected={categoryFilter}
+                onChange={setCategoryFilter}
+              />
 
-            <CategoryDropdown
-              categories={categories}
-              selected={categoryFilter}
-              onChange={setCategoryFilter}
-            />
-
-            <SavedViewsDropdown
-              presets={presets}
-              activePresetId={activePresetId}
-              onSelect={selectPreset}
-            />
+              <SavedViewsDropdown
+                presets={presets}
+                activePresetId={activePresetId}
+                onSelect={selectPreset}
+              />
+            </div>
           </div>
 
           <div className="shrink-0 flex items-center w-full xl:w-auto">
