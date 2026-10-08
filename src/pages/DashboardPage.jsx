@@ -118,90 +118,83 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          <div className="flex items-center justify-between md:justify-start gap-2 md:gap-3.5 w-full md:w-auto mt-2 md:mt-0">
-            <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border tracking-[0.04em] uppercase transition-all duration-200 ${refreshing ? 'text-[var(--status-degraded)] bg-[var(--status-degraded-bg)] border-[rgba(255,149,0,0.3)]' : 'text-[var(--status-operational)] bg-[var(--status-operational-bg)] border-[rgba(52,199,89,0.2)]'}`}>
-              <span className={`w-1.5 h-1.5 rounded-full shadow-[0_0_6px_var(--status-operational)] bg-[var(--status-operational)] animate-[pulse_2s_infinite_ease-in-out]`} />
-              {refreshing ? 'Checking telemetry...' : 'Live'}
-            </span>
-
-            <div className="flex items-center gap-2 md:gap-3.5">
-              <button
-                type="button"
-                className="inline-flex items-center gap-1.5 bg-[var(--bg-card)] border border-[var(--border-card)] px-3 py-1.5 rounded-[var(--radius-md)] text-[var(--text-primary)] font-sans text-[0.8125rem] font-medium cursor-pointer shadow-[var(--shadow-card)] transition-all duration-200 hover:bg-[var(--bg-card-hover)] hover:shadow-[var(--shadow-card-hover)] disabled:opacity-60 disabled:cursor-not-allowed"
-                onClick={refetch}
-                disabled={refreshing}
-                aria-label="Refresh status telemetry"
+          <div className="flex items-center justify-start md:justify-end gap-2 md:gap-3.5 w-full md:w-auto mt-3 md:mt-0">
+            <button
+              type="button"
+              className="inline-flex items-center gap-1.5 bg-[var(--bg-card)] border border-[var(--border-card)] px-3 py-1.5 rounded-[var(--radius-md)] text-[var(--text-primary)] font-sans text-[0.8125rem] font-medium cursor-pointer shadow-[var(--shadow-card)] transition-all duration-200 hover:bg-[var(--bg-card-hover)] hover:shadow-[var(--shadow-card-hover)] disabled:opacity-60 disabled:cursor-not-allowed"
+              onClick={refetch}
+              disabled={refreshing}
+              aria-label="Refresh status telemetry"
+            >
+              <svg
+                className={`w-3.5 h-3.5 ${refreshing ? 'animate-[spin_0.8s_linear_infinite]' : ''}`}
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
               >
-                <svg
-                  className={`w-3.5 h-3.5 ${refreshing ? 'animate-[spin_0.8s_linear_infinite]' : ''}`}
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M1.5 8a6.5 6.5 0 0 1 11.23-4.46L14.5 5" />
-                  <path d="M14.5 1.5v3.5h-3.5" />
-                  <path d="M14.5 8a6.5 6.5 0 0 1-11.23 4.46L1.5 11" />
-                  <path d="M1.5 14.5V11h3.5" />
-                </svg>
-                <span>{refreshing ? 'Checking...' : 'Refresh'}</span>
-              </button>
+                <path d="M1.5 8a6.5 6.5 0 0 1 11.23-4.46L14.5 5" />
+                <path d="M14.5 1.5v3.5h-3.5" />
+                <path d="M14.5 8a6.5 6.5 0 0 1-11.23 4.46L1.5 11" />
+                <path d="M1.5 14.5V11h3.5" />
+              </svg>
+              <span>{refreshing ? 'Checking...' : 'Refresh'}</span>
+            </button>
 
-              <ThemeToggle theme={theme} onToggle={toggleTheme} />
-            </div>
+            <ThemeToggle theme={theme} onToggle={toggleTheme} />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:flex md:items-center gap-2 md:gap-3 mt-4 md:mt-6 w-full md:w-auto md:flex-wrap" role="group" aria-label="Status filter buttons">
-          <button
-            type="button"
-            className={`inline-flex items-center justify-between md:justify-center gap-1.5 px-3.5 py-2 md:py-1.5 bg-[var(--bg-card)] border rounded-full font-sans text-[0.8125rem] font-medium shadow-[var(--shadow-card)] cursor-pointer select-none transition-all duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] leading-none active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] ${statusFilter === 'all' ? 'bg-[var(--text-primary)] text-[var(--bg-primary)] border-[var(--text-primary)] shadow-[0_2px_10px_rgba(0,0,0,0.16)]' : 'border-[var(--border-card)] text-[var(--text-secondary)] hover:bg-[var(--bg-card-hover)] hover:border-[var(--card-hover-border)] hover:text-[var(--text-primary)] hover:-translate-y-px hover:shadow-[var(--shadow-card-hover)]'}`}
-            onClick={() => setStatusFilter('all')}
-            aria-pressed={statusFilter === 'all'}
-            aria-label={`Show all ${presetSummary.total} monitored services`}
-          >
-            <span>Monitored:</span> <strong className={`font-semibold transition-colors duration-[180ms] ${statusFilter === 'all' ? 'text-[var(--bg-primary)]' : 'text-[var(--text-primary)]'}`}>{presetSummary.total}</strong>
-          </button>
+        <div className="mt-5 md:mt-6">
+          <div className="flex items-center justify-between mb-2.5">
+            <h2 className="text-[0.75rem] md:text-[0.8125rem] font-bold text-[var(--text-secondary)] uppercase tracking-[0.05em] m-0">Status Filters</h2>
+            {lastCycleAt && (
+              <span className="text-[0.68rem] md:text-xs text-[var(--text-secondary)] font-mono flex items-center gap-1">
+                <span className="text-[var(--status-operational)]">✓</span>
+                {lastCycleAt.toLocaleTimeString()}
+              </span>
+            )}
+          </div>
+          <div className="grid grid-cols-2 md:flex md:items-center gap-2 w-full md:w-auto md:flex-wrap" role="group" aria-label="Status filter buttons">
+            <button
+              type="button"
+              className={`inline-flex items-center justify-between md:justify-center gap-1.5 px-3 py-1.5 bg-[var(--bg-card)] border rounded-[var(--radius-md)] font-sans text-[0.75rem] md:text-[0.8125rem] font-medium shadow-sm cursor-pointer select-none transition-all duration-[180ms] leading-none active:scale-95 ${statusFilter === 'all' ? 'bg-[var(--text-primary)] text-[var(--bg-primary)] border-[var(--text-primary)]' : 'border-[var(--border-card)] text-[var(--text-secondary)] hover:bg-[var(--bg-card-hover)] hover:text-[var(--text-primary)] hover:border-[var(--card-hover-border)]'}`}
+              onClick={() => setStatusFilter('all')}
+              aria-pressed={statusFilter === 'all'}
+            >
+              <span>Monitored</span> <strong className={`font-semibold ${statusFilter === 'all' ? 'text-[var(--bg-primary)]' : 'text-[var(--text-primary)]'}`}>{presetSummary.total}</strong>
+            </button>
 
-          <button
-            type="button"
-            className={`inline-flex items-center justify-between md:justify-center gap-1.5 px-3.5 py-2 md:py-1.5 bg-[var(--bg-card)] border rounded-full font-sans text-[0.8125rem] font-medium shadow-[var(--shadow-card)] cursor-pointer select-none transition-all duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] leading-none active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] ${statusFilter === 'operational' ? 'bg-[var(--status-operational)] text-white border-[var(--status-operational)] shadow-[0_2px_12px_rgba(52,199,89,0.35)]' : 'border-[var(--border-card)] text-[var(--text-secondary)] hover:bg-[var(--bg-card-hover)] hover:border-[var(--card-hover-border)] hover:text-[var(--text-primary)] hover:-translate-y-px hover:shadow-[var(--shadow-card-hover)]'}`}
-            onClick={() => handleStatusFilterToggle('operational')}
-            aria-pressed={statusFilter === 'operational'}
-            aria-label={`Filter by ${presetSummary.operational} operational services`}
-          >
-            <span>Operational:</span> <strong className={`font-semibold transition-colors duration-[180ms] ${statusFilter === 'operational' ? 'text-white' : 'text-[var(--status-operational)]'}`}>{presetSummary.operational}</strong>
-          </button>
+            <button
+              type="button"
+              className={`inline-flex items-center justify-between md:justify-center gap-1.5 px-3 py-1.5 bg-[var(--bg-card)] border rounded-[var(--radius-md)] font-sans text-[0.75rem] md:text-[0.8125rem] font-medium shadow-sm cursor-pointer select-none transition-all duration-[180ms] leading-none active:scale-95 ${statusFilter === 'operational' ? 'bg-[var(--status-operational)] text-white border-[var(--status-operational)]' : 'border-[var(--border-card)] text-[var(--text-secondary)] hover:bg-[var(--bg-card-hover)] hover:text-[var(--text-primary)] hover:border-[var(--card-hover-border)]'}`}
+              onClick={() => handleStatusFilterToggle('operational')}
+              aria-pressed={statusFilter === 'operational'}
+            >
+              <span>Operational</span> <strong className={`font-semibold ${statusFilter === 'operational' ? 'text-white' : 'text-[var(--status-operational)]'}`}>{presetSummary.operational}</strong>
+            </button>
 
-          <button
-            type="button"
-            className={`inline-flex items-center justify-between md:justify-center gap-1.5 px-3.5 py-2 md:py-1.5 bg-[var(--bg-card)] border rounded-full font-sans text-[0.8125rem] font-medium shadow-[var(--shadow-card)] cursor-pointer select-none transition-all duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] leading-none active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] ${statusFilter === 'degraded' ? 'bg-[var(--status-degraded)] text-white border-[var(--status-degraded)] shadow-[0_2px_12px_rgba(255,149,0,0.35)]' : 'border-[var(--border-card)] text-[var(--text-secondary)] hover:bg-[var(--bg-card-hover)] hover:border-[var(--card-hover-border)] hover:text-[var(--text-primary)] hover:-translate-y-px hover:shadow-[var(--shadow-card-hover)]'}`}
-            onClick={() => handleStatusFilterToggle('degraded')}
-            aria-pressed={statusFilter === 'degraded'}
-            aria-label={`Filter by ${presetSummary.degraded} degraded services`}
-          >
-            <span>Degraded:</span> <strong className={`font-semibold transition-colors duration-[180ms] ${statusFilter === 'degraded' ? 'text-white' : 'text-[var(--status-degraded)]'}`}>{presetSummary.degraded}</strong>
-          </button>
+            <button
+              type="button"
+              className={`inline-flex items-center justify-between md:justify-center gap-1.5 px-3 py-1.5 bg-[var(--bg-card)] border rounded-[var(--radius-md)] font-sans text-[0.75rem] md:text-[0.8125rem] font-medium shadow-sm cursor-pointer select-none transition-all duration-[180ms] leading-none active:scale-95 ${statusFilter === 'degraded' ? 'bg-[var(--status-degraded)] text-white border-[var(--status-degraded)]' : 'border-[var(--border-card)] text-[var(--text-secondary)] hover:bg-[var(--bg-card-hover)] hover:text-[var(--text-primary)] hover:border-[var(--card-hover-border)]'}`}
+              onClick={() => handleStatusFilterToggle('degraded')}
+              aria-pressed={statusFilter === 'degraded'}
+            >
+              <span>Degraded</span> <strong className={`font-semibold ${statusFilter === 'degraded' ? 'text-white' : 'text-[var(--status-degraded)]'}`}>{presetSummary.degraded}</strong>
+            </button>
 
-          <button
-            type="button"
-            className={`inline-flex items-center justify-between md:justify-center gap-1.5 px-3.5 py-2 md:py-1.5 bg-[var(--bg-card)] border rounded-full font-sans text-[0.8125rem] font-medium shadow-[var(--shadow-card)] cursor-pointer select-none transition-all duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] leading-none active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] ${statusFilter === 'outage' ? 'bg-[var(--status-outage)] text-white border-[var(--status-outage)] shadow-[0_2px_12px_rgba(255,59,48,0.35)]' : 'border-[var(--border-card)] text-[var(--text-secondary)] hover:bg-[var(--bg-card-hover)] hover:border-[var(--card-hover-border)] hover:text-[var(--text-primary)] hover:-translate-y-px hover:shadow-[var(--shadow-card-hover)]'}`}
-            onClick={() => handleStatusFilterToggle('outage')}
-            aria-pressed={statusFilter === 'outage'}
-            aria-label={`Filter by ${presetSummary.outage} outage services`}
-          >
-            <span>Outages:</span> <strong className={`font-semibold transition-colors duration-[180ms] ${statusFilter === 'outage' ? 'text-white' : 'text-[var(--status-outage)]'}`}>{presetSummary.outage}</strong>
-          </button>
-
-          {lastCycleAt && (
-            <span className="text-[0.72rem] md:text-xs text-[var(--text-secondary)] col-[1/-1] md:ml-auto inline-flex items-center justify-center md:justify-start gap-1.5 bg-[var(--bg-card)] px-2.5 py-1 rounded-full border border-[var(--border-subtle)] shadow-[var(--shadow-card)] font-mono w-full md:w-auto mt-0.5 md:mt-0">
-              <span className="text-[var(--status-operational)] font-bold font-sans">✓</span>
-              Checked at {lastCycleAt.toLocaleTimeString()}
-            </span>
-          )}
+            <button
+              type="button"
+              className={`inline-flex items-center justify-between md:justify-center gap-1.5 px-3 py-1.5 bg-[var(--bg-card)] border rounded-[var(--radius-md)] font-sans text-[0.75rem] md:text-[0.8125rem] font-medium shadow-sm cursor-pointer select-none transition-all duration-[180ms] leading-none active:scale-95 ${statusFilter === 'outage' ? 'bg-[var(--status-outage)] text-white border-[var(--status-outage)]' : 'border-[var(--border-card)] text-[var(--text-secondary)] hover:bg-[var(--bg-card-hover)] hover:text-[var(--text-primary)] hover:border-[var(--card-hover-border)]'}`}
+              onClick={() => handleStatusFilterToggle('outage')}
+              aria-pressed={statusFilter === 'outage'}
+            >
+              <span>Outages</span> <strong className={`font-semibold ${statusFilter === 'outage' ? 'text-white' : 'text-[var(--status-outage)]'}`}>{presetSummary.outage}</strong>
+            </button>
+          </div>
         </div>
       </header>
 
