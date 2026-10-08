@@ -33,7 +33,7 @@ export default function DashboardPage() {
   const presetManagerRef = useRef(null);
 
   const { theme, toggleTheme } = useTheme();
-  const { viewMode, setViewMode } = useViewMode('grid');
+  const { viewMode, setViewMode } = useViewMode('row');
   const { statuses, loading, refreshing, lastCycleAt, refetch } = useServiceStatus(STATUS_PROVIDERS);
   const { getBars } = useStatusHistory(statuses, lastCycleAt);
   const updatedAgo = useRelativeTime(lastCycleAt);
@@ -323,7 +323,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="shrink-0 hidden md:flex items-center w-full xl:w-auto">
+          <div className="shrink-0 flex items-center w-full xl:w-auto">
             <ViewToggle viewMode={viewMode} onChange={setViewMode} className="w-full md:w-auto flex md:inline-flex" />
           </div>
         </div>

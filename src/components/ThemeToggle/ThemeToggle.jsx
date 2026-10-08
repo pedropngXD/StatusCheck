@@ -12,7 +12,7 @@ export default function ThemeToggle({ theme = 'light', onToggle }) {
       <div className="flex items-center justify-center w-3.5 h-3.5">
         {isDark ? (
           <svg
-            className="w-3.5 h-3.5 transition-transform duration-300 group-hover:rotate-[20deg] group-hover:scale-110 text-[#ff9500]"
+            className="w-3.5 h-3.5 transition-transform duration-300 group-hover:rotate-[20deg] group-hover:scale-110 text-[var(--text-primary)]"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"

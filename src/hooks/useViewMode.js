@@ -6,7 +6,7 @@ export const VIEW_MODES = {
   ROW: 'row',
 };
 
-export function useViewMode(defaultMode = VIEW_MODES.GRID) {
+export function useViewMode(defaultMode = VIEW_MODES.ROW) {
   const [viewMode, setViewModeState] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
