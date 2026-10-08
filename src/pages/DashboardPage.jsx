@@ -118,38 +118,40 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 md:gap-3.5 w-full md:w-auto flex-wrap md:flex-nowrap">
+          <div className="flex items-center justify-between md:justify-start gap-2 md:gap-3.5 w-full md:w-auto mt-2 md:mt-0">
             <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border tracking-[0.04em] uppercase transition-all duration-200 ${refreshing ? 'text-[var(--status-degraded)] bg-[var(--status-degraded-bg)] border-[rgba(255,149,0,0.3)]' : 'text-[var(--status-operational)] bg-[var(--status-operational-bg)] border-[rgba(52,199,89,0.2)]'}`}>
               <span className={`w-1.5 h-1.5 rounded-full shadow-[0_0_6px_var(--status-operational)] bg-[var(--status-operational)] animate-[pulse_2s_infinite_ease-in-out]`} />
               {refreshing ? 'Checking telemetry...' : 'Live'}
             </span>
 
-            <button
-              type="button"
-              className="inline-flex items-center gap-1.5 bg-[var(--bg-card)] border border-[var(--border-card)] px-3 py-1.5 rounded-[var(--radius-md)] text-[var(--text-primary)] font-sans text-[0.8125rem] font-medium cursor-pointer shadow-[var(--shadow-card)] transition-all duration-200 hover:bg-[var(--bg-card-hover)] hover:shadow-[var(--shadow-card-hover)] disabled:opacity-60 disabled:cursor-not-allowed"
-              onClick={refetch}
-              disabled={refreshing}
-              aria-label="Refresh status telemetry"
-            >
-              <svg
-                className={`w-3.5 h-3.5 ${refreshing ? 'animate-[spin_0.8s_linear_infinite]' : ''}`}
-                viewBox="0 0 16 16"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
+            <div className="flex items-center gap-2 md:gap-3.5">
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 bg-[var(--bg-card)] border border-[var(--border-card)] px-3 py-1.5 rounded-[var(--radius-md)] text-[var(--text-primary)] font-sans text-[0.8125rem] font-medium cursor-pointer shadow-[var(--shadow-card)] transition-all duration-200 hover:bg-[var(--bg-card-hover)] hover:shadow-[var(--shadow-card-hover)] disabled:opacity-60 disabled:cursor-not-allowed"
+                onClick={refetch}
+                disabled={refreshing}
+                aria-label="Refresh status telemetry"
               >
-                <path d="M1.5 8a6.5 6.5 0 0 1 11.23-4.46L14.5 5" />
-                <path d="M14.5 1.5v3.5h-3.5" />
-                <path d="M14.5 8a6.5 6.5 0 0 1-11.23 4.46L1.5 11" />
-                <path d="M1.5 14.5V11h3.5" />
-              </svg>
-              <span>{refreshing ? 'Checking...' : 'Refresh'}</span>
-            </button>
+                <svg
+                  className={`w-3.5 h-3.5 ${refreshing ? 'animate-[spin_0.8s_linear_infinite]' : ''}`}
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M1.5 8a6.5 6.5 0 0 1 11.23-4.46L14.5 5" />
+                  <path d="M14.5 1.5v3.5h-3.5" />
+                  <path d="M14.5 8a6.5 6.5 0 0 1-11.23 4.46L1.5 11" />
+                  <path d="M1.5 14.5V11h3.5" />
+                </svg>
+                <span>{refreshing ? 'Checking...' : 'Refresh'}</span>
+              </button>
 
-            <ThemeToggle theme={theme} onToggle={toggleTheme} />
+              <ThemeToggle theme={theme} onToggle={toggleTheme} />
+            </div>
           </div>
         </div>
 
@@ -213,10 +215,10 @@ export default function DashboardPage() {
         allServices={STATUS_PROVIDERS}
       />
 
-      <div className="flex items-center justify-between gap-2 md:gap-4 mb-4 md:mb-5 flex-col md:flex-row w-full md:w-auto">
-        <div className="relative flex-1 min-w-0 md:min-w-[240px] w-full md:max-w-[360px]">
+      <div className="flex items-center justify-between gap-3 md:gap-4 mb-4 md:mb-5 flex-row w-full">
+        <div className="relative flex-1 min-w-0 md:min-w-[240px] md:max-w-[360px]">
           <svg
-            className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 w-3.5 md:w-[15px] h-3.5 md:h-[15px] text-[var(--text-secondary)] pointer-events-none"
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-[15px] md:h-[15px] text-[var(--text-secondary)] pointer-events-none"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -230,15 +232,15 @@ export default function DashboardPage() {
           </svg>
           <input
             type="search"
-            className="w-full py-2 px-2.5 md:px-3 pl-8 md:pl-9 font-sans text-[0.8125rem] md:text-[0.875rem] rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] outline-none transition-all duration-200 focus:border-[var(--text-primary)] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)]"
-            placeholder="Filter services by name or category..."
+            className="w-full py-2.5 md:py-2 px-3 pl-[34px] md:pl-9 font-sans text-[0.875rem] rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] outline-none transition-all duration-200 focus:border-[var(--text-primary)] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)]"
+            placeholder="Filter services by name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           {searchQuery && (
             <button
               type="button"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-transparent border-none text-[var(--text-secondary)] cursor-pointer p-0.5 flex items-center"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-transparent border-none text-[var(--text-secondary)] cursor-pointer p-1 flex items-center"
               onClick={() => setSearchQuery('')}
               aria-label="Clear search"
             >
@@ -249,7 +251,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        <div className="w-full md:w-auto">
+        <div className="shrink-0 flex items-center">
           <ViewToggle viewMode={viewMode} onChange={setViewMode} />
         </div>
       </div>
