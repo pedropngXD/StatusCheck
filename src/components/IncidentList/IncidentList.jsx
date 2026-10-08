@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import StatusBadge from '../StatusBadge';
 import { getLogoUrl } from '../../assets/logos';
 
