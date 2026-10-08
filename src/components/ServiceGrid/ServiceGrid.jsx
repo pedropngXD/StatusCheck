@@ -1,12 +1,16 @@
 import ServiceCard from '../ServiceCard';
 import ServiceRow from '../ServiceRow';
 
+const GRID_CLASSES = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4';
+const LIST_CLASSES = 'flex flex-col bg-[var(--bg-card)] border border-[var(--border-card)] rounded-[var(--radius-md)] shadow-[var(--shadow-card)] overflow-hidden';
+
 export default function ServiceGrid({
   providers = [],
   statuses = {},
   viewMode = 'grid',
   loading = false,
   refreshing = false,
+  getHistory,
   onSelectService,
   onResetFilter,
 }) {
@@ -14,11 +18,11 @@ export default function ServiceGrid({
 
   if (loading && providers.length === 0) {
     return (
-      <div className={`w-full ${isGrid ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5' : 'flex flex-col gap-2.5'}`}>
+      <div className={`w-full ${isGrid ? GRID_CLASSES : LIST_CLASSES}`}>
         {Array.from({ length: 6 }).map((_, index) => (
           <div
             key={`skeleton-${index}`}
-            className={`bg-[var(--bg-card)] border border-[var(--border-card)] relative overflow-hidden animate-pulse ${isGrid ? 'rounded-[var(--radius-md)] md:rounded-[var(--radius-lg)] p-4 md:p-5 min-h-[130px] md:min-h-[140px]' : 'rounded-[var(--radius-md)] min-h-[58px] px-5 py-3.5'}`}
+            className={`animate-pulse ${isGrid ? 'bg-[var(--bg-card)] border border-[var(--border-card)] rounded-[var(--radius-md)] min-h-[130px]' : 'min-h-[58px] border-b border-[var(--border-subtle)] last:border-b-0'}`}
           />
         ))}
       </div>
@@ -50,7 +54,7 @@ export default function ServiceGrid({
         {onResetFilter && (
           <button
             type="button"
-            className="inline-flex items-center gap-2 px-5 py-2 bg-[var(--text-primary)] text-[var(--bg-primary)] border border-transparent rounded-[var(--radius-full)] font-sans text-[0.875rem] font-medium cursor-pointer select-none shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-all duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:opacity-92 hover:-translate-y-px hover:shadow-[0_4px_14px_rgba(0,0,0,0.18)] active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)]"
+            className="inline-flex items-center gap-2 px-5 py-2 bg-[var(--text-primary)] text-[var(--bg-primary)] border border-transparent rounded-[var(--radius-full)] font-sans text-[0.875rem] font-medium cursor-pointer select-none shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-all duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:opacity-90 hover:-translate-y-px hover:shadow-[0_4px_14px_rgba(0,0,0,0.18)] active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)]"
             onClick={onResetFilter}
           >
             <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -64,27 +68,20 @@ export default function ServiceGrid({
     );
   }
 
+  const Item = isGrid ? ServiceCard : ServiceRow;
+
   return (
-    <div className={`w-full transition-opacity duration-200 ${refreshing ? 'opacity-85' : ''} ${isGrid ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5' : 'flex flex-col gap-2.5'}`}>
+    <div className={`w-full transition-opacity duration-200 ${refreshing ? 'opacity-85' : ''} ${isGrid ? GRID_CLASSES : LIST_CLASSES}`}>
       {providers.map((provider) => {
         const statusEntry = statuses[provider.id];
-        const statusData = statusEntry?.data || null;
-        const isServiceLoading = statusEntry?.loading ?? loading;
 
-        return isGrid ? (
-          <ServiceCard
+        return (
+          <Item
             key={provider.id}
             provider={provider}
-            statusData={statusData}
-            loading={isServiceLoading}
-            onSelect={onSelectService}
-          />
-        ) : (
-          <ServiceRow
-            key={provider.id}
-            provider={provider}
-            statusData={statusData}
-            loading={isServiceLoading}
+            statusData={statusEntry?.data || null}
+            bars={getHistory ? getHistory(provider.id) : undefined}
+            loading={statusEntry?.loading ?? loading}
             onSelect={onSelectService}
           />
         );

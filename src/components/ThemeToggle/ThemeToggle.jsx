@@ -4,7 +4,7 @@ export default function ThemeToggle({ theme = 'light', onToggle }) {
   return (
     <button
       type="button"
-      className="inline-flex items-center gap-1.5 bg-[var(--bg-card)] border border-[var(--border-card)] px-3 py-1.5 rounded-[var(--radius-md)] text-[var(--text-primary)] font-sans text-[0.8125rem] font-medium cursor-pointer shadow-[var(--shadow-card)] transition-all duration-200 select-none hover:bg-[var(--bg-card-hover)] hover:shadow-[var(--shadow-card-hover)] group"
+      className="inline-flex items-center justify-center gap-1.5 bg-[var(--bg-card)] border border-[var(--border-card)] w-9 h-9 md:w-auto md:h-auto md:px-3 md:py-1.5 rounded-[var(--radius-md)] text-[var(--text-primary)] font-sans text-[0.8125rem] font-medium cursor-pointer shadow-[var(--shadow-card)] transition-all duration-200 select-none hover:bg-[var(--bg-card-hover)] hover:shadow-[var(--shadow-card-hover)] group"
       onClick={onToggle}
       aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
       title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
@@ -46,7 +46,7 @@ export default function ThemeToggle({ theme = 'light', onToggle }) {
           </svg>
         )}
       </div>
-      <span className="text-[0.8125rem]">{isDark ? 'Light' : 'Dark'}</span>
+      <span className="hidden md:inline text-[0.8125rem]">{isDark ? 'Light' : 'Dark'}</span>
     </button>
   );
 }
