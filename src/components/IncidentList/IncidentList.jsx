@@ -3,6 +3,7 @@ import StatusBadge from '../StatusBadge';
 import ServiceLogo from '../ServiceLogo';
 import { getEolSlug, fetchEolData } from '../../lib/eolService';
 import { useLanguage } from '../../lib/translations';
+import { useAutoTranslate } from '../../lib/autoTranslate';
 
 function IncidentMessage({ message }) {
   const { t } = useLanguage();
@@ -28,7 +29,7 @@ function IncidentMessage({ message }) {
 }
 
 export default function IncidentList({ service, statusData, onClose }) {
-  const { t, translateText } = useLanguage();
+  const { lang, t, translateText } = useLanguage();
   const backdropRef = useRef(null);
   const [dragY, setDragY] = useState(0);
   const [isClosing, setIsClosing] = useState(false);
@@ -113,9 +114,33 @@ export default function IncidentList({ service, statusData, onClose }) {
     };
   }, [eolSlug]);
 
-  const incidents = statusData?.incidents || [];
+  const rawIncidents = statusData?.incidents;
+  const incidents = useMemo(() => rawIncidents ?? [], [rawIncidents]);
   const rawComponents = statusData?.components;
   const status = statusData?.status || 'unknown';
+  const statusDesc = statusData?.statusDescription || '';
+
+  const staticStatusDesc = statusDesc ? translateText(statusDesc) : '';
+  const needsAutoStatusDesc = Boolean(
+    lang === 'pt-BR' &&
+      incidents.length === 0 &&
+      statusDesc &&
+      staticStatusDesc === statusDesc
+  );
+
+  const textsToTranslate = useMemo(() => {
+    const list = [];
+    for (const incident of incidents) {
+      if (incident.name) list.push(incident.name);
+      if (incident.message) list.push(incident.message);
+    }
+    if (needsAutoStatusDesc && statusDesc) {
+      list.push(statusDesc);
+    }
+    return list;
+  }, [incidents, needsAutoStatusDesc, statusDesc]);
+
+  const { translate: translateDynamic, translating } = useAutoTranslate(textsToTranslate, lang);
 
   const sortedComponents = useMemo(() => {
     if (!rawComponents || !Array.isArray(rawComponents)) return [];
@@ -200,9 +225,16 @@ export default function IncidentList({ service, statusData, onClose }) {
 
         <div className="flex-1 min-h-0 p-6 overflow-y-auto overscroll-contain flex flex-col gap-6 max-md:p-5 max-md:gap-5">
           <div>
-            <h3 className="text-[0.875rem] font-semibold text-[var(--text-secondary)] uppercase tracking-[0.05em] m-0 mb-3">
-              {incidents.length > 0 ? t('activeIncidentsTitle', { count: incidents.length }) : t('incidentStatus')}
-            </h3>
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <h3 className="text-[0.875rem] font-semibold text-[var(--text-secondary)] uppercase tracking-[0.05em] m-0">
+                {incidents.length > 0 ? t('activeIncidentsTitle', { count: incidents.length }) : t('incidentStatus')}
+              </h3>
+              {translating && (
+                <span className="text-[0.7rem] font-medium px-2 py-0.5 rounded-full bg-[rgba(142,142,147,0.14)] text-[var(--text-secondary)] animate-pulse">
+                  {t('translating')}
+                </span>
+              )}
+            </div>
             {incidents.length > 0 ? (
               incidents.map((incident) => (
                 <div
@@ -210,13 +242,13 @@ export default function IncidentList({ service, statusData, onClose }) {
                   className={`bg-[rgba(255,149,0,0.08)] border border-[rgba(255,149,0,0.25)] rounded-[var(--radius-md)] p-4 mb-3 ${incident.impact === 'major' || incident.impact === 'critical' ? 'bg-[rgba(255,59,48,0.08)] border-[rgba(255,59,48,0.25)]' : ''}`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-[0.9375rem] font-semibold m-0 text-[var(--text-primary)]">{incident.name}</h4>
+                    <h4 className="text-[0.9375rem] font-semibold m-0 text-[var(--text-primary)]">{translateDynamic(incident.name)}</h4>
                     <span className="text-xs text-[var(--text-secondary)]">
                       {new Date(incident.updatedAt).toLocaleString()}
                     </span>
                   </div>
                   {incident.message && (
-                    <IncidentMessage message={incident.message} />
+                    <IncidentMessage message={translateDynamic(incident.message)} />
                   )}
                   {incident.url && (
                     <a
@@ -232,7 +264,9 @@ export default function IncidentList({ service, statusData, onClose }) {
               ))
             ) : (
               <p className="text-[var(--text-secondary)] text-[0.9rem] m-0">
-                {statusData?.statusDescription ? translateText(statusData.statusDescription) : t('noActiveIncidents')}
+                {statusData?.statusDescription
+                  ? (needsAutoStatusDesc ? translateDynamic(statusData.statusDescription) : staticStatusDesc)
+                  : t('noActiveIncidents')}
               </p>
             )}
           </div>

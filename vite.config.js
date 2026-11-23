@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { getCveFeed } from './api/_cveFeed.js';
 import { getAllStatuses } from './api/_allStatuses.js';
+import { translateBatch } from './api/_translate.js';
 
 export default defineConfig({
   plugins: [
@@ -12,6 +13,47 @@ export default defineConfig({
       name: 'vercel-dev-api-proxy',
       configureServer(server) {
         server.middlewares.use(async (req, res, next) => {
+          if (req.url && req.url.startsWith('/api/translate')) {
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+            res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+            if (req.method === 'OPTIONS') {
+              res.statusCode = 200;
+              res.end();
+              return;
+            }
+
+            if (req.method !== 'POST') {
+              res.statusCode = 405;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ error: 'Method not allowed' }));
+              return;
+            }
+
+            try {
+              let raw = '';
+              for await (const chunk of req) {
+                raw += chunk;
+              }
+              const body = JSON.parse(raw || '{}');
+              if (!body || typeof body !== 'object' || !Array.isArray(body.texts)) {
+                res.statusCode = 400;
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({ error: 'Invalid request body: expected { texts: string[] }' }));
+                return;
+              }
+              const target = typeof body.target === 'string' && body.target ? body.target : 'pt-BR';
+              const result = await translateBatch(body.texts, target);
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify(result));
+            } catch {
+              res.statusCode = 500;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ error: 'Translation failed' }));
+            }
+            return;
+          }
           if (req.url && req.url.startsWith('/api/cve')) {
             try {
               const payload = await getCveFeed();

@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import ServiceLogo from '../ServiceLogo';
 import { useLanguage } from '../../lib/translations';
+import { useAutoTranslate } from '../../lib/autoTranslate';
 
 const TYPE_FILTERS = [
   { id: 'all', key: 'filterAll' },
@@ -18,7 +19,7 @@ export default function IncidentFeedModal({
   statuses = {},
   onSelectService,
 }) {
-  const { t } = useLanguage();
+  const { lang, t } = useLanguage();
   const [scope, setScope] = useState('preset');
   const [typeFilter, setTypeFilter] = useState('all');
   const [query, setQuery] = useState('');
@@ -135,6 +136,17 @@ export default function IncidentFeedModal({
     });
   }, [rawFeed, typeFilter, query]);
 
+  const textsToTranslate = useMemo(() => {
+    const list = [];
+    for (const item of filteredFeed.slice(0, 30)) {
+      if (item.incident?.name) list.push(item.incident.name);
+      if (item.incident?.message) list.push(item.incident.message);
+    }
+    return list;
+  }, [filteredFeed]);
+
+  const { translate: translateDynamic, translating } = useAutoTranslate(textsToTranslate, lang);
+
   if (!isOpen && !isClosing) return null;
 
   return (
@@ -185,6 +197,11 @@ export default function IncidentFeedModal({
             <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-mono font-semibold bg-[rgba(142,142,147,0.15)] text-[var(--text-primary)]">
               {filteredFeed.length}
             </span>
+            {translating && (
+              <span className="text-[0.7rem] font-medium px-2 py-0.5 rounded-full bg-[rgba(142,142,147,0.14)] text-[var(--text-secondary)] animate-pulse shrink-0">
+                {t('translating')}
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
@@ -326,12 +343,12 @@ export default function IncidentFeedModal({
                   </div>
 
                   <h4 className="text-[0.9rem] font-semibold text-[var(--text-primary)] m-0">
-                    {item.incident.name}
+                    {translateDynamic(item.incident.name)}
                   </h4>
 
                   {item.incident.message && (
                     <p className="text-[0.82rem] text-[var(--text-secondary)] m-0 mt-1.5 line-clamp-3 leading-normal whitespace-pre-wrap">
-                      {item.incident.message}
+                      {translateDynamic(item.incident.message)}
                     </p>
                   )}
 
