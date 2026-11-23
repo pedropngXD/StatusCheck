@@ -1096,6 +1096,227 @@ export function normalizeNetflixHealth(data, provider) {
   };
 }
 
+export function normalizeAzureRss(xmlData) {
+  if (typeof xmlData !== 'string' || (!xmlData.includes('<rss') && !xmlData.includes('<channel'))) {
+    return createUnknownState('Unexpected format for Azure Status');
+  }
+
+  const extractTag = (block, tag) => {
+    const match = block.match(new RegExp(`<${tag}\\b[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i'));
+    if (!match) return '';
+    return match[1]
+      .replace(/^<!\[CDATA\[([\s\S]*?)\]\]>$/i, '$1')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+
+  const items = [];
+  const itemRegex = /<item\b[^>]*>([\s\S]*?)<\/item>/gi;
+  let match;
+  while ((match = itemRegex.exec(xmlData)) !== null) {
+    const block = match[1];
+    const title = extractTag(block, 'title');
+    const description = extractTag(block, 'description');
+    const pubDate = extractTag(block, 'pubDate');
+    const link = extractTag(block, 'link');
+    items.push({ title, description, pubDate, link });
+  }
+
+  const coreComponents = [
+    { id: 'azure-compute', name: 'Azure Compute & VMs', status: 'operational' },
+    { id: 'azure-app', name: 'Azure App Service & Functions', status: 'operational' },
+    { id: 'azure-sql', name: 'Azure SQL & Cosmos DB', status: 'operational' },
+    { id: 'azure-storage', name: 'Azure Storage & Networking', status: 'operational' },
+    { id: 'azure-ai', name: 'Azure AI & OpenAI Service', status: 'operational' },
+  ];
+
+  if (items.length === 0) {
+    return {
+      status: 'operational',
+      statusDescription: 'All Azure services operating normally',
+      indicator: 'none',
+      updatedAt: new Date().toISOString(),
+      incidents: [],
+      components: coreComponents,
+    };
+  }
+
+  const hasOutage = items.some((it) => {
+    const txt = `${it.title} ${it.description}`.toLowerCase();
+    return txt.includes('outage') || txt.includes('unavailable') || txt.includes('down');
+  });
+
+  const status = hasOutage ? 'outage' : 'degraded';
+  const indicator = hasOutage ? 'critical' : 'minor';
+
+  const incidents = items.map((it, idx) => {
+    const parsedDate = it.pubDate ? new Date(it.pubDate) : null;
+    const updatedAt = parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate.toISOString() : new Date().toISOString();
+    return {
+      id: it.link || `azure-${idx}`,
+      name: it.title || 'Azure Service Incident',
+      status: 'active',
+      impact: hasOutage ? 'critical' : 'minor',
+      updatedAt,
+      message: it.description || '',
+      url: it.link || undefined,
+    };
+  });
+
+  const components = coreComponents.map((c) => ({
+    ...c,
+    status,
+  }));
+
+  return {
+    status,
+    statusDescription: `${items.length} active Azure ${items.length === 1 ? 'incident' : 'incidents'} reported`,
+    indicator,
+    updatedAt: incidents[0]?.updatedAt || new Date().toISOString(),
+    incidents,
+    components,
+  };
+}
+
+export function normalizeFirebaseJson(data) {
+  if (!Array.isArray(data)) {
+    return createUnknownState('Unexpected format for Firebase');
+  }
+
+  const now = Date.now();
+  const activeIncidents = data.filter((inc) => {
+    if (!inc.end) return true;
+    const endTime = new Date(inc.end).getTime();
+    return endTime > now;
+  });
+
+  const coreComponents = [
+    { id: 'fb-firestore', name: 'Cloud Firestore', status: 'operational' },
+    { id: 'fb-auth', name: 'Firebase Authentication', status: 'operational' },
+    { id: 'fb-functions', name: 'Cloud Functions', status: 'operational' },
+    { id: 'fb-hosting', name: 'Firebase Hosting', status: 'operational' },
+    { id: 'fb-rtdb', name: 'Realtime Database', status: 'operational' },
+  ];
+
+  if (activeIncidents.length === 0) {
+    return {
+      status: 'operational',
+      statusDescription: 'All Firebase services operating normally',
+      indicator: 'none',
+      updatedAt: new Date().toISOString(),
+      incidents: [],
+      components: coreComponents,
+    };
+  }
+
+  const hasOutage = activeIncidents.some(
+    (inc) => inc.status_impact === 'SERVICE_OUTAGE' || inc.severity === 'high'
+  );
+  const status = hasOutage ? 'outage' : 'degraded';
+  const indicator = hasOutage ? 'critical' : 'minor';
+
+  const incidents = activeIncidents.map((inc) => ({
+    id: inc.uri || String(inc.id || Math.random()),
+    name: inc.external_desc || inc.service_name || 'Firebase Incident',
+    status: inc.status_impact || 'active',
+    impact: hasOutage ? 'major' : 'minor',
+    updatedAt: inc.modified || inc.begin || new Date().toISOString(),
+    message: inc.most_recent_update?.text || '',
+  }));
+
+  const components = coreComponents.map((c) => {
+    const keyword = c.name.split(' ').pop().toLowerCase();
+    const matching = activeIncidents.some((inc) => {
+      const affected = (inc.affected_products || []).map((p) => (p.title || '').toLowerCase()).join(' ');
+      return (inc.service_name || '').toLowerCase().includes(keyword) || affected.includes(keyword);
+    });
+    return {
+      ...c,
+      status: matching ? status : 'operational',
+    };
+  });
+
+  return {
+    status,
+    statusDescription: `${activeIncidents.length} active incident(s) ongoing`,
+    indicator,
+    updatedAt: activeIncidents[0]?.modified || new Date().toISOString(),
+    incidents,
+    components,
+  };
+}
+
+export function normalizeInstatusJson(data, provider) {
+  if (!data || !data.page) {
+    return createUnknownState('Invalid data from Instatus');
+  }
+
+  const pageStatus = (data.page.status || '').toUpperCase();
+  const rawIncidents = Array.isArray(data.activeIncidents) ? data.activeIncidents : [];
+  const rawMaint = Array.isArray(data.activeMaintenances) ? data.activeMaintenances : [];
+
+  let status = 'unknown';
+  let indicator = 'unknown';
+
+  if (pageStatus === 'UP') {
+    status = 'operational';
+    indicator = 'none';
+  } else if (pageStatus === 'UNDERMAINTENANCE') {
+    status = 'degraded';
+    indicator = 'minor';
+  } else if (pageStatus === 'HASISSUES') {
+    const isMinorOnly =
+      rawIncidents.length > 0 &&
+      rawIncidents.every((inc) => (inc.impact || '').toLowerCase() === 'minor');
+    status = isMinorOnly ? 'degraded' : 'outage';
+    indicator = isMinorOnly ? 'minor' : 'critical';
+  }
+
+  const incidents = [...rawIncidents, ...rawMaint].map((inc, idx) => {
+    const impactRaw = (inc.impact || '').toLowerCase();
+    const isMajor = impactRaw === 'major' || impactRaw === 'critical' || status === 'outage';
+    return {
+      id: String(inc.id || inc.name || idx),
+      name: inc.name || `${provider?.name || 'Service'} Incident`,
+      status: inc.status || 'active',
+      impact: isMajor ? 'critical' : 'minor',
+      updatedAt: inc.updatedAt || inc.started || new Date().toISOString(),
+      message: inc.message || '',
+      url: inc.url || data.page.url || undefined,
+    };
+  });
+
+  const components = [
+    {
+      id: provider?.id || 'instatus-main',
+      name: data.page.name || provider?.name || 'Core Service',
+      status,
+    },
+  ];
+
+  const statusDescription =
+    status === 'operational'
+      ? 'All Systems Operational'
+      : pageStatus === 'UNDERMAINTENANCE'
+      ? 'Scheduled Maintenance in Progress'
+      : `${incidents.length || 1} active issue(s) reported`;
+
+  return {
+    status,
+    statusDescription,
+    indicator,
+    updatedAt: new Date().toISOString(),
+    incidents,
+    components,
+  };
+}
+
 export function createUnknownState(description = 'Status currently unavailable') {
   return {
     status: 'unknown',
@@ -1127,6 +1348,15 @@ export function normalizeStatus(provider, rawData) {
 
     case 'google-workspace-json':
       return normalizeGoogleWorkspaceJson(rawData);
+
+    case 'azure-rss':
+      return normalizeAzureRss(rawData);
+
+    case 'firebase-json':
+      return normalizeFirebaseJson(rawData);
+
+    case 'instatus-json':
+      return normalizeInstatusJson(rawData, provider);
 
     case 'stripe-json':
       return normalizeStripeJson(rawData);

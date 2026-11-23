@@ -88,9 +88,11 @@ async function fetchRawUrl(provider, signal) {
       provider.adapter === 'betterstack-badge' ||
       provider.adapter === 'netflix-health' ||
       provider.adapter === 'apple-json' ||
+      provider.adapter === 'azure-rss' ||
       contentType.includes('text/html') ||
       contentType.includes('text/plain') ||
-      contentType.includes('javascript')
+      contentType.includes('javascript') ||
+      contentType.includes('xml')
     ) {
       return await res.text();
     }
