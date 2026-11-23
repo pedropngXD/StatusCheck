@@ -1,13 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
+import { useLanguage } from '../../lib/translations';
 
 const FILTERS = [
-  { type: 'operational', label: 'Operational', dot: 'bg-[var(--status-operational)]' },
-  { type: 'degraded', label: 'Degraded', dot: 'bg-[var(--status-degraded)]' },
-  { type: 'outage', label: 'Outage', dot: 'bg-[var(--status-outage)]' },
-  { type: 'unknown', label: 'Unknown', dot: 'bg-[var(--status-unknown)]' },
+  { type: 'operational', dot: 'bg-[var(--status-operational)]' },
+  { type: 'degraded', dot: 'bg-[var(--status-degraded)]' },
+  { type: 'outage', dot: 'bg-[var(--status-outage)]' },
+  { type: 'unknown', dot: 'bg-[var(--status-unknown)]' },
 ];
 
 export default function StatusDropdown({ selected, onToggle, summary }) {
+  const { t, statusLabel } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -35,7 +37,7 @@ export default function StatusDropdown({ selected, onToggle, summary }) {
             : 'bg-[var(--bg-card)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:border-[var(--text-secondary)] hover:text-[var(--text-primary)]'
         }`}
       >
-        Status {hasSelected && <span className="flex items-center justify-center bg-[var(--text-primary)] text-[var(--bg-primary)] text-[0.7rem] rounded-full w-[18px] h-[18px] font-bold">{selected.length}</span>}
+        {t('status')} {hasSelected && <span className="flex items-center justify-center bg-[var(--text-primary)] text-[var(--bg-primary)] text-[0.7rem] rounded-full w-[18px] h-[18px] font-bold">{selected.length}</span>}
         <svg className={`w-3.5 h-3.5 transition-transform ${isOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
@@ -53,13 +55,13 @@ export default function StatusDropdown({ selected, onToggle, summary }) {
               }}
               className="w-full flex items-center justify-between px-3 py-2 text-[0.875rem] font-medium text-[var(--status-degraded)] hover:bg-[var(--bg-card-hover)] rounded-[var(--radius-md)] transition-colors"
             >
-              Issues only
+              {t('issuesOnly')}
               <span>{issuesCount}</span>
             </button>
           </div>
           
           <div className="p-2 flex flex-col gap-1">
-            {FILTERS.map(({ type, label, dot }) => {
+            {FILTERS.map(({ type, dot }) => {
               const isChecked = selected.includes(type);
               const count = summary ? summary[type] || 0 : 0;
 
@@ -79,7 +81,7 @@ export default function StatusDropdown({ selected, onToggle, summary }) {
                     <div className="flex items-center gap-2">
                       <span className={`w-2 h-2 rounded-full ${dot.replace('bg-', 'bg-')}`} style={isChecked ? {} : { backgroundColor: `var(--status-${type})` }} />
                       <span className={`text-[0.875rem] font-medium ${isChecked ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]'}`}>
-                        {label}
+                        {statusLabel(type)}
                       </span>
                     </div>
                   </div>
@@ -97,7 +99,7 @@ export default function StatusDropdown({ selected, onToggle, summary }) {
           
           <div className="p-3 border-t border-[var(--border-subtle)] bg-[rgba(142,142,147,0.05)]">
             <span className="text-[0.75rem] text-[var(--text-secondary)]">
-              Combines with Category and search.
+              {t('combinesWith')}
             </span>
           </div>
         </div>

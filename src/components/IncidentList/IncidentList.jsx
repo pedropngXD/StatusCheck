@@ -2,8 +2,10 @@ import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import StatusBadge from '../StatusBadge';
 import ServiceLogo from '../ServiceLogo';
 import { getEolSlug, fetchEolData } from '../../lib/eolService';
+import { useLanguage } from '../../lib/translations';
 
 function IncidentMessage({ message }) {
+  const { t } = useLanguage();
   const [expanded, setExpanded] = useState(false);
   const isLong = message.length > 260;
 
@@ -18,7 +20,7 @@ function IncidentMessage({ message }) {
           className="bg-transparent border-none text-[var(--text-secondary)] text-[0.775rem] font-medium cursor-pointer pt-1 underline underline-offset-2 hover:text-[var(--text-primary)]"
           onClick={() => setExpanded(!expanded)}
         >
-          {expanded ? 'Show less' : 'Read full update'}
+          {expanded ? t('showLess') : t('readFullUpdate')}
         </button>
       )}
     </div>
@@ -26,6 +28,7 @@ function IncidentMessage({ message }) {
 }
 
 export default function IncidentList({ service, statusData, onClose }) {
+  const { t } = useLanguage();
   const backdropRef = useRef(null);
   const [dragY, setDragY] = useState(0);
   const [isClosing, setIsClosing] = useState(false);
@@ -198,7 +201,7 @@ export default function IncidentList({ service, statusData, onClose }) {
         <div className="flex-1 min-h-0 p-6 overflow-y-auto overscroll-contain flex flex-col gap-6 max-md:p-5 max-md:gap-5">
           <div>
             <h3 className="text-[0.875rem] font-semibold text-[var(--text-secondary)] uppercase tracking-[0.05em] m-0 mb-3">
-              {incidents.length > 0 ? `Active Incidents (${incidents.length})` : 'Incident Status'}
+              {incidents.length > 0 ? t('activeIncidentsTitle', { count: incidents.length }) : t('incidentStatus')}
             </h3>
             {incidents.length > 0 ? (
               incidents.map((incident) => (
@@ -222,14 +225,14 @@ export default function IncidentList({ service, statusData, onClose }) {
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 mt-2 text-[0.775rem] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] underline underline-offset-2"
                     >
-                      View advisory / details ↗
+                      {t('viewAdvisory')}
                     </a>
                   )}
                 </div>
               ))
             ) : (
               <p className="text-[var(--text-secondary)] text-[0.9rem] m-0">
-                {statusData?.statusDescription || 'No active incidents reported.'}
+                {statusData?.statusDescription || t('noActiveIncidents')}
               </p>
             )}
           </div>
@@ -238,7 +241,7 @@ export default function IncidentList({ service, statusData, onClose }) {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-[0.875rem] font-semibold text-[var(--text-secondary)] uppercase tracking-[0.05em] m-0 mb-3">
-                  Components ({sortedComponents.length})
+                  {t('componentsTitle', { count: sortedComponents.length })}
                 </h3>
               </div>
 
@@ -259,7 +262,7 @@ export default function IncidentList({ service, statusData, onClose }) {
                   <input
                     type="search"
                     className="w-full py-1.5 pr-3 pl-[30px] font-sans text-[0.8125rem] rounded-[var(--radius-sm)] border border-[var(--border-subtle)] bg-[var(--input-bg)] text-[var(--text-primary)] outline-none transition-all duration-200 focus:border-[var(--text-primary)] focus:shadow-[0_0_0_2px_rgba(0,0,0,0.05)]"
-                    placeholder={`Filter ${sortedComponents.length} components...`}
+                    placeholder={t('filterComponents', { count: sortedComponents.length })}
                     value={componentSearch}
                     onChange={(e) => setComponentSearch(e.target.value)}
                   />
@@ -276,7 +279,7 @@ export default function IncidentList({ service, statusData, onClose }) {
                   ))}
                 </div>
               ) : (
-                <p className="text-[var(--text-secondary)] text-[0.84rem] my-2 text-center">No components match &quot;{componentSearch}&quot;</p>
+                <p className="text-[var(--text-secondary)] text-[0.84rem] my-2 text-center">{t('noComponentsMatch', { query: componentSearch })}</p>
               )}
 
               {!componentSearch && !showAllComponents && filteredComponents.length > 24 && (
@@ -285,7 +288,7 @@ export default function IncidentList({ service, statusData, onClose }) {
                   className="block w-full mt-3 p-2 bg-[rgba(142,142,147,0.1)] border border-[var(--border-subtle)] rounded-[var(--radius-sm)] text-[var(--text-primary)] font-sans text-[0.8125rem] font-medium cursor-pointer transition-colors duration-200 hover:bg-[rgba(142,142,147,0.18)]"
                   onClick={() => setShowAllComponents(true)}
                 >
-                  Show all {filteredComponents.length} components
+                  {t('showAllComponents', { count: filteredComponents.length })}
                 </button>
               )}
             </div>
@@ -295,7 +298,7 @@ export default function IncidentList({ service, statusData, onClose }) {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-[0.875rem] font-semibold text-[var(--text-secondary)] uppercase tracking-[0.05em] m-0">
-                  Release Lifecycle & LTS
+                  {t('releaseLifecycle')}
                 </h3>
                 <a
                   href={`https://endoflife.date/${eolSlug}`}
@@ -322,14 +325,20 @@ export default function IncidentList({ service, statusData, onClose }) {
                         : c.status === 'eol-soon'
                         ? 'bg-[rgba(255,149,0,0.14)] text-[var(--status-degraded)]'
                         : 'bg-[var(--status-operational-bg)] text-[var(--status-operational)]';
-                    const statusLabel =
+                    const statusLabelText =
                       c.status === 'eol'
-                        ? 'EOL'
+                        ? t('eol')
                         : c.status === 'eol-soon'
-                        ? 'EOL Soon'
+                        ? t('eolSoon')
                         : c.isLts
-                        ? 'LTS'
-                        : 'Active';
+                        ? t('lts')
+                        : t('active');
+                    const localizedEol =
+                      c.eolLabel === 'Supported'
+                        ? t('supported')
+                        : c.eolLabel === 'Ended'
+                        ? t('ended')
+                        : c.eolLabel;
 
                     return (
                       <div
@@ -343,17 +352,17 @@ export default function IncidentList({ service, statusData, onClose }) {
                             </span>
                             {c.isLts && c.status !== 'eol' && c.status !== 'eol-soon' ? null : c.isLts ? (
                               <span className="text-[0.65rem] font-bold uppercase px-1 py-0.5 rounded bg-[rgba(142,142,147,0.2)] text-[var(--text-secondary)]">
-                                LTS
+                                {t('lts')}
                               </span>
                             ) : null}
                           </div>
                           <div className="text-[0.72rem] text-[var(--text-secondary)] truncate font-mono mt-0.5">
-                            {c.latest ? `Latest ${c.latest} · ` : ''}{c.eolLabel}
+                            {c.latest ? t('latest', { version: c.latest }) : ''}{localizedEol}
                           </div>
                         </div>
 
                         <span className={`text-[0.6875rem] font-bold uppercase px-2 py-0.5 rounded-full shrink-0 ${pillClass}`}>
-                          {statusLabel}
+                          {statusLabelText}
                         </span>
                       </div>
                     );
@@ -367,8 +376,8 @@ export default function IncidentList({ service, statusData, onClose }) {
         <div className="shrink-0 p-4 px-6 border-t border-[var(--border-subtle)] flex items-center justify-between text-[0.8125rem] text-[var(--text-secondary)] bg-[rgba(0,0,0,0.02)] max-md:px-5 max-md:py-3.5 max-md:pb-[calc(0.875rem+env(safe-area-inset-bottom,12px))] max-md:flex-col-reverse max-md:items-stretch max-md:gap-2.5 max-md:text-center max-md:sticky max-md:bottom-0 max-md:z-10 max-md:bg-[var(--bg-card)]">
           <span>
             {statusData?.updatedAt
-              ? `Last updated: ${new Date(statusData.updatedAt).toLocaleTimeString()}`
-              : 'Direct API telemetry'}
+              ? t('lastUpdated', { time: new Date(statusData.updatedAt).toLocaleTimeString() })
+              : t('directTelemetry')}
           </span>
           <a
             href={service.pageUrl}
@@ -376,7 +385,7 @@ export default function IncidentList({ service, statusData, onClose }) {
             rel="noopener noreferrer"
             className="text-[var(--text-primary)] no-underline font-medium inline-flex items-center gap-2 px-4 py-2 rounded-[var(--radius-sm)] bg-[rgba(142,142,147,0.08)] border border-[var(--border-subtle)] text-[0.8125rem] transition-all duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[rgba(142,142,147,0.18)] hover:border-[var(--card-hover-border)] hover:-translate-y-px hover:no-underline active:scale-[0.97] max-md:w-full max-md:justify-center max-md:px-4 max-md:py-2.5"
           >
-            {service.category === 'languages' ? 'View Security Advisories' : 'Visit Official Status Page'}
+            {service.category === 'languages' ? t('viewSecurityAdvisories') : t('visitStatusPage')}
             <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M12 9v3.5a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 2 12.5v-7A1.5 1.5 0 0 1 3.5 4H7" />
               <path d="M10 2h4v4" />

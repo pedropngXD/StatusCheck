@@ -1,5 +1,6 @@
 import ServiceCard from '../ServiceCard';
 import ServiceRow from '../ServiceRow';
+import { useLanguage } from '../../lib/translations';
 
 const GRID_CLASSES = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4';
 const LIST_CLASSES = 'flex flex-col bg-[var(--bg-card)] border border-[var(--border-card)] rounded-[var(--radius-md)] shadow-[var(--shadow-card)] overflow-hidden';
@@ -16,6 +17,7 @@ export default function ServiceGrid({
   pinnedSet,
   onTogglePin,
 }) {
+  const { t } = useLanguage();
   const isGrid = viewMode === 'grid';
 
   if (loading && providers.length === 0) {
@@ -49,9 +51,9 @@ export default function ServiceGrid({
           <line x1="11" y1="8" x2="11" y2="14" />
           <line x1="8" y1="11" x2="14" y2="11" />
         </svg>
-        <h3 className="text-[1.125rem] font-semibold text-[var(--text-primary)] m-0 mb-2">No services found</h3>
+        <h3 className="text-[1.125rem] font-semibold text-[var(--text-primary)] m-0 mb-2">{t('noServicesFound')}</h3>
         <p className="text-[0.875rem] max-w-[380px] m-0 mb-6">
-          No services match your active filter or preset. Try selecting a different preset.
+          {t('noServicesDesc')}
         </p>
         {onResetFilter && (
           <button
@@ -63,7 +65,7 @@ export default function ServiceGrid({
               <path d="M1.5 8a6.5 6.5 0 0 1 11.23-4.46L14.5 5" />
               <path d="M14.5 1.5v3.5h-3.5" />
             </svg>
-            <span>Show All Services</span>
+            <span>{t('showAllServices')}</span>
           </button>
         )}
       </div>

@@ -1,7 +1,12 @@
 import DashboardPage from './pages/DashboardPage';
+import { LanguageProvider } from './lib/i18n';
 
 function App() {
-  return <DashboardPage />;
+  return (
+    <LanguageProvider>
+      <DashboardPage />
+    </LanguageProvider>
+  );
 }
 
 export default App;

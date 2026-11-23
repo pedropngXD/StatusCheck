@@ -3,6 +3,7 @@ import ServiceLogo from '../ServiceLogo';
 import UptimeBar from '../UptimeBar';
 import ExternalLinkButton from '../ExternalLinkButton';
 import { getStatusMeta } from '../../lib/statusMeta';
+import { useLanguage } from '../../lib/translations';
 
 function ServiceCard({
   provider,
@@ -13,6 +14,7 @@ function ServiceCard({
   isPinned = false,
   onTogglePin,
 }) {
+  const { t, statusLabel } = useLanguage();
   const status = loading && !statusData ? 'loading' : (statusData?.status || 'unknown');
   const meta = getStatusMeta(status);
   const componentCount = statusData?.components?.length || 0;
@@ -52,9 +54,9 @@ function ServiceCard({
                 e.stopPropagation();
                 onTogglePin(provider.id);
               }}
-              aria-label={isPinned ? `Unpin ${provider.name}` : `Pin ${provider.name} to top`}
+              aria-label={isPinned ? t('unpin', { name: provider.name }) : t('pinToTop', { name: provider.name })}
               aria-pressed={isPinned}
-              title={isPinned ? `Unpin ${provider.name}` : `Pin ${provider.name} to top`}
+              title={isPinned ? t('unpin', { name: provider.name }) : t('pinToTop', { name: provider.name })}
               className={`w-7 h-7 rounded-[var(--radius-sm)] inline-flex items-center justify-center transition-colors cursor-pointer shrink-0 ${
                 isPinned
                   ? 'text-amber-400 bg-amber-500/10 hover:bg-amber-500/20'
@@ -72,7 +74,7 @@ function ServiceCard({
 
       <div className={`inline-flex items-center gap-1.5 text-[0.8125rem] font-medium ${meta.text}`}>
         <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} aria-hidden="true" />
-        {meta.label}
+        {statusLabel(status)}
       </div>
 
       <UptimeBar bars={bars} />
@@ -80,12 +82,12 @@ function ServiceCard({
       <div className="text-xs text-[var(--text-secondary)]">
         {activeIncidents > 0 ? (
           <span className="text-[var(--status-degraded)] font-semibold">
-            {activeIncidents} active {activeIncidents === 1 ? 'incident' : 'incidents'}
+            {activeIncidents} {activeIncidents === 1 ? t('activeIncident') : t('activeIncidents')}
           </span>
         ) : componentCount > 0 ? (
-          `${componentCount} components`
+          t('componentsCount', { count: componentCount })
         ) : (
-          'Official status'
+          t('officialStatus')
         )}
       </div>
     </article>

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import ServiceLogo from '../ServiceLogo';
+import { useLanguage } from '../../lib/translations';
 
 const PresetManager = forwardRef(function PresetManager({
   presets = [],
@@ -11,6 +12,7 @@ const PresetManager = forwardRef(function PresetManager({
   allServices = [],
   listClassName = '',
 }, ref) {
+  const { t } = useLanguage();
   const [modalOpen, setModalOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [editingPreset, setEditingPreset] = useState(null);
@@ -312,7 +314,7 @@ const PresetManager = forwardRef(function PresetManager({
               onTouchEnd={handleTouchEnd}
             >
               <h3 className="m-0 text-[1.125rem] font-semibold text-[var(--text-primary)] pointer-events-none">
-                {editingPreset ? `Edit "${editingPreset.name}"` : 'Create Custom Preset'}
+                {editingPreset ? t('editPresetTitle', { name: editingPreset.name }) : t('createCustomPreset')}
               </h3>
               <button
                 type="button"
@@ -329,12 +331,12 @@ const PresetManager = forwardRef(function PresetManager({
 
             <div className="flex-1 min-h-0 p-6 overflow-y-auto overscroll-contain flex flex-col gap-5 [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:rgba(142,142,147,0.35)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-[rgba(142,142,147,0.3)] [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-[rgba(142,142,147,0.55)] max-md:p-5 max-md:gap-4">
               <div>
-                <label htmlFor="preset-name-input" className="block text-[0.8125rem] font-semibold text-[var(--text-secondary)] uppercase tracking-[0.04em] mb-2">Preset Name</label>
+                <label htmlFor="preset-name-input" className="block text-[0.8125rem] font-semibold text-[var(--text-secondary)] uppercase tracking-[0.04em] mb-2">{t('presetName')}</label>
                 <input
                   id="preset-name-input"
                   type="text"
                   className="w-full p-3 font-sans text-[0.9375rem] rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--input-bg)] text-[var(--text-primary)] outline-none transition-all duration-200 focus:border-[var(--text-primary)] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.08)]"
-                  placeholder="e.g. My Daily Stack"
+                  placeholder={t('presetPlaceholder')}
                   value={presetName}
                   onChange={(e) => setPresetName(e.target.value)}
                   required
@@ -345,15 +347,15 @@ const PresetManager = forwardRef(function PresetManager({
                 <div className="flex flex-col gap-3 mb-3">
                   <div className="flex items-center justify-between">
                     <label className="text-[0.8125rem] font-semibold text-[var(--text-secondary)]">
-                      Monitored Services ({selectedIds.length}/{allServices.length})
+                      {t('monitoredServices', { selected: selectedIds.length, total: allServices.length })}
                     </label>
                     <div className="flex gap-1.5 flex-wrap justify-end">
-                      <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectAll}>All</button>
-                      <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectAiOnly}>AI</button>
-                      <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectDevOnly}>Dev</button>
-                      <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectWebAppsOnly}>Web/Apps</button>
-                      <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectLanguagesOnly}>Languages</button>
-                      <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={clearAll}>Clear</button>
+                      <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectAll}>{t('quickAll')}</button>
+                      <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectAiOnly}>{t('quickAi')}</button>
+                      <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectDevOnly}>{t('quickDev')}</button>
+                      <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectWebAppsOnly}>{t('quickWebApps')}</button>
+                      <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectLanguagesOnly}>{t('quickLanguages')}</button>
+                      <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={clearAll}>{t('quickClear')}</button>
                     </div>
                   </div>
 
@@ -374,7 +376,7 @@ const PresetManager = forwardRef(function PresetManager({
                     <input
                       type="search"
                       className="w-full py-2 pl-9 pr-3 font-sans text-[0.875rem] rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--input-bg)] text-[var(--text-primary)] outline-none transition-all duration-200 focus:border-[var(--text-primary)] focus:shadow-[0_0_0_3px_rgba(0,0,0,0.08)]"
-                      placeholder="Search services by name..."
+                      placeholder={t('searchServices')}
                       value={presetSearchQuery}
                       onChange={(e) => setPresetSearchQuery(e.target.value)}
                     />
@@ -430,7 +432,7 @@ const PresetManager = forwardRef(function PresetManager({
                     <path d="M5.333 4V2.667a1.333 1.333 0 0 1 1.334-1.334h2.666a1.333 1.333 0 0 1 1.334 1.334V4" />
                     <path d="M12.667 4v9.333a1.333 1.333 0 0 1-1.334 1.334H4.667a1.333 1.333 0 0 1-1.334-1.334V4" />
                   </svg>
-                  Delete Preset
+                  {t('deletePreset')}
                 </button>
               ) : (
                 <div />
@@ -441,7 +443,7 @@ const PresetManager = forwardRef(function PresetManager({
                 className="bg-[var(--text-primary)] text-[var(--bg-primary)] border border-transparent py-2.5 px-5 rounded-[var(--radius-sm)] font-sans font-semibold text-[0.875rem] cursor-pointer shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.06)] transition-all duration-[160ms] ease-[cubic-bezier(0.16,1,0.3,1)] inline-flex items-center justify-center gap-1.5 hover:not(:disabled):opacity-92 hover:not(:disabled):-translate-y-px hover:not(:disabled):shadow-[0_4px_12px_rgba(0,0,0,0.15)] active:not(:disabled):scale-[0.97] disabled:opacity-35 disabled:cursor-not-allowed disabled:shadow-none disabled:transform-none max-md:w-full max-md:justify-center max-md:p-2.5 max-md:px-4"
                 disabled={!presetName.trim() || selectedIds.length === 0}
               >
-                {editingPreset ? 'Save Changes' : 'Create Preset'}
+                {editingPreset ? t('saveChanges') : t('createPreset')}
               </button>
             </div>
           </form>

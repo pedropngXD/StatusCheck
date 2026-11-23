@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { STATUS_PROVIDERS } from '../lib/statusProviders';
 import { getLogoUrl } from '../assets/logos';
+import { formatTranslation } from '../lib/translations';
 
 function getStatusEmoji(status) {
   const s = (status || '').toLowerCase();
@@ -28,12 +29,12 @@ function playNotificationSound() {
 
     osc.start(ctx.currentTime);
     osc.stop(ctx.currentTime + 0.5);
-  } catch (e) {
+  } catch {
     // Ignore if audio not supported or blocked
   }
 }
 
-export function useStatusNotifications(statuses, selectedServiceIds) {
+export function useStatusNotifications(statuses, selectedServiceIds, lang = 'en') {
   const previousStatusesRef = useRef(statuses);
   const isFirstRender = useRef(true);
 
@@ -54,8 +55,8 @@ export function useStatusNotifications(statuses, selectedServiceIds) {
           Notification.requestPermission();
         } else if (Notification.permission === 'granted') {
           new Notification('Status Check', {
-            body: '✅ Notificações e alertas sonoros ativados com sucesso!',
-            icon: '/favicon.ico', // Fallback se não houver logo específico
+            body: formatTranslation(lang, 'notifEnabledBody'),
+            icon: '/favicon.ico',
             tag: 'status-check-test',
             renotify: true
           });
@@ -91,20 +92,20 @@ export function useStatusNotifications(statuses, selectedServiceIds) {
         const provider = STATUS_PROVIDERS.find(p => p.id === id);
         if (provider) {
           if (!isMuted && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-             const logoUrl = getLogoUrl(provider.logo);
-             const iconUrl = logoUrl ? new URL(logoUrl, window.location.origin).href : '/favicon.ico';
-             const emoji = getStatusEmoji(newData.status);
-             const oldStatusText = oldData.status.replace(/_/g, ' ').toUpperCase();
-             const newStatusText = newData.status.replace(/_/g, ' ').toUpperCase();
+            const logoUrl = getLogoUrl(provider.logo);
+            const iconUrl = logoUrl ? new URL(logoUrl, window.location.origin).href : '/favicon.ico';
+            const emoji = getStatusEmoji(newData.status);
+            const oldStatusText = oldData.status.replace(/_/g, ' ').toUpperCase();
+            const newStatusText = newData.status.replace(/_/g, ' ').toUpperCase();
 
-             new Notification(`${emoji} ${provider.name} Atualizado`, {
-               body: `Status alterado de ${oldStatusText} para ${newStatusText}`,
-               icon: iconUrl,
-               tag: `status-update-${id}`,
-               renotify: true,
-               requireInteraction: newData.status.includes('outage') || newData.status.includes('degraded')
-             });
-             didNotify = true;
+            new Notification(formatTranslation(lang, 'notifUpdatedTitle', { emoji, name: provider.name }), {
+              body: formatTranslation(lang, 'notifStatusChanged', { oldStatus: oldStatusText, newStatus: newStatusText }),
+              icon: iconUrl,
+              tag: `status-update-${id}`,
+              renotify: true,
+              requireInteraction: newData.status.includes('outage') || newData.status.includes('degraded')
+            });
+            didNotify = true;
           }
         }
       }
@@ -115,7 +116,7 @@ export function useStatusNotifications(statuses, selectedServiceIds) {
     }
 
     previousStatusesRef.current = statuses;
-  }, [statuses, selectedServiceIds, isMuted]);
+  }, [statuses, selectedServiceIds, isMuted, lang]);
 
   return { isMuted, toggleMute };
 }

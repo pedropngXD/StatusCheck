@@ -1,12 +1,13 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import ServiceLogo from '../ServiceLogo';
+import { useLanguage } from '../../lib/translations';
 
 const TYPE_FILTERS = [
-  { id: 'all', label: 'All' },
-  { id: 'outage', label: 'Critical / Outage' },
-  { id: 'degraded', label: 'High / Degraded' },
-  { id: 'cve', label: 'CVEs' },
-  { id: 'service', label: 'Services' },
+  { id: 'all', key: 'filterAll' },
+  { id: 'outage', key: 'filterCritical' },
+  { id: 'degraded', key: 'filterDegraded' },
+  { id: 'cve', key: 'filterCves' },
+  { id: 'service', key: 'filterServices' },
 ];
 
 export default function IncidentFeedModal({
@@ -17,6 +18,7 @@ export default function IncidentFeedModal({
   statuses = {},
   onSelectService,
 }) {
+  const { t } = useLanguage();
   const [scope, setScope] = useState('preset');
   const [typeFilter, setTypeFilter] = useState('all');
   const [query, setQuery] = useState('');
@@ -178,7 +180,7 @@ export default function IncidentFeedModal({
         >
           <div className="flex items-center gap-2.5 min-w-0">
             <h2 className="text-[1.125rem] font-semibold m-0 text-[var(--text-primary)] truncate">
-              Incident & CVE Timeline
+              {t('timelineTitle')}
             </h2>
             <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-mono font-semibold bg-[rgba(142,142,147,0.15)] text-[var(--text-primary)]">
               {filteredFeed.length}
@@ -196,7 +198,7 @@ export default function IncidentFeedModal({
                     : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                 }`}
               >
-                Current View
+                {t('currentView')}
               </button>
               <button
                 type="button"
@@ -207,7 +209,7 @@ export default function IncidentFeedModal({
                     : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                 }`}
               >
-                All {providers.length}
+                {t('allCount', { count: providers.length })}
               </button>
             </div>
 
@@ -243,7 +245,7 @@ export default function IncidentFeedModal({
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search active incidents, CVEs, or services..."
+              placeholder={t('searchTimeline')}
               className="w-full h-[36px] pl-9 pr-3 text-[0.84rem] rounded-[var(--radius-sm)] border border-[var(--border-subtle)] bg-[var(--input-bg)] text-[var(--text-primary)] outline-none focus:border-[var(--text-primary)]"
             />
           </div>
@@ -260,7 +262,7 @@ export default function IncidentFeedModal({
                     : 'bg-transparent text-[var(--text-secondary)] border-[var(--border-subtle)] hover:text-[var(--text-primary)]'
                 }`}
               >
-                {f.label}
+                {t(f.key)}
               </button>
             ))}
           </div>
@@ -275,10 +277,10 @@ export default function IncidentFeedModal({
                 </svg>
               </div>
               <h3 className="text-[0.95rem] font-semibold text-[var(--text-primary)] m-0 mb-1">
-                All clear
+                {t('allClear')}
               </h3>
               <p className="text-[0.84rem] text-[var(--text-secondary)] m-0 max-w-[340px]">
-                No active incidents or recent CVEs match this filter.
+                {t('noFeedMatches')}
               </p>
             </div>
           ) : (
@@ -314,12 +316,12 @@ export default function IncidentFeedModal({
                             : 'bg-[rgba(255,149,0,0.18)] text-[var(--status-degraded)]'
                         }`}
                       >
-                        {isCritical ? 'Critical' : 'Degraded'}
+                        {isCritical ? t('critical') : t('degraded')}
                       </span>
                     </div>
 
                     <span className="text-xs text-[var(--text-secondary)] font-mono">
-                      {item.timestamp ? new Date(item.timestamp).toLocaleString() : 'Recent'}
+                      {item.timestamp ? new Date(item.timestamp).toLocaleString() : t('recent')}
                     </span>
                   </div>
 
@@ -340,7 +342,7 @@ export default function IncidentFeedModal({
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 mt-2 text-[0.775rem] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] underline underline-offset-2"
                     >
-                      Open advisory ↗
+                      {t('openAdvisory')}
                     </a>
                   )}
                 </article>

@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
+import { useLanguage } from '../../lib/translations';
 
 export default function SavedViewsDropdown({ presets, activePresetId, onSelect }) {
+  const { t, presetName } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -28,7 +30,7 @@ export default function SavedViewsDropdown({ presets, activePresetId, onSelect }
         }`}
       >
         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
-        {activePreset ? activePreset.name : 'Saved views'}
+        {activePreset ? presetName(activePreset) : t('savedViews')}
         <svg className={`w-3.5 h-3.5 transition-transform ${isOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
@@ -44,7 +46,7 @@ export default function SavedViewsDropdown({ presets, activePresetId, onSelect }
                 onClick={() => { onSelect(preset.id); setIsOpen(false); }}
                 className={`w-full flex items-center px-3 py-2 text-[0.875rem] font-medium rounded-[var(--radius-md)] transition-colors text-left ${activePresetId === preset.id ? 'bg-[var(--bg-card-hover)] text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-card-hover)] hover:text-[var(--text-primary)]'}`}
               >
-                {preset.name}
+                {presetName(preset)}
               </button>
             ))}
           </div>

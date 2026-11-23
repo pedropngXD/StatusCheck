@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { formatTranslation } from '../lib/translations';
 
-export function useRelativeTime(date, tickMs = 5000) {
+export function useRelativeTime(date, lang = 'en', tickMs = 5000) {
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -11,10 +12,10 @@ export function useRelativeTime(date, tickMs = 5000) {
   if (!date) return null;
 
   const seconds = Math.max(0, Math.floor((now - date.getTime()) / 1000));
-  if (seconds < 5) return 'just now';
-  if (seconds < 60) return `${seconds}s ago`;
+  if (seconds < 5) return formatTranslation(lang, 'justNow');
+  if (seconds < 60) return formatTranslation(lang, 'secondsAgo', { n: seconds });
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  return `${Math.floor(minutes / 60)}h ago`;
+  if (minutes < 60) return formatTranslation(lang, 'minutesAgo', { n: minutes });
+  return formatTranslation(lang, 'hoursAgo', { n: Math.floor(minutes / 60) });
 }
 

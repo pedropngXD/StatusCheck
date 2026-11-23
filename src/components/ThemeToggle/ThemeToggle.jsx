@@ -1,4 +1,7 @@
+import { useLanguage } from '../../lib/translations';
+
 export default function ThemeToggle({ theme = 'light', onToggle }) {
+  const { t } = useLanguage();
   const isDark = theme === 'dark';
 
   return (
@@ -46,7 +49,7 @@ export default function ThemeToggle({ theme = 'light', onToggle }) {
           </svg>
         )}
       </div>
-      <span className="hidden md:inline text-[0.8125rem]">{isDark ? 'Light' : 'Dark'}</span>
+      <span className="hidden md:inline text-[0.8125rem]">{isDark ? t('light') : t('dark')}</span>
     </button>
   );
 }

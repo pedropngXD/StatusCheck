@@ -1,12 +1,5 @@
 import { memo } from 'react';
-
-const DEFAULT_LABELS = {
-  operational: 'Operational',
-  degraded: 'Degraded',
-  outage: 'Outage',
-  loading: 'Checking...',
-  unknown: 'Unknown',
-};
+import { useLanguage } from '../../lib/translations';
 
 const SIZE_CLASSES = {
   sm: 'px-2 py-[3px] text-[0.72rem] tracking-[0.01em]',
@@ -42,8 +35,9 @@ function StatusBadge({
   size = 'md',
   showDot = true,
 }) {
+  const { statusLabel } = useLanguage();
   const normalizedStatus = status ? status.toLowerCase() : 'unknown';
-  const displayLabel = label || DEFAULT_LABELS[normalizedStatus] || 'Unknown';
+  const displayLabel = label || statusLabel(normalizedStatus);
 
   const baseClasses = "inline-flex items-center gap-1.5 font-sans font-medium rounded-full leading-none transition-all duration-200 select-none border border-transparent whitespace-nowrap";
   const sizeClass = SIZE_CLASSES[size] || SIZE_CLASSES.md;

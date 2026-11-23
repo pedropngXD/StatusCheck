@@ -3,6 +3,7 @@ import ServiceLogo from '../ServiceLogo';
 import UptimeBar from '../UptimeBar';
 import ExternalLinkButton from '../ExternalLinkButton';
 import { getStatusMeta } from '../../lib/statusMeta';
+import { useLanguage } from '../../lib/translations';
 
 function ServiceRow({
   provider,
@@ -13,6 +14,7 @@ function ServiceRow({
   isPinned = false,
   onTogglePin,
 }) {
+  const { t, statusLabel } = useLanguage();
   const status = loading && !statusData ? 'loading' : (statusData?.status || 'unknown');
   const meta = getStatusMeta(status);
 
@@ -49,8 +51,8 @@ function ServiceRow({
 
       <div className={`inline-flex items-center gap-1.5 text-[0.8125rem] font-medium shrink-0 md:w-[110px] ${meta.text}`}>
         <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} aria-hidden="true" />
-        <span className="hidden md:inline">{meta.label}</span>
-        <span className="sr-only md:hidden">{meta.label}</span>
+        <span className="hidden md:inline">{statusLabel(status)}</span>
+        <span className="sr-only md:hidden">{statusLabel(status)}</span>
       </div>
 
       <div className="flex items-center gap-1 shrink-0">
@@ -61,9 +63,9 @@ function ServiceRow({
               e.stopPropagation();
               onTogglePin(provider.id);
             }}
-            aria-label={isPinned ? `Unpin ${provider.name}` : `Pin ${provider.name} to top`}
+            aria-label={isPinned ? t('unpin', { name: provider.name }) : t('pinToTop', { name: provider.name })}
             aria-pressed={isPinned}
-            title={isPinned ? `Unpin ${provider.name}` : `Pin ${provider.name} to top`}
+            title={isPinned ? t('unpin', { name: provider.name }) : t('pinToTop', { name: provider.name })}
             className={`w-7 h-7 rounded-[var(--radius-sm)] inline-flex items-center justify-center transition-colors cursor-pointer shrink-0 ${
               isPinned
                 ? 'text-amber-400 bg-amber-500/10 hover:bg-amber-500/20'

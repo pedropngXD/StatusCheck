@@ -8,12 +8,14 @@ import { usePresets } from '../hooks/usePresets';
 import { useTheme } from '../hooks/useTheme';
 import { useStatusNotifications } from '../hooks/useStatusNotifications';
 import { usePinnedServices } from '../hooks/usePinnedServices';
+import { useLanguage } from '../lib/translations';
 
 import ServiceGrid from '../components/ServiceGrid';
 import ViewToggle from '../components/ViewToggle';
 import PresetManager from '../components/PresetManager';
 import IncidentList from '../components/IncidentList';
 import IncidentFeedModal from '../components/IncidentFeedModal';
+import MobileSettingsSheet from '../components/MobileSettingsSheet';
 import ThemeToggle from '../components/ThemeToggle';
 import StatusSummary from '../components/StatusSummary';
 import StatusDropdown from '../components/StatusDropdown/StatusDropdown';
@@ -44,6 +46,7 @@ export default function DashboardPage() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortMode, setSortMode] = useState(loadSortMode);
   const [isFeedOpen, setIsFeedOpen] = useState(false);
+  const [isMobileSettingsOpen, setIsMobileSettingsOpen] = useState(false);
   const searchInputRef = useRef(null);
   const presetManagerRef = useRef(null);
 
@@ -53,12 +56,13 @@ export default function DashboardPage() {
     } catch {}
   }, [sortMode]);
 
+  const { lang, toggleLang, t, statusLabel, categoryLabel } = useLanguage();
   const { theme, toggleTheme } = useTheme();
   const { viewMode, setViewMode } = useViewMode('row');
   const { pinnedSet, togglePin } = usePinnedServices();
   const { statuses, loading, refreshing, lastCycleAt, refetch } = useServiceStatus(STATUS_PROVIDERS);
   const { getBars } = useStatusHistory(statuses, lastCycleAt);
-  const updatedAgo = useRelativeTime(lastCycleAt);
+  const updatedAgo = useRelativeTime(lastCycleAt, lang);
 
   const {
     presets,
@@ -79,7 +83,7 @@ export default function DashboardPage() {
     return Array.from(ids);
   }, [presets]);
 
-  const { isMuted, toggleMute } = useStatusNotifications(statuses, notifiedServiceIds);
+  const { isMuted, toggleMute } = useStatusNotifications(statuses, notifiedServiceIds, lang);
 
   useEffect(() => {
     const handleShortcut = (e) => {
@@ -222,7 +226,7 @@ export default function DashboardPage() {
   const updatedLabel = updatedAgo && (
     <span className="inline-flex items-center gap-1 text-[0.72rem] md:text-xs text-[var(--text-secondary)] font-mono">
       <span className="text-[var(--status-operational)] font-sans">✓</span>
-      Updated {updatedAgo}
+      {t('updated', { time: updatedAgo })}
     </span>
   );
 
@@ -233,20 +237,20 @@ export default function DashboardPage() {
           <div className="min-w-0">
             <h1 className="text-[1.75rem] md:text-[2.25rem] font-bold tracking-[-0.03em] m-0 text-[var(--text-primary)] leading-[1.15]">Status Check</h1>
             <p className="hidden md:block text-base text-[var(--text-secondary)] m-0 mt-2 max-w-[460px] leading-snug">
-              Real-time telemetry and health monitoring for leading AI services and developer platforms.
+              {t('subtitle')}
             </p>
             <div className="md:hidden mt-1">{updatedLabel}</div>
           </div>
 
-          <div className="flex items-center gap-2 md:gap-3 shrink-0">
-            <div className="hidden md:block">{updatedLabel}</div>
+          <div className="hidden md:flex items-center gap-2.5 shrink-0">
+            <div>{updatedLabel}</div>
 
             <button
               type="button"
-              className="inline-flex items-center justify-center gap-1.5 bg-[var(--bg-card)] border border-[var(--border-card)] w-9 h-9 md:w-auto md:h-auto md:px-3 md:py-1.5 rounded-[var(--radius-md)] text-[var(--text-primary)] font-sans text-[0.8125rem] font-medium cursor-pointer shadow-[var(--shadow-card)] transition-all duration-200 hover:bg-[var(--bg-card-hover)] hover:shadow-[var(--shadow-card-hover)] disabled:opacity-60 disabled:cursor-not-allowed"
+              className="inline-flex items-center justify-center gap-1.5 bg-[var(--bg-card)] border border-[var(--border-card)] px-3 py-1.5 rounded-[var(--radius-md)] text-[var(--text-primary)] font-sans text-[0.8125rem] font-medium cursor-pointer shadow-[var(--shadow-card)] transition-all duration-200 hover:bg-[var(--bg-card-hover)] hover:shadow-[var(--shadow-card-hover)] disabled:opacity-60 disabled:cursor-not-allowed"
               onClick={refetch}
               disabled={refreshing}
-              aria-label="Refresh status telemetry"
+              aria-label={t('refresh')}
             >
               <svg
                 className={`w-3.5 h-3.5 ${refreshing ? 'animate-[spin_0.8s_linear_infinite]' : ''}`}
@@ -263,18 +267,18 @@ export default function DashboardPage() {
                 <path d="M14.5 8a6.5 6.5 0 0 1-11.23 4.46L1.5 11" />
                 <path d="M1.5 14.5V11h3.5" />
               </svg>
-              <span className="hidden md:inline">{refreshing ? 'Checking...' : 'Refresh'}</span>
+              <span>{refreshing ? t('checking') : t('refresh')}</span>
             </button>
 
             <button
               type="button"
-              className="inline-flex items-center justify-center bg-[var(--bg-card)] border border-[var(--border-card)] w-9 h-9 md:w-auto md:h-auto md:px-3 md:py-1.5 rounded-[var(--radius-md)] text-[var(--text-primary)] font-sans text-[0.8125rem] font-medium cursor-pointer shadow-[var(--shadow-card)] transition-all duration-200 hover:bg-[var(--bg-card-hover)] hover:shadow-[var(--shadow-card-hover)]"
+              className="inline-flex items-center justify-center bg-[var(--bg-card)] border border-[var(--border-card)] px-3 py-1.5 rounded-[var(--radius-md)] text-[var(--text-primary)] font-sans text-[0.8125rem] font-medium cursor-pointer shadow-[var(--shadow-card)] transition-all duration-200 hover:bg-[var(--bg-card-hover)] hover:shadow-[var(--shadow-card-hover)]"
               onClick={toggleMute}
-              aria-label={isMuted ? "Enable browser notifications" : "Disable browser notifications"}
-              title={isMuted ? "Enable browser notifications" : "Disable browser notifications"}
+              aria-label={isMuted ? t('muted') : t('alertsOn')}
+              title={isMuted ? t('muted') : t('alertsOn')}
             >
               {isMuted ? (
-                <svg className="w-4 h-4 md:mr-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <svg className="w-4 h-4 mr-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                   <path d="M18.63 13A17.89 17.89 0 0 1 18 8" />
                   <path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14" />
@@ -282,33 +286,66 @@ export default function DashboardPage() {
                   <line x1="1" y1="1" x2="23" y2="23" />
                 </svg>
               ) : (
-                <svg className="w-4 h-4 md:mr-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <svg className="w-4 h-4 mr-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                   <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                 </svg>
               )}
-              <span className="hidden md:inline">{isMuted ? 'Muted' : 'Alerts On'}</span>
+              <span>{isMuted ? t('muted') : t('alertsOn')}</span>
             </button>
 
             <button
               type="button"
-              className="relative inline-flex items-center justify-center gap-1.5 bg-[var(--bg-card)] border border-[var(--border-card)] w-9 h-9 md:w-auto md:h-auto md:px-3 md:py-1.5 rounded-[var(--radius-md)] text-[var(--text-primary)] font-sans text-[0.8125rem] font-medium cursor-pointer shadow-[var(--shadow-card)] transition-all duration-200 hover:bg-[var(--bg-card-hover)] hover:shadow-[var(--shadow-card-hover)]"
+              className="relative inline-flex items-center justify-center gap-1.5 bg-[var(--bg-card)] border border-[var(--border-card)] px-3 py-1.5 rounded-[var(--radius-md)] text-[var(--text-primary)] font-sans text-[0.8125rem] font-medium cursor-pointer shadow-[var(--shadow-card)] transition-all duration-200 hover:bg-[var(--bg-card-hover)] hover:shadow-[var(--shadow-card-hover)]"
               onClick={() => setIsFeedOpen(true)}
-              aria-label="Open incident and CVE timeline feed"
-              title="Incident & CVE Timeline"
+              aria-label={t('incidentFeed')}
+              title={t('incidentFeed')}
             >
               <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
               </svg>
-              <span className="hidden md:inline">Feed</span>
+              <span>{t('feed')}</span>
               {activeIncidentCount > 0 && (
-                <span className="max-md:absolute max-md:-top-1.5 max-md:-right-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[var(--status-outage)] text-white text-[0.65rem] font-bold font-mono">
+                <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[var(--status-outage)] text-white text-[0.65rem] font-bold font-mono">
                   {activeIncidentCount}
                 </span>
               )}
             </button>
 
+            <button
+              type="button"
+              onClick={toggleLang}
+              className="inline-flex items-center justify-center gap-1.5 bg-[var(--bg-card)] border border-[var(--border-card)] px-3 py-1.5 rounded-[var(--radius-md)] text-[var(--text-primary)] font-sans text-[0.8125rem] font-medium cursor-pointer shadow-[var(--shadow-card)] transition-all duration-200 hover:bg-[var(--bg-card-hover)] hover:shadow-[var(--shadow-card-hover)]"
+              aria-label={`${t('language')}: ${lang === 'pt-BR' ? 'Português' : 'English'}`}
+              title="EN ↔ PT-BR"
+            >
+              <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="2" y1="12" x2="22" y2="12" />
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+              </svg>
+              <span>{lang === 'pt-BR' ? 'PT-BR' : 'EN'}</span>
+            </button>
+
             <ThemeToggle theme={theme} onToggle={toggleTheme} />
+          </div>
+
+          <div className="flex md:hidden items-center shrink-0">
+            <button
+              type="button"
+              onClick={() => setIsMobileSettingsOpen(true)}
+              className="relative inline-flex items-center justify-center bg-[var(--bg-card)] border border-[var(--border-card)] w-9 h-9 rounded-[var(--radius-md)] text-[var(--text-primary)] cursor-pointer shadow-[var(--shadow-card)] active:scale-95 transition-all"
+              aria-label={t('settings')}
+              title={t('settings')}
+            >
+              <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+              {activeIncidentCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[var(--status-outage)] ring-2 ring-[var(--bg-primary)]" />
+              )}
+            </button>
           </div>
         </div>
       </header>
@@ -350,7 +387,7 @@ export default function DashboardPage() {
                   ref={searchInputRef}
                   type="search"
                   className="w-full h-[44px] md:h-[38px] pl-9 pr-9 text-[0.875rem] rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] outline-none transition-all focus:border-[var(--text-primary)]"
-                  placeholder="Filter services by name..."
+                  placeholder={t('searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -378,7 +415,7 @@ export default function DashboardPage() {
                   className="flex-1 px-2 inline-flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] font-medium text-[0.8125rem] shadow-sm active:scale-95 transition-all"
                 >
                   <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="3" x2="8" y2="13" /><line x1="3" y1="8" x2="13" y2="8" /></svg>
-                  <span className="truncate">Create filter</span>
+                  <span className="truncate">{t('createFilter')}</span>
                 </button>
                 <button
                   type="button"
@@ -386,7 +423,7 @@ export default function DashboardPage() {
                   className="flex-1 px-2 inline-flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] font-medium text-[0.8125rem] shadow-sm active:scale-95 transition-all"
                 >
                   <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-                  <span className="truncate">Filters</span>
+                  <span className="truncate">{t('filters')}</span>
                   {(statusFilters.length > 0 || categoryFilter !== 'all') && (
                     <span className="flex items-center justify-center w-4 h-4 rounded-full bg-[var(--text-primary)] text-[var(--bg-primary)] text-[0.625rem] font-bold shrink-0">
                       {statusFilters.length + (categoryFilter !== 'all' ? 1 : 0)}
@@ -415,7 +452,7 @@ export default function DashboardPage() {
                   type="button"
                   onClick={() => handleOpenEditPreset(presets.find((p) => p.id === activePresetId))}
                   className="inline-flex items-center justify-center gap-1.5 px-3 h-[38px] rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-secondary)] font-medium text-[0.875rem] transition-colors hover:text-[var(--text-primary)] hover:border-[var(--text-secondary)]"
-                  title="Edit Filter"
+                  title={t('editFilter')}
                 >
                   <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 2a2 2 0 0 1 2.8 2.8L4.6 14 1 15l1-3.6L11 2z" /></svg>
                 </button>
@@ -427,7 +464,7 @@ export default function DashboardPage() {
                 className="inline-flex items-center justify-center gap-1.5 px-3 h-[38px] rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] font-medium text-[0.875rem] transition-colors hover:bg-[var(--bg-card-hover)]"
               >
                 <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="3" x2="8" y2="13" /><line x1="3" y1="8" x2="13" y2="8" /></svg>
-                Create
+                {t('create')}
               </button>
             </div>
           </div>
@@ -437,7 +474,7 @@ export default function DashboardPage() {
               type="button"
               onClick={() => setSortMode((prev) => (prev === 'issues' ? 'name' : 'issues'))}
               className="inline-flex items-center justify-center gap-1.5 px-3 h-[38px] rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] font-medium text-[0.8125rem] transition-colors hover:bg-[var(--bg-card-hover)] cursor-pointer whitespace-nowrap"
-              title={sortMode === 'issues' ? 'Sorting by issues first (click for A-Z)' : 'Sorting A-Z (click for issues first)'}
+              title={sortMode === 'issues' ? t('issuesFirst') : t('sortAZ')}
             >
               <svg className="w-3.5 h-3.5 text-[var(--text-secondary)] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="m3 16 4 4 4-4" />
@@ -446,7 +483,7 @@ export default function DashboardPage() {
                 <path d="M11 8h7" />
                 <path d="M11 12h4" />
               </svg>
-              <span>{sortMode === 'issues' ? 'Issues first' : 'A–Z'}</span>
+              <span>{sortMode === 'issues' ? t('issuesFirst') : t('sortAZ')}</span>
             </button>
 
             <ViewToggle viewMode={viewMode} onChange={setViewMode} className="w-full md:w-auto flex md:inline-flex" />
@@ -456,11 +493,11 @@ export default function DashboardPage() {
         {(searchQuery || statusFilters.length > 0 || categoryFilter !== 'all') && (
           <div className="flex flex-wrap items-center gap-3 text-[0.875rem]">
             <span className="font-bold text-[var(--text-primary)]">
-              Showing {filteredProviders.length} of {presetSummary.total}
+              {t('showingOf', { shown: filteredProviders.length, total: presetSummary.total })}
             </span>
             {statusFilters.map(filter => (
               <span key={filter} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--radius-md)] border border-[#4d4422] bg-[#221f11] text-[#e5c158] font-medium text-[0.8125rem]">
-                Status: {filter.charAt(0).toUpperCase() + filter.slice(1)}
+                {t('status')}: {statusLabel(filter)}
                 <button
                   type="button"
                   onClick={() => handleStatusFilterToggle(filter)}
@@ -472,8 +509,8 @@ export default function DashboardPage() {
               </span>
             ))}
             {categoryFilter !== 'all' && (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] font-medium text-[0.8125rem] capitalize">
-                Category: {categoryFilter}
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] font-medium text-[0.8125rem]">
+                {t('category')}: {categoryLabel(categoryFilter)}
                 <button
                   type="button"
                   onClick={() => setCategoryFilter('all')}
@@ -485,7 +522,7 @@ export default function DashboardPage() {
             )}
             {searchQuery && (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] font-medium text-[0.8125rem]">
-                Search: {searchQuery}
+                {t('search')}: {searchQuery}
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
@@ -500,7 +537,7 @@ export default function DashboardPage() {
               onClick={handleResetFilter}
               className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors font-medium ml-1"
             >
-              Clear filters
+              {t('clearFilters')}
             </button>
           </div>
         )}
@@ -543,6 +580,19 @@ export default function DashboardPage() {
         }}
       />
 
+      <MobileSettingsSheet
+        isOpen={isMobileSettingsOpen}
+        onClose={() => setIsMobileSettingsOpen(false)}
+        refreshing={refreshing}
+        onRefresh={refetch}
+        isMuted={isMuted}
+        onToggleMute={toggleMute}
+        activeIncidentCount={activeIncidentCount}
+        onOpenFeed={() => setIsFeedOpen(true)}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+      />
+
       <IncidentList
         key={selectedService?.id || 'none'}
         service={selectedService}
@@ -552,8 +602,8 @@ export default function DashboardPage() {
 
       <footer className="mt-10 md:mt-16 pt-6 border-t border-[var(--border-subtle)] flex items-center justify-between flex-col md:flex-row gap-4 text-[0.8125rem] text-[var(--text-secondary)] text-center md:text-left">
         <div className="flex flex-col gap-1">
-          <span>Status Check — Real-time telemetry dashboard.</span>
-          <span>Auto-refreshes every 60 seconds • Direct API telemetry</span>
+          <span>{t('footerTitle')}</span>
+          <span>{t('footerSubtitle')}</span>
         </div>
         <SocialLinks />
       </footer>

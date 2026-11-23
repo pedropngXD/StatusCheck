@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
+import { useLanguage } from '../../lib/translations';
 
 const STATUS_FILTERS = [
-  { type: 'operational', label: 'Operational', dot: 'bg-[var(--status-operational)]' },
-  { type: 'degraded', label: 'Degraded', dot: 'bg-[var(--status-degraded)]' },
-  { type: 'outage', label: 'Outage', dot: 'bg-[var(--status-outage)]' },
-  { type: 'unknown', label: 'Unknown', dot: 'bg-[var(--status-unknown)]' },
+  { type: 'operational', dot: 'bg-[var(--status-operational)]' },
+  { type: 'degraded', dot: 'bg-[var(--status-degraded)]' },
+  { type: 'outage', dot: 'bg-[var(--status-outage)]' },
+  { type: 'unknown', dot: 'bg-[var(--status-unknown)]' },
 ];
 
 export default function MobileFiltersModal({
@@ -25,6 +26,7 @@ export default function MobileFiltersModal({
   sortMode = 'issues',
   onChangeSortMode,
 }) {
+  const { t, statusLabel, categoryLabel, presetName } = useLanguage();
   const [isClosing, setIsClosing] = useState(false);
   const backdropRef = useRef(null);
 
@@ -67,13 +69,13 @@ export default function MobileFiltersModal({
         </div>
 
         <div className="flex items-center justify-between px-5 pt-2 pb-4">
-          <h2 className="text-[1.25rem] font-bold text-[var(--text-primary)] m-0">Filters</h2>
+          <h2 className="text-[1.25rem] font-bold text-[var(--text-primary)] m-0">{t('filters')}</h2>
           <button 
             type="button" 
             onClick={onClearAll}
             className="text-[0.875rem] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] underline underline-offset-2"
           >
-            Clear all
+            {t('clearAll')}
           </button>
         </div>
 
@@ -81,21 +83,21 @@ export default function MobileFiltersModal({
           {/* SORT BY */}
           {onChangeSortMode && (
             <div className="mb-6">
-              <h3 className="text-[0.6875rem] font-bold text-[var(--text-secondary)] uppercase tracking-wider m-0 mb-3">Sort By</h3>
+              <h3 className="text-[0.6875rem] font-bold text-[var(--text-secondary)] uppercase tracking-wider m-0 mb-3">{t('sortBy')}</h3>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => onChangeSortMode('issues')}
                   className={`px-3 py-2.5 rounded-[var(--radius-md)] border text-[0.875rem] font-medium transition-colors ${sortMode === 'issues' ? 'bg-[var(--text-primary)] border-[var(--text-primary)] text-[var(--bg-primary)]' : 'bg-transparent border-[var(--border-subtle)] text-[var(--text-primary)]'}`}
                 >
-                  Issues first
+                  {t('issuesFirst')}
                 </button>
                 <button
                   type="button"
                   onClick={() => onChangeSortMode('name')}
                   className={`px-3 py-2.5 rounded-[var(--radius-md)] border text-[0.875rem] font-medium transition-colors ${sortMode === 'name' ? 'bg-[var(--text-primary)] border-[var(--text-primary)] text-[var(--bg-primary)]' : 'bg-transparent border-[var(--border-subtle)] text-[var(--text-primary)]'}`}
                 >
-                  A–Z
+                  {t('sortAZ')}
                 </button>
               </div>
             </div>
@@ -104,7 +106,7 @@ export default function MobileFiltersModal({
           {/* STATUS */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-[0.6875rem] font-bold text-[var(--text-secondary)] uppercase tracking-wider m-0">Status</h3>
+              <h3 className="text-[0.6875rem] font-bold text-[var(--text-secondary)] uppercase tracking-wider m-0">{t('status')}</h3>
               <button
                 type="button"
                 onClick={() => {
@@ -113,12 +115,12 @@ export default function MobileFiltersModal({
                 }}
                 className="text-[0.75rem] font-semibold text-[#e5c158] border border-[#4d4422] bg-[#221f11] px-2.5 py-1 rounded-full"
               >
-                Issues only · {issuesCount}
+                {t('issuesOnly')} · {issuesCount}
               </button>
             </div>
             
             <div className="grid grid-cols-2 gap-2">
-              {STATUS_FILTERS.map(({ type, label, dot }) => {
+              {STATUS_FILTERS.map(({ type, dot }) => {
                 const isChecked = statusFilters.includes(type);
                 const count = summary ? summary[type] || 0 : 0;
                 return (
@@ -130,7 +132,7 @@ export default function MobileFiltersModal({
                   >
                     <div className="flex items-center gap-2">
                       <span className={`w-2 h-2 rounded-full ${dot.replace('bg-', 'bg-')}`} style={isChecked ? {} : { backgroundColor: `var(--status-${type})` }} />
-                      <span className={`text-[0.875rem] font-medium ${isChecked ? 'text-[var(--text-primary)]' : 'text-[var(--text-primary)]'}`}>{label}</span>
+                      <span className="text-[0.875rem] font-medium text-[var(--text-primary)]">{statusLabel(type)}</span>
                     </div>
                     {isChecked ? (
                       <svg className="w-3.5 h-3.5 text-[var(--text-primary)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -145,23 +147,23 @@ export default function MobileFiltersModal({
 
           {/* CATEGORY */}
           <div className="mb-6">
-            <h3 className="text-[0.6875rem] font-bold text-[var(--text-secondary)] uppercase tracking-wider m-0 mb-3">Category</h3>
+            <h3 className="text-[0.6875rem] font-bold text-[var(--text-secondary)] uppercase tracking-wider m-0 mb-3">{t('category')}</h3>
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
                 onClick={() => onChangeCategory('all')}
                 className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full border text-[0.875rem] font-medium transition-colors ${categoryFilter === 'all' ? 'bg-[var(--text-primary)] border-[var(--text-primary)] text-[var(--bg-primary)]' : 'bg-transparent border-[var(--border-subtle)] text-[var(--text-primary)]'}`}
               >
-                All <span className={`text-[0.75rem] ${categoryFilter === 'all' ? 'text-[var(--bg-secondary)]' : 'text-[var(--text-secondary)]'}`}>{categories.reduce((sum, cat) => sum + cat.count, 0)}</span>
+                {t('all')} <span className={`text-[0.75rem] ${categoryFilter === 'all' ? 'text-[var(--bg-secondary)]' : 'text-[var(--text-secondary)]'}`}>{categories.reduce((sum, cat) => sum + cat.count, 0)}</span>
               </button>
               {categories.map((cat) => (
                 <button
                   key={cat.name}
                   type="button"
                   onClick={() => onChangeCategory(cat.name)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full border text-[0.875rem] font-medium capitalize transition-colors ${categoryFilter === cat.name ? 'bg-[var(--text-primary)] border-[var(--text-primary)] text-[var(--bg-primary)]' : 'bg-transparent border-[var(--border-subtle)] text-[var(--text-primary)]'}`}
+                  className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full border text-[0.875rem] font-medium transition-colors ${categoryFilter === cat.name ? 'bg-[var(--text-primary)] border-[var(--text-primary)] text-[var(--bg-primary)]' : 'bg-transparent border-[var(--border-subtle)] text-[var(--text-primary)]'}`}
                 >
-                  {cat.name} <span className={`text-[0.75rem] ${categoryFilter === cat.name ? 'text-[var(--bg-secondary)]' : 'text-[var(--text-secondary)]'}`}>{cat.count}</span>
+                  {categoryLabel(cat.name)} <span className={`text-[0.75rem] ${categoryFilter === cat.name ? 'text-[var(--bg-secondary)]' : 'text-[var(--text-secondary)]'}`}>{cat.count}</span>
                 </button>
               ))}
             </div>
@@ -169,7 +171,7 @@ export default function MobileFiltersModal({
 
           {/* SAVED VIEWS */}
           <div>
-            <h3 className="text-[0.6875rem] font-bold text-[var(--text-secondary)] uppercase tracking-wider m-0 mb-3">Saved Views</h3>
+            <h3 className="text-[0.6875rem] font-bold text-[var(--text-secondary)] uppercase tracking-wider m-0 mb-3">{t('savedViews')}</h3>
             <div className="flex flex-wrap gap-2">
               {presets.map((preset) => (
                 <div key={preset.id} className={`inline-flex items-center rounded-full border transition-colors ${activePresetId === preset.id ? 'bg-[var(--text-primary)] border-[var(--text-primary)] text-[var(--bg-primary)]' : 'bg-transparent border-[var(--border-subtle)] text-[var(--text-primary)]'}`}>
@@ -178,7 +180,7 @@ export default function MobileFiltersModal({
                     onClick={() => onSelectPreset(preset.id)}
                     className="pl-3 pr-2 py-2 text-[0.875rem] font-medium"
                   >
-                    {preset.name}
+                    {presetName(preset)}
                   </button>
                   {!preset.isDefault && (
                     <button
@@ -202,7 +204,7 @@ export default function MobileFiltersModal({
             onClick={handleClose}
             className="w-full h-[52px] bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-[var(--radius-lg)] font-bold text-[1rem] shadow-lg active:scale-[0.98] transition-transform"
           >
-            Show {filteredCount} services
+            {t('showXServices', { count: filteredCount })}
           </button>
         </div>
       </div>
