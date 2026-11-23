@@ -1267,10 +1267,20 @@ export function normalizeInstatusJson(data, provider) {
   if (pageStatus === 'UP') {
     status = 'operational';
     indicator = 'none';
-  } else if (pageStatus === 'UNDERMAINTENANCE') {
+  } else if (
+    pageStatus === 'UNDERMAINTENANCE' ||
+    pageStatus.includes('MAINTENANCE') ||
+    pageStatus.includes('PARTIAL') ||
+    pageStatus.includes('DEGRADED') ||
+    pageStatus.includes('MINOR')
+  ) {
     status = 'degraded';
     indicator = 'minor';
-  } else if (pageStatus === 'HASISSUES') {
+  } else if (
+    pageStatus === 'HASISSUES' ||
+    pageStatus.includes('OUTAGE') ||
+    pageStatus.includes('DOWN')
+  ) {
     const isMinorOnly =
       rawIncidents.length > 0 &&
       rawIncidents.every((inc) => (inc.impact || '').toLowerCase() === 'minor');
@@ -1391,6 +1401,167 @@ export function normalizeRiotJson(data, provider) {
   };
 }
 
+function sanitizeControlChars(str) {
+  let out = '';
+  for (let i = 0; i < str.length; i += 1) {
+    out += str.charCodeAt(i) < 32 ? ' ' : str[i];
+  }
+  return out;
+}
+
+export function normalizeCstateJson(rawData, provider) {
+  let data = rawData;
+  if (typeof rawData === 'string') {
+    try {
+      data = JSON.parse(rawData);
+    } catch {
+      try {
+        data = JSON.parse(sanitizeControlChars(rawData));
+      } catch {
+        data = null;
+      }
+    }
+  }
+
+  if (!data || typeof data !== 'object') {
+    return createUnknownState('Invalid data from cState status page');
+  }
+
+  const mapCstateStatus = (val) => {
+    if (val === 'ok') return 'operational';
+    if (val === 'disrupted' || val === 'notice' || val === 'maintenance') return 'degraded';
+    if (val === 'down') return 'outage';
+    return 'unknown';
+  };
+
+  const systems = Array.isArray(data.systems) ? data.systems : [];
+  const components = systems.map((sys, idx) => ({
+    id: `cstate-${idx}-${sys.name || idx}`,
+    name: sys.name || 'Service',
+    status: mapCstateStatus((sys.status || '').toLowerCase()),
+  }));
+
+  const rawSummary = (data.summaryStatus || '').toLowerCase();
+  let status = mapCstateStatus(rawSummary);
+  if (status === 'unknown' && components.length > 0) {
+    if (components.some((c) => c.status === 'outage')) status = 'outage';
+    else if (components.some((c) => c.status === 'degraded')) status = 'degraded';
+    else if (components.some((c) => c.status === 'operational')) status = 'operational';
+  }
+  const indicator = status === 'outage' ? 'critical' : status === 'degraded' ? 'minor' : status === 'operational' ? 'none' : 'unknown';
+
+  const seenIds = new Set();
+  const incidents = [];
+  systems.forEach((sys, sIdx) => {
+    const issues = Array.isArray(sys.unresolvedIssues) ? sys.unresolvedIssues : [];
+    issues.forEach((issue, iIdx) => {
+      const id = String(issue.permalink || issue.title || `cstate-inc-${sIdx}-${iIdx}`);
+      if (seenIds.has(id)) return;
+      seenIds.add(id);
+      incidents.push({
+        id,
+        name: issue.title || `${provider?.name || 'Service'} Incident`,
+        status: issue.severity || 'active',
+        impact: (issue.severity || '').toLowerCase() === 'down' ? 'critical' : 'minor',
+        updatedAt: issue.createdAt || issue.date || new Date().toISOString(),
+        message: (issue.body || issue.content || '').slice(0, 600),
+        url: issue.permalink || provider?.pageUrl,
+      });
+    });
+  });
+
+  let updatedAt = new Date().toISOString();
+  if (data.buildDate) {
+    const candidate = new Date(`${data.buildDate} ${data.buildTime || ''}`.trim());
+    if (!Number.isNaN(candidate.getTime())) {
+      updatedAt = candidate.toISOString();
+    }
+  }
+
+  return {
+    status,
+    statusDescription:
+      status === 'operational'
+        ? 'All Systems Operational'
+        : incidents.length > 0
+        ? `${incidents.length} active incident(s) ongoing`
+        : 'Service Disruption Detected',
+    indicator,
+    updatedAt,
+    incidents,
+    components,
+  };
+}
+
+export function normalizeAzureDevOpsJson(data) {
+  if (!data || typeof data !== 'object' || !data.status) {
+    return createUnknownState('Invalid data from Azure DevOps');
+  }
+
+  const mapAzDoHealth = (h) => {
+    if (h === 'healthy') return 'operational';
+    if (h === 'advisory' || h === 'degraded') return 'degraded';
+    if (h === 'unhealthy') return 'outage';
+    return 'unknown';
+  };
+
+  const services = Array.isArray(data.services) ? data.services : [];
+  const impactedDetails = [];
+  const components = services.map((svc) => {
+    const geos = Array.isArray(svc.geographies) ? svc.geographies : [];
+    const healths = geos.map((g) => (g.health || '').toLowerCase());
+    let compStatus = 'operational';
+    if (healths.includes('unhealthy')) compStatus = 'outage';
+    else if (healths.includes('degraded') || healths.includes('advisory')) compStatus = 'degraded';
+
+    const affectedRegions = geos
+      .filter((g) => (g.health || '').toLowerCase() !== 'healthy')
+      .map((g) => g.name || g.id)
+      .filter(Boolean);
+    if (affectedRegions.length > 0) {
+      impactedDetails.push(`${svc.id || 'Service'} (${affectedRegions.join(', ')})`);
+    }
+
+    return {
+      id: `azdo-${(svc.id || 'service').toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+      name: svc.id || 'Service',
+      status: compStatus,
+    };
+  });
+
+  const status = mapAzDoHealth((data.status.health || '').toLowerCase());
+  const indicator =
+    status === 'outage' ? 'critical' : status === 'degraded' ? 'minor' : status === 'operational' ? 'none' : 'unknown';
+
+  const incidents = [];
+  if (status !== 'operational') {
+    incidents.push({
+      id: `azdo-${data.lastUpdated || 'active'}`,
+      name: data.status.message || 'Azure DevOps Service Event',
+      status: data.status.health || 'active',
+      impact: status === 'outage' ? 'critical' : 'minor',
+      updatedAt: data.lastUpdated || new Date().toISOString(),
+      message:
+        impactedDetails.length > 0
+          ? `Impacted: ${impactedDetails.join('; ')}`
+          : data.status.message || 'Service maintenance or disruption reported.',
+      url: 'https://status.dev.azure.com',
+    });
+  }
+
+  return {
+    status,
+    statusDescription:
+      status === 'operational'
+        ? 'All Systems Operational'
+        : data.status.message || 'Service Disruption Detected',
+    indicator,
+    updatedAt: data.lastUpdated || new Date().toISOString(),
+    incidents,
+    components,
+  };
+}
+
 export function createUnknownState(description = 'Status currently unavailable') {
   return {
     status: 'unknown',
@@ -1467,6 +1638,12 @@ export function normalizeStatus(provider, rawData) {
 
     case 'riot-json':
       return normalizeRiotJson(rawData, provider);
+
+    case 'cstate-json':
+      return normalizeCstateJson(rawData, provider);
+
+    case 'azure-devops-json':
+      return normalizeAzureDevOpsJson(rawData);
 
     default:
       if (rawData.status?.indicator) {

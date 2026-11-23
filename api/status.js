@@ -45,11 +45,23 @@ export default async function handler(req, res) {
     }
 
     const contentType = upstreamRes.headers.get('content-type') || '';
+    const text = await upstreamRes.text();
     if (contentType.includes('application/json')) {
-      const data = await upstreamRes.json();
-      return res.status(200).json(data);
+      try {
+        return res.status(200).json(JSON.parse(text));
+      } catch {
+        try {
+          let sanitized = '';
+          for (let i = 0; i < text.length; i += 1) {
+            sanitized += text.charCodeAt(i) < 32 ? ' ' : text[i];
+          }
+          return res.status(200).json(JSON.parse(sanitized));
+        } catch {
+          res.setHeader('Content-Type', 'text/plain');
+          return res.status(200).send(text);
+        }
+      }
     } else {
-      const text = await upstreamRes.text();
       res.setHeader('Content-Type', contentType || 'text/plain');
       return res.status(200).send(text);
     }

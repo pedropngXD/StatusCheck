@@ -31,6 +31,11 @@ const EOL_SLUGS = {
   'cve-rails': 'rails',
   'cve-angular': 'angular',
   'cve-vue': 'vue',
+  jenkins: 'jenkins',
+  'cve-jenkins': 'jenkins',
+  'cve-argocd': 'argo-cd',
+  'cve-terraform': 'terraform',
+  'cve-ansible': 'ansible',
 };
 
 const EOL_SOON_MS = 180 * 24 * 60 * 60 * 1000;

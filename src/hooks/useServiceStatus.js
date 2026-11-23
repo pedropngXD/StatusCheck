@@ -88,6 +88,7 @@ async function fetchRawUrl(provider, signal) {
     const contentType = (res.headers.get('content-type') || '').toLowerCase();
     if (
       provider.adapter === 'betterstack-badge' ||
+      provider.adapter === 'cstate-json' ||
       provider.adapter === 'netflix-health' ||
       provider.adapter === 'apple-json' ||
       provider.adapter === 'azure-rss' ||
