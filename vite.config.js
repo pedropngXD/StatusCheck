@@ -1,6 +1,7 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
+import { getCveFeed } from './api/_cveFeed.js';
 
 export default defineConfig({
   plugins: [
@@ -10,6 +11,20 @@ export default defineConfig({
       name: 'vercel-dev-api-proxy',
       configureServer(server) {
         server.middlewares.use(async (req, res, next) => {
+          if (req.url && req.url.startsWith('/api/cve')) {
+            try {
+              const payload = await getCveFeed();
+              res.statusCode = 200;
+              res.setHeader('Content-Type', 'application/json');
+              res.setHeader('Access-Control-Allow-Origin', '*');
+              res.end(JSON.stringify(payload));
+            } catch (err) {
+              res.statusCode = 502;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ error: 'Failed to load CVE feed', message: err.message }));
+            }
+            return;
+          }
           if (req.url && req.url.startsWith('/api/status')) {
             const urlObj = new URL(req.url, 'http://localhost');
             const targetUrl = urlObj.searchParams.get('url');

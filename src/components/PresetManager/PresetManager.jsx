@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
-import { getLogoUrl } from '../../assets/logos';
+import ServiceLogo from '../ServiceLogo';
 
 const PresetManager = forwardRef(function PresetManager({
   presets = [],
@@ -155,6 +155,7 @@ const PresetManager = forwardRef(function PresetManager({
   const selectAiOnly = () => setSelectedIds(allServices.filter((s) => s.category === 'ai').map((s) => s.id));
   const selectDevOnly = () => setSelectedIds(allServices.filter((s) => s.category === 'developer' || s.category === 'cloud').map((s) => s.id));
   const selectWebAppsOnly = () => setSelectedIds(allServices.filter((s) => s.category === 'web-apps').map((s) => s.id));
+  const selectLanguagesOnly = () => setSelectedIds(allServices.filter((s) => s.category === 'languages').map((s) => s.id));
 
   const handleSave = (e) => {
     e.preventDefault();
@@ -351,6 +352,7 @@ const PresetManager = forwardRef(function PresetManager({
                       <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectAiOnly}>AI</button>
                       <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectDevOnly}>Dev</button>
                       <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectWebAppsOnly}>Web/Apps</button>
+                      <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={selectLanguagesOnly}>Languages</button>
                       <button type="button" className="text-xs px-2 py-[3px] bg-[rgba(142,142,147,0.12)] border-none rounded-[var(--radius-sm)] text-[var(--text-secondary)] cursor-pointer hover:bg-[rgba(142,142,147,0.22)] hover:text-[var(--text-primary)]" onClick={clearAll}>Clear</button>
                     </div>
                   </div>
@@ -382,7 +384,6 @@ const PresetManager = forwardRef(function PresetManager({
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-2 max-h-[280px] overflow-y-auto overscroll-contain p-0.5 [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:rgba(142,142,147,0.35)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-[rgba(142,142,147,0.3)] [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-[rgba(142,142,147,0.55)] max-md:grid-cols-[repeat(auto-fill,minmax(130px,1fr))] max-md:max-h-none max-md:overflow-visible">
                   {filteredServices.map((service) => {
                     const isChecked = selectedIds.includes(service.id);
-                    const logoSrc = getLogoUrl(service.logo);
 
                     return (
                       <label
@@ -407,18 +408,7 @@ const PresetManager = forwardRef(function PresetManager({
                             <polyline points="3.5 8.5 6.5 11.5 12.5 4.5" />
                           </svg>
                         </span>
-                        <div className="w-[22px] h-[22px] rounded-[6px] bg-white flex items-center justify-center shrink-0 border border-[var(--logo-wrapper-border)] shadow-[var(--logo-wrapper-shadow)] p-[2px] overflow-hidden">
-                          {logoSrc ? (
-                            <img
-                              src={logoSrc}
-                              alt=""
-                              className="w-full h-full object-contain block"
-                              aria-hidden="true"
-                            />
-                          ) : (
-                            <span className="text-[0.6875rem] font-bold text-[#1d1d1f] uppercase">{service.name.charAt(0)}</span>
-                          )}
-                        </div>
+                        <ServiceLogo provider={service} className="w-[22px] h-[22px] !p-[2px] !rounded-[6px]" />
                         <span className="text-[0.8125rem] font-medium text-[var(--text-primary)] whitespace-nowrap overflow-hidden text-ellipsis">{service.name}</span>
                       </label>
                     );

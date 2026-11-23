@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import StatusBadge from '../StatusBadge';
-import { getLogoUrl } from '../../assets/logos';
+import ServiceLogo from '../ServiceLogo';
 
 function IncidentMessage({ message }) {
   const [expanded, setExpanded] = useState(false);
@@ -85,8 +85,7 @@ export default function IncidentList({ service, statusData, onClose }) {
   const [componentSearch, setComponentSearch] = useState('');
   const [showAllComponents, setShowAllComponents] = useState(false);
 
-  const logoSrc = service ? getLogoUrl(service.logo) : null;
-  const incidents = statusData?.incidents;
+  const incidents = statusData?.incidents || [];
   const rawComponents = statusData?.components;
   const status = statusData?.status || 'unknown';
 
@@ -151,13 +150,7 @@ export default function IncidentList({ service, statusData, onClose }) {
           onTouchEnd={handleTouchEnd}
         >
           <div className="flex items-center gap-3.5 min-w-0 pointer-events-none">
-            <div className="w-9 h-9 rounded-[var(--radius-sm)] bg-white p-[5px] flex items-center justify-center shadow-[var(--logo-wrapper-shadow)] border border-[var(--logo-wrapper-border)] overflow-hidden shrink-0">
-              {logoSrc ? (
-                <img src={logoSrc} alt={`${service.name} logo`} className="w-full h-full object-contain" />
-              ) : (
-                <span>{service.name.charAt(0)}</span>
-              )}
-            </div>
+            <ServiceLogo provider={service} className="w-9 h-9" />
             <div className="flex items-center gap-3 flex-wrap min-w-0">
               <h2 className="text-[1.125rem] font-semibold m-0 text-[var(--text-primary)] max-md:text-[1.05rem]">{service.name}</h2>
               <StatusBadge status={status} size="sm" />
@@ -196,6 +189,16 @@ export default function IncidentList({ service, statusData, onClose }) {
                   </div>
                   {incident.message && (
                     <IncidentMessage message={incident.message} />
+                  )}
+                  {incident.url && (
+                    <a
+                      href={incident.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 mt-2 text-[0.775rem] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] underline underline-offset-2"
+                    >
+                      View advisory / details ↗
+                    </a>
                   )}
                 </div>
               ))
@@ -276,7 +279,7 @@ export default function IncidentList({ service, statusData, onClose }) {
             rel="noopener noreferrer"
             className="text-[var(--text-primary)] no-underline font-medium inline-flex items-center gap-2 px-4 py-2 rounded-[var(--radius-sm)] bg-[rgba(142,142,147,0.08)] border border-[var(--border-subtle)] text-[0.8125rem] transition-all duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[rgba(142,142,147,0.18)] hover:border-[var(--card-hover-border)] hover:-translate-y-px hover:no-underline active:scale-[0.97] max-md:w-full max-md:justify-center max-md:px-4 max-md:py-2.5"
           >
-            Visit Official Status Page
+            {service.category === 'languages' ? 'View Security Advisories' : 'Visit Official Status Page'}
             <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M12 9v3.5a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 2 12.5v-7A1.5 1.5 0 0 1 3.5 4H7" />
               <path d="M10 2h4v4" />

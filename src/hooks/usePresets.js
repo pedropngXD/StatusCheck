@@ -29,6 +29,12 @@ export const DEFAULT_PRESETS = [
     isDefault: true,
     serviceIds: STATUS_PROVIDERS.filter((p) => p.category === 'web-apps').map((p) => p.id),
   },
+  {
+    id: 'languages',
+    name: 'Languages & CVEs',
+    isDefault: true,
+    serviceIds: STATUS_PROVIDERS.filter((p) => p.category === 'languages').map((p) => p.id),
+  },
 ];
 
 function syncPresetsWithProviders(savedPresets) {
@@ -36,16 +42,18 @@ function syncPresetsWithProviders(savedPresets) {
   const currentAiIds = STATUS_PROVIDERS.filter((p) => p.category === 'ai').map((p) => p.id);
   const currentDevIds = STATUS_PROVIDERS.filter((p) => p.category === 'developer' || p.category === 'cloud').map((p) => p.id);
   const currentWebAppsIds = STATUS_PROVIDERS.filter((p) => p.category === 'web-apps').map((p) => p.id);
+  const currentLanguagesIds = STATUS_PROVIDERS.filter((p) => p.category === 'languages').map((p) => p.id);
 
   const updatedDefaults = [
     { id: 'all', name: 'All Services', isDefault: true, serviceIds: currentAllIds },
     { id: 'ai-core', name: 'AI Core', isDefault: true, serviceIds: currentAiIds },
     { id: 'dev-infra', name: 'Dev & Cloud', isDefault: true, serviceIds: currentDevIds },
     { id: 'web-apps', name: 'Web & Apps', isDefault: true, serviceIds: currentWebAppsIds },
+    { id: 'languages', name: 'Languages & CVEs', isDefault: true, serviceIds: currentLanguagesIds },
   ];
 
   const customPresets = (savedPresets || [])
-    .filter((p) => !p.isDefault && p.id !== 'all' && p.id !== 'ai-core' && p.id !== 'dev-infra' && p.id !== 'web-apps')
+    .filter((p) => !p.isDefault && p.id !== 'all' && p.id !== 'ai-core' && p.id !== 'dev-infra' && p.id !== 'web-apps' && p.id !== 'languages')
     .map((p) => ({
       ...p,
       serviceIds: p.serviceIds.map((id) => (id === 'anthropic' ? 'claude' : id)),

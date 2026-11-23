@@ -3,6 +3,7 @@ import { STATUS_PROVIDERS } from '../lib/statusProviders';
 import { normalizeStatus, createUnknownState } from '../lib/normalizeStatus';
 
 const REQUEST_TIMEOUT_MS = 8000;
+const CONCURRENCY_LIMIT = 16;
 const CORS_PROXY_URL = 'https://api.allorigins.win/raw?url=';
 const STORAGE_TELEMETRY_CACHE_KEY = 'statuscheck_telemetry_cache';
 const NO_CORS_PROVIDERS = new Set(['aws', 'cloudflare', 'stripe', 'huggingface']);
@@ -58,19 +59,19 @@ function saveTelemetryCache(statuses) {
   } catch {}
 }
 
-async function fetchProviderStatus(provider, signal) {
+async function fetchRawUrl(provider, signal) {
   const fetchWithTimeout = async (url) => {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
     if (signal) {
-      signal.addEventListener('abort', () => controller.abort());
+      signal.addEventListener('abort', () => controller.abort(), { once: true });
     }
 
     try {
       const response = await fetch(url, {
         signal: controller.signal,
-        headers: { Accept: 'application/json, text/html, */*' },
+        headers: { Accept: 'application/json, text/html, text/plain, */*' },
         cache: 'no-cache',
       });
       clearTimeout(timer);
@@ -82,20 +83,45 @@ async function fetchProviderStatus(provider, signal) {
   };
 
   const parseResponse = async (res) => {
-    const contentType = res.headers.get('content-type') || '';
-    if (provider.adapter === 'betterstack-badge' || contentType.includes('text/html')) {
+    const contentType = (res.headers.get('content-type') || '').toLowerCase();
+    if (
+      provider.adapter === 'betterstack-badge' ||
+      provider.adapter === 'netflix-health' ||
+      provider.adapter === 'apple-json' ||
+      contentType.includes('text/html') ||
+      contentType.includes('text/plain') ||
+      contentType.includes('javascript')
+    ) {
       return await res.text();
     }
     return await res.json();
   };
 
-  if (NO_CORS_PROVIDERS.has(provider.id) || provider.adapter === 'aws-json') {
+  if (provider.apiUrl.startsWith('/api/')) {
+    try {
+      const res = await fetchWithTimeout(provider.apiUrl);
+      if (res.ok) {
+        return await parseResponse(res);
+      }
+      throw new Error(`HTTP error ${res.status}`);
+    } catch (err) {
+      if (signal?.aborted || !provider.fallbackApiUrl) {
+        throw err;
+      }
+      const fallbackRes = await fetchWithTimeout(provider.fallbackApiUrl);
+      if (!fallbackRes.ok) {
+        throw new Error(`Fallback HTTP error ${fallbackRes.status}`);
+      }
+      return await parseResponse(fallbackRes);
+    }
+  }
+
+  if (provider.useProxy || NO_CORS_PROVIDERS.has(provider.id) || provider.adapter === 'aws-json') {
     try {
       const proxyUrl = `/api/status?url=${encodeURIComponent(provider.apiUrl)}&_t=${Date.now()}`;
       const proxyRes = await fetchWithTimeout(proxyUrl);
       if (proxyRes.ok || (provider.adapter === 'api-health' && (proxyRes.status === 401 || proxyRes.status === 429))) {
-        const proxyData = await parseResponse(proxyRes);
-        return normalizeStatus(provider, proxyData);
+        return await parseResponse(proxyRes);
       }
     } catch {}
   }
@@ -104,12 +130,11 @@ async function fetchProviderStatus(provider, signal) {
     const res = await fetchWithTimeout(provider.apiUrl);
     if (!res.ok) {
       if (provider.adapter === 'api-health' && (res.status === 401 || res.status === 429)) {
-        return normalizeStatus(provider, { httpStatus: res.status, operational: true });
+        return { httpStatus: res.status, operational: true };
       }
       throw new Error(`HTTP error ${res.status}`);
     }
-    const data = await parseResponse(res);
-    return normalizeStatus(provider, data);
+    return await parseResponse(res);
   } catch (directErr) {
     if (signal?.aborted) {
       throw directErr;
@@ -119,23 +144,35 @@ async function fetchProviderStatus(provider, signal) {
       const vercelProxyUrl = `/api/status?url=${encodeURIComponent(provider.apiUrl)}&_t=${Date.now()}`;
       const vercelRes = await fetchWithTimeout(vercelProxyUrl);
       if (vercelRes.ok || (provider.adapter === 'api-health' && (vercelRes.status === 401 || vercelRes.status === 429))) {
-        const vercelData = await parseResponse(vercelRes);
-        return normalizeStatus(provider, vercelData);
+        return await parseResponse(vercelRes);
       }
     } catch {}
 
-    try {
-      const proxyUrl = `${CORS_PROXY_URL}${encodeURIComponent(provider.apiUrl)}`;
-      const proxyRes = await fetchWithTimeout(proxyUrl);
-      if (proxyRes.ok || (provider.adapter === 'api-health' && (proxyRes.status === 401 || proxyRes.status === 429))) {
-        const proxyData = await parseResponse(proxyRes);
-        return normalizeStatus(provider, proxyData);
-      }
-      throw new Error(`Proxy HTTP error ${proxyRes.status}`);
-    } catch {
-      return createUnknownState(directErr.message || 'Network request failed');
+    const proxyUrl = `${CORS_PROXY_URL}${encodeURIComponent(provider.apiUrl)}`;
+    const proxyRes = await fetchWithTimeout(proxyUrl);
+    if (proxyRes.ok || (provider.adapter === 'api-health' && (proxyRes.status === 401 || proxyRes.status === 429))) {
+      return await parseResponse(proxyRes);
     }
+    throw new Error(`Proxy HTTP error ${proxyRes.status}`);
   }
+}
+
+async function fetchProviderStatus(provider, signal, cycleCache) {
+  const cacheKey = provider.apiUrl;
+
+  if (!cycleCache.has(cacheKey)) {
+    const promise = fetchRawUrl(provider, signal).catch((err) => {
+      return { __fetchError: err.message || 'Network request failed' };
+    });
+    cycleCache.set(cacheKey, promise);
+  }
+
+  const rawData = await cycleCache.get(cacheKey);
+  if (rawData && rawData.__fetchError) {
+    return createUnknownState(rawData.__fetchError);
+  }
+
+  return normalizeStatus(provider, rawData);
 }
 
 export function useServiceStatus(providers = STATUS_PROVIDERS, options = {}) {
@@ -194,52 +231,44 @@ export function useServiceStatus(providers = STATUS_PROVIDERS, options = {}) {
     const startTime = performance.now();
     console.log(`[StatusCheck] 🔄 Fetching live status for ${providers.length} services...`);
 
-    const promises = providers.map(async (provider) => {
-      try {
-        const normalized = await fetchProviderStatus(provider, controller.signal);
-        if (controller.signal.aborted) return null;
+    const cycleCache = new Map();
+    let nextIndex = 0;
 
-        setStatuses((prev) => ({
-          ...prev,
-          [provider.id]: {
-            data: normalized,
-            loading: false,
-            error: null,
-            lastFetched: new Date(),
-          },
-        }));
+    const runWorker = async () => {
+      while (nextIndex < providers.length) {
+        if (controller.signal.aborted) return;
+        const provider = providers[nextIndex++];
+        try {
+          const normalized = await fetchProviderStatus(provider, controller.signal, cycleCache);
+          if (controller.signal.aborted) return;
 
-        return {
-          id: provider.id,
-          success: true,
-          data: normalized,
-          error: null,
-        };
-      } catch (err) {
-        if (controller.signal.aborted) {
-          return null;
+          setStatuses((prev) => ({
+            ...prev,
+            [provider.id]: {
+              data: normalized,
+              loading: false,
+              error: null,
+              lastFetched: new Date(),
+            },
+          }));
+        } catch (err) {
+          if (controller.signal.aborted) return;
+
+          setStatuses((prev) => ({
+            ...prev,
+            [provider.id]: {
+              data: createUnknownState(err.message || 'Fetch failed'),
+              loading: false,
+              error: err.message,
+              lastFetched: new Date(),
+            },
+          }));
         }
-
-        setStatuses((prev) => ({
-          ...prev,
-          [provider.id]: {
-            data: createUnknownState(err.message || 'Fetch failed'),
-            loading: false,
-            error: err.message,
-            lastFetched: new Date(),
-          },
-        }));
-
-        return {
-          id: provider.id,
-          success: false,
-          data: createUnknownState(err.message || 'Fetch failed'),
-          error: err.message,
-        };
       }
-    });
+    };
 
-    await Promise.allSettled(promises);
+    const workerCount = Math.min(CONCURRENCY_LIMIT, providers.length);
+    await Promise.allSettled(Array.from({ length: workerCount }, () => runWorker()));
 
     if (controller.signal.aborted) {
       return;

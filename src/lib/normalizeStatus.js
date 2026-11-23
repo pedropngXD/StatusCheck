@@ -463,7 +463,8 @@ export function normalizeApiHealth(data, provider) {
     data?.httpStatus === 200 ||
     data?.httpStatus === 401 ||
     data?.httpStatus === 429 ||
-    (!data?.error && typeof data === 'object')
+    (typeof data === 'string' && data.trim().length > 0) ||
+    (!data?.error && typeof data === 'object' && data !== null)
   );
 
   const status = isHealthy ? 'operational' : 'outage';
@@ -481,6 +482,26 @@ export function normalizeApiHealth(data, provider) {
       { id: 'xai-api', name: 'Grok API (api.x.ai)', status: isHealthy ? 'operational' : 'outage' },
       { id: 'xai-platform', name: 'xAI Console & Auth Gateway', status: isHealthy ? 'operational' : 'outage' },
     ];
+  } else if (provider?.id === 'nuget') {
+    components = [
+      { id: 'nuget-v3', name: 'NuGet V3 Service Index', status: isHealthy ? 'operational' : 'outage' },
+      { id: 'nuget-restore', name: 'Package Restore & Search API', status: isHealthy ? 'operational' : 'outage' },
+    ];
+  } else if (provider?.id === 'packagist') {
+    components = [
+      { id: 'packagist-api', name: 'Packagist Registry API', status: isHealthy ? 'operational' : 'outage' },
+      { id: 'packagist-meta', name: 'Composer Package Metadata', status: isHealthy ? 'operational' : 'outage' },
+    ];
+  } else if (provider?.id === 'go-proxy') {
+    components = [
+      { id: 'go-proxy-main', name: 'Go Module Proxy (proxy.golang.org)', status: isHealthy ? 'operational' : 'outage' },
+      { id: 'go-sumdb', name: 'Checksum Database & Index', status: isHealthy ? 'operational' : 'outage' },
+    ];
+  } else if (provider?.id === 'pub-dev') {
+    components = [
+      { id: 'pub-dev-api', name: 'pub.dev Package API', status: isHealthy ? 'operational' : 'outage' },
+      { id: 'pub-dev-cdn', name: 'Dart & Flutter Package Archive', status: isHealthy ? 'operational' : 'outage' },
+    ];
   } else {
     components = [
       { id: `${provider?.id}-api`, name: 'Public API Gateway', status: isHealthy ? 'operational' : 'outage' },
@@ -494,6 +515,584 @@ export function normalizeApiHealth(data, provider) {
     updatedAt: new Date().toISOString(),
     incidents: [],
     components,
+  };
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function matchesKeyword(haystack, rawKeyword) {
+  const kw = rawKeyword.toLowerCase();
+  if (!kw) return false;
+  const trimmed = kw.trim();
+  if (kw !== trimmed || trimmed.includes(' ')) {
+    return haystack.includes(kw);
+  }
+  const startsAlnum = /^[a-z0-9]/.test(trimmed);
+  const endsAlnum = /[a-z0-9]$/.test(trimmed);
+  const escaped = trimmed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = `${startsAlnum ? '(?<![a-z0-9])' : ''}${escaped}${endsAlnum ? '(?![a-z0-9])' : ''}`;
+  return new RegExp(pattern, 'i').test(haystack);
+}
+
+function extractCveAdvisories(data) {
+  if (Array.isArray(data?.advisories)) {
+    return data.advisories;
+  }
+  if (Array.isArray(data)) {
+    return data.map((a) => ({
+      id: a.cve_id || a.ghsa_id,
+      cveId: a.cve_id || null,
+      ghsaId: a.ghsa_id || null,
+      severity: (a.severity || 'high').toLowerCase(),
+      isKev: false,
+      source: 'github',
+      publishedAt: a.published_at || a.updated_at || new Date().toISOString(),
+      summary: (a.summary || a.description || '').slice(0, 240),
+      url: a.html_url || (a.cve_id ? `https://nvd.nist.gov/vuln/detail/${a.cve_id}` : 'https://github.com/advisories'),
+      ecosystems: Array.from(
+        new Set((a.vulnerabilities || []).map((v) => v.package?.ecosystem?.toLowerCase()).filter(Boolean))
+      ),
+      packages: Array.from(
+        new Set((a.vulnerabilities || []).map((v) => v.package?.name).filter(Boolean))
+      ).slice(0, 5),
+    }));
+  }
+  return null;
+}
+
+function matchesLanguageCve(adv, cfg) {
+  const ecosystems = cfg?.ecosystems || [];
+  const keywords = cfg?.keywords || [];
+  const haystack = `${adv.summary || ''} ${(adv.packages || []).join(' ')}`.toLowerCase();
+  const kwMatch = keywords.some((kw) => matchesKeyword(haystack, kw));
+
+  if (ecosystems.length > 0) {
+    const ecoMatch = (adv.ecosystems || []).some((e) => ecosystems.includes(e));
+    if (cfg?.requireKeywordWithEcosystem) {
+      return (ecoMatch && kwMatch) || (Boolean(adv.isKev) && kwMatch);
+    }
+    return ecoMatch || ((adv.ecosystems || []).length === 0 && kwMatch);
+  }
+
+  return kwMatch;
+}
+
+function mapAdvisoryToIncident(adv) {
+  const tag = adv.isKev ? 'CISA KEV' : (adv.severity || 'HIGH').toUpperCase();
+  const code = adv.cveId || adv.ghsaId || adv.id;
+  const pkg = adv.packages?.[0] ? ` — ${adv.packages[0]}` : '';
+  return {
+    id: String(adv.id),
+    name: `[${tag}] ${code}${pkg}`,
+    status: adv.isKev ? 'actively_exploited' : (adv.severity || 'high'),
+    impact: adv.isKev || adv.severity === 'critical' ? 'critical' : 'minor',
+    updatedAt: adv.publishedAt || new Date().toISOString(),
+    message: adv.summary || 'Security advisory published.',
+    url: adv.url,
+  };
+}
+
+export function normalizeCveFeed(data, provider) {
+  const advisories = extractCveAdvisories(data);
+  if (!advisories) {
+    return createUnknownState('Invalid CVE feed data');
+  }
+
+  const cfg = provider?.cveConfig || {};
+  const matched = advisories.filter((adv) => matchesLanguageCve(adv, cfg));
+  const now = Date.now();
+
+  const ageOf = (adv) => {
+    const t = new Date(adv.publishedAt).getTime();
+    return Number.isFinite(t) ? Math.max(0, now - t) : Number.MAX_SAFE_INTEGER;
+  };
+
+  const kev30d = matched.filter((a) => a.isKev);
+  const crit3d = matched.filter((a) => a.severity === 'critical' && ageOf(a) <= 3 * DAY_MS);
+  const crit7d = matched.filter((a) => a.severity === 'critical' && ageOf(a) <= 7 * DAY_MS);
+  const high3d = matched.filter((a) => a.severity === 'high' && ageOf(a) <= 3 * DAY_MS);
+  const high7d = matched.filter((a) => a.severity === 'high' && ageOf(a) <= 7 * DAY_MS);
+
+  let status = 'operational';
+  let indicator = 'none';
+  let activeList = [];
+
+  if (kev30d.length > 0 || crit3d.length > 0) {
+    status = 'outage';
+    indicator = 'critical';
+    activeList = [...kev30d, ...crit3d, ...high3d];
+  } else if (crit7d.length > 0 || high3d.length > 0) {
+    status = 'degraded';
+    indicator = 'minor';
+    activeList = [...crit7d, ...high3d];
+  }
+
+  const uniqueMap = new Map();
+  for (const adv of activeList) {
+    if (!uniqueMap.has(adv.id)) {
+      uniqueMap.set(adv.id, adv);
+    }
+  }
+  const incidents = Array.from(uniqueMap.values()).slice(0, 15).map(mapAdvisoryToIncident);
+
+  const components = [
+    {
+      id: `${provider.id}-kev`,
+      name: `CISA KEV (30d): ${kev30d.length}`,
+      status: kev30d.length > 0 ? 'outage' : 'operational',
+    },
+    {
+      id: `${provider.id}-crit`,
+      name: `Critical CVEs (7d): ${crit7d.length}`,
+      status: crit3d.length > 0 ? 'outage' : crit7d.length > 0 ? 'degraded' : 'operational',
+    },
+    {
+      id: `${provider.id}-high`,
+      name: `High CVEs (7d): ${high7d.length}`,
+      status: high3d.length > 0 ? 'degraded' : 'operational',
+    },
+  ];
+
+  const statusDescription =
+    status === 'operational'
+      ? 'No critical or high CVEs in the last 72h'
+      : `${crit7d.length} critical / ${high7d.length} high recent CVEs detected`;
+
+  return {
+    status,
+    statusDescription,
+    indicator,
+    updatedAt: data.fetchedAt || new Date().toISOString(),
+    incidents,
+    components,
+  };
+}
+
+export function normalizeCisaKev(data) {
+  const advisories = extractCveAdvisories(data);
+  if (!advisories) {
+    return createUnknownState('Invalid CISA KEV feed data');
+  }
+
+  const kevList = advisories.filter((a) => a.isKev || a.source === 'cisa-kev');
+  const now = Date.now();
+  const ageOf = (adv) => {
+    const t = new Date(adv.publishedAt).getTime();
+    return Number.isFinite(t) ? Math.max(0, now - t) : Number.MAX_SAFE_INTEGER;
+  };
+
+  const kev3d = kevList.filter((a) => ageOf(a) <= 3 * DAY_MS);
+  const kev7d = kevList.filter((a) => ageOf(a) <= 7 * DAY_MS);
+
+  let status = 'operational';
+  let indicator = 'none';
+  if (kev3d.length > 0) {
+    status = 'outage';
+    indicator = 'critical';
+  } else if (kev7d.length > 0) {
+    status = 'degraded';
+    indicator = 'minor';
+  }
+
+  const incidents = kev7d.slice(0, 15).map(mapAdvisoryToIncident);
+
+  const components = [
+    { id: 'kev-3d', name: `Added last 3d: ${kev3d.length}`, status: kev3d.length > 0 ? 'outage' : 'operational' },
+    { id: 'kev-7d', name: `Added last 7d: ${kev7d.length}`, status: kev7d.length > 0 ? 'degraded' : 'operational' },
+    { id: 'kev-30d', name: `Added last 30d: ${kevList.length}`, status: 'operational' },
+  ];
+
+  return {
+    status,
+    statusDescription:
+      kev7d.length === 0
+        ? 'No new actively exploited CVEs added in the last 7 days'
+        : `${kev7d.length} actively exploited CVE(s) added to CISA KEV in the last 7 days`,
+    indicator,
+    updatedAt: data.fetchedAt || new Date().toISOString(),
+    incidents,
+    components,
+  };
+}
+
+export function normalizeM365Json(data, provider) {
+  if (!Array.isArray(data)) {
+    return createUnknownState('Unexpected format for Microsoft 365');
+  }
+
+  const workload = (provider?.workload || '').toLowerCase();
+  const item =
+    data.find((entry) => (entry.ServiceWorkloadName || '').toLowerCase() === workload) ||
+    data.find((entry) => (entry.ServiceDisplayName || '').toLowerCase().includes(workload));
+
+  if (!item) {
+    return createUnknownState('Microsoft workload not found in feed');
+  }
+
+  const rawStatus = (item.Status || '').toLowerCase();
+  let status = 'operational';
+  let indicator = 'none';
+
+  if (rawStatus === 'operational') {
+    status = 'operational';
+    indicator = 'none';
+  } else if (rawStatus.includes('interruption') || rawStatus.includes('outage') || rawStatus.includes('down') || rawStatus.includes('unavailable')) {
+    status = 'outage';
+    indicator = 'critical';
+  } else if (rawStatus.includes('degrad') || rawStatus.includes('advisory') || rawStatus.includes('issue') || rawStatus.includes('investigat')) {
+    status = 'degraded';
+    indicator = 'minor';
+  } else {
+    status = 'unknown';
+    indicator = 'unknown';
+  }
+
+  const updatedAt =
+    item.LastUpdatedTime && !String(item.LastUpdatedTime).startsWith('0001-')
+      ? item.LastUpdatedTime
+      : new Date().toISOString();
+
+  const incidents = [];
+  if (status !== 'operational' && (item.Title || item.Message)) {
+    incidents.push({
+      id: String(item.Id || `${provider.id}-incident`),
+      name: item.Title || `${item.ServiceDisplayName || provider.name} ${item.Status}`,
+      status: item.Status || 'active',
+      impact: status === 'outage' ? 'critical' : 'minor',
+      updatedAt,
+      message: item.Message || '',
+    });
+  }
+
+  const components = [
+    {
+      id: provider.id,
+      name: item.ServiceDisplayName || provider.name,
+      status,
+    },
+  ];
+
+  return {
+    status,
+    statusDescription: item.Title || (status === 'operational' ? 'All Systems Operational' : `Microsoft 365 status: ${item.Status}`),
+    indicator,
+    updatedAt,
+    incidents,
+    components,
+  };
+}
+
+export function normalizeGoogleWorkspaceJson(data) {
+  if (!Array.isArray(data)) {
+    return createUnknownState('Unexpected format for Google Workspace');
+  }
+
+  const now = Date.now();
+  const activeIncidents = data.filter((inc) => {
+    if (!inc.end) return true;
+    const endTime = new Date(inc.end).getTime();
+    return endTime > now;
+  });
+
+  const coreComponents = [
+    { id: 'gws-gmail', name: 'Gmail', status: 'operational' },
+    { id: 'gws-drive', name: 'Google Drive', status: 'operational' },
+    { id: 'gws-meet', name: 'Google Meet', status: 'operational' },
+    { id: 'gws-calendar', name: 'Google Calendar', status: 'operational' },
+    { id: 'gws-docs', name: 'Google Docs & Sheets', status: 'operational' },
+  ];
+
+  if (activeIncidents.length === 0) {
+    return {
+      status: 'operational',
+      statusDescription: 'All Google Workspace services operating normally',
+      indicator: 'none',
+      updatedAt: new Date().toISOString(),
+      incidents: [],
+      components: coreComponents,
+    };
+  }
+
+  const hasOutage = activeIncidents.some(
+    (inc) => inc.status_impact === 'SERVICE_OUTAGE' || inc.severity === 'high'
+  );
+  const status = hasOutage ? 'outage' : 'degraded';
+  const indicator = hasOutage ? 'critical' : 'minor';
+
+  const incidents = activeIncidents.map((inc) => ({
+    id: inc.uri || String(inc.id || Math.random()),
+    name: inc.external_desc || inc.service_name || 'Google Workspace Incident',
+    status: inc.status_impact || 'active',
+    impact: hasOutage ? 'major' : 'minor',
+    updatedAt: inc.modified || inc.begin || new Date().toISOString(),
+    message: inc.most_recent_update?.text || '',
+  }));
+
+  const components = coreComponents.map((c) => {
+    const matching = activeIncidents.some((inc) => {
+      const affected = (inc.affected_products || []).map((p) => (p.title || '').toLowerCase()).join(' ');
+      return (
+        (inc.service_name || '').toLowerCase().includes(c.name.split(' ').pop().toLowerCase()) ||
+        affected.includes(c.name.split(' ').pop().toLowerCase())
+      );
+    });
+    return {
+      ...c,
+      status: matching ? status : 'operational',
+    };
+  });
+
+  return {
+    status,
+    statusDescription: `${activeIncidents.length} active incident(s) ongoing`,
+    indicator,
+    updatedAt: activeIncidents[0]?.modified || new Date().toISOString(),
+    incidents,
+    components,
+  };
+}
+
+export function normalizeAppleJson(data) {
+  let parsed = data;
+  if (typeof data === 'string') {
+    const trimmed = data.trim();
+    const unwrapped = trimmed.replace(/^[a-zA-Z0-9_$.]+\(\s*/, '').replace(/\s*\);?\s*$/, '');
+    try {
+      parsed = JSON.parse(unwrapped);
+    } catch {
+      return createUnknownState('Invalid JSONP data from Apple System Status');
+    }
+  }
+
+  if (!parsed || !Array.isArray(parsed.services)) {
+    return createUnknownState('Unexpected format for Apple System Status');
+  }
+
+  const incidents = [];
+  let hasOutage = false;
+  let hasDegraded = false;
+
+  const serviceComponents = parsed.services.map((svc, idx) => {
+    const activeEvents = (svc.events || []).filter(
+      (ev) => !ev.eventStatus || ev.eventStatus.toLowerCase() === 'ongoing' || !ev.endDate
+    );
+
+    let compStatus = 'operational';
+    for (const ev of activeEvents) {
+      const type = (ev.statusType || '').toLowerCase();
+      if (type === 'outage') {
+        compStatus = 'outage';
+        hasOutage = true;
+      } else {
+        if (compStatus !== 'outage') compStatus = 'degraded';
+        hasDegraded = true;
+      }
+
+      incidents.push({
+        id: `${svc.serviceName}-${ev.messageId || ev.startDate || idx}`,
+        name: `${svc.serviceName}: ${ev.statusType || 'Issue'}`,
+        status: ev.eventStatus || 'ongoing',
+        impact: type === 'outage' ? 'critical' : 'minor',
+        updatedAt: ev.datePosted || ev.startDate || new Date().toISOString(),
+        message: ev.message || ev.usersAffected || 'Ongoing service issue.',
+      });
+    }
+
+    return {
+      id: `apple-${idx}`,
+      name: svc.serviceName,
+      status: compStatus,
+    };
+  });
+
+  const priorityNames = new Set([
+    'App Store',
+    'iCloud',
+    'iCloud Drive',
+    'iCloud Mail',
+    'iMessage',
+    'FaceTime',
+    'Apple Music',
+    'Apple Pay & Wallet',
+    'Find My',
+    'Apple ID',
+    'Apple TV+',
+    'Photos',
+  ]);
+
+  const prioritized = serviceComponents
+    .sort((a, b) => {
+      const aActive = a.status !== 'operational' ? 0 : priorityNames.has(a.name) ? 1 : 2;
+      const bActive = b.status !== 'operational' ? 0 : priorityNames.has(b.name) ? 1 : 2;
+      if (aActive !== bActive) return aActive - bActive;
+      return a.name.localeCompare(b.name);
+    })
+    .slice(0, 24);
+
+  const status = hasOutage ? 'outage' : hasDegraded ? 'degraded' : 'operational';
+  const indicator = hasOutage ? 'critical' : hasDegraded ? 'minor' : 'none';
+
+  return {
+    status,
+    statusDescription:
+      status === 'operational'
+        ? 'All Apple & iCloud Services Operational'
+        : `${incidents.length} active Apple service ${incidents.length === 1 ? 'event' : 'events'}`,
+    indicator,
+    updatedAt: new Date().toISOString(),
+    incidents,
+    components: prioritized,
+  };
+}
+
+export function normalizeSlackJson(data) {
+  if (!data || typeof data !== 'object') {
+    return createUnknownState('Invalid data from Slack');
+  }
+
+  const activeIncidents = Array.isArray(data.active_incidents) ? data.active_incidents : [];
+  let status = 'operational';
+  let indicator = 'none';
+
+  if (data.status !== 'ok' || activeIncidents.length > 0) {
+    const hasOutage = activeIncidents.some((inc) => (inc.type || '').toLowerCase() === 'outage');
+    status = hasOutage ? 'outage' : 'degraded';
+    indicator = hasOutage ? 'critical' : 'minor';
+  }
+
+  const incidents = activeIncidents.map((inc) => ({
+    id: String(inc.id || inc.title),
+    name: inc.title || 'Slack Incident',
+    status: inc.status || 'active',
+    impact: (inc.type || '').toLowerCase() === 'outage' ? 'critical' : 'minor',
+    updatedAt: inc.date_updated || inc.date_created || data.date_updated || new Date().toISOString(),
+    message: inc.notes?.[0]?.body || '',
+    url: inc.url,
+  }));
+
+  const affectedLower = activeIncidents
+    .flatMap((inc) => inc.services || [])
+    .map((s) => String(s).toLowerCase());
+
+  const checkComponent = (keywords) => {
+    if (status === 'operational') return 'operational';
+    if (affectedLower.length === 0) return status;
+    return affectedLower.some((s) => keywords.some((kw) => s.includes(kw))) ? status : 'operational';
+  };
+
+  const components = [
+    { id: 'slack-messaging', name: 'Messaging', status: checkComponent(['messag']) },
+    { id: 'slack-huddles', name: 'Huddles & Calls', status: checkComponent(['huddle', 'call']) },
+    { id: 'slack-apps', name: 'Apps, Integrations & Workflows', status: checkComponent(['app', 'workflow', 'api']) },
+    { id: 'slack-files', name: 'Files & Search', status: checkComponent(['file', 'search']) },
+  ];
+
+  return {
+    status,
+    statusDescription:
+      status === 'operational'
+        ? 'Slack is up and running'
+        : `${activeIncidents.length} active incident(s)`,
+    indicator,
+    updatedAt: data.date_updated || new Date().toISOString(),
+    incidents,
+    components,
+  };
+}
+
+export function normalizeHerokuJson(data) {
+  if (!data || !Array.isArray(data.status)) {
+    return createUnknownState('Invalid data from Heroku');
+  }
+
+  const mapColor = (c) => {
+    const val = (c || '').toLowerCase();
+    if (val === 'green') return 'operational';
+    if (val === 'red') return 'outage';
+    if (val === 'yellow' || val === 'blue') return 'degraded';
+    return 'unknown';
+  };
+
+  const components = data.status.map((item) => ({
+    id: `heroku-${(item.system || '').toLowerCase().replace(/\s+/g, '-')}`,
+    name: item.system || 'System',
+    status: mapColor(item.status),
+  }));
+
+  const hasOutage = components.some((c) => c.status === 'outage');
+  const hasDegraded = components.some((c) => c.status === 'degraded');
+  const status = hasOutage ? 'outage' : hasDegraded ? 'degraded' : 'operational';
+  const indicator = hasOutage ? 'critical' : hasDegraded ? 'minor' : 'none';
+
+  const rawIncidents = Array.isArray(data.incidents) ? data.incidents : [];
+  const incidents = rawIncidents.map((inc) => ({
+    id: String(inc.id || inc.title),
+    name: inc.title || 'Heroku Incident',
+    status: inc.state || 'open',
+    impact: hasOutage ? 'critical' : 'minor',
+    updatedAt: inc.updated_at || inc.created_at || new Date().toISOString(),
+    message: inc.updates?.[0]?.contents || '',
+    url: inc.full_url,
+  }));
+
+  return {
+    status,
+    statusDescription:
+      status === 'operational'
+        ? 'All Systems Operational'
+        : `${incidents.length || 1} active Heroku issue(s)`,
+    indicator,
+    updatedAt: new Date().toISOString(),
+    incidents,
+    components,
+  };
+}
+
+export function normalizeNetflixHealth(data, provider) {
+  if (typeof data === 'object' && data !== null) {
+    return normalizeApiHealth(data, provider);
+  }
+
+  const html = typeof data === 'string' ? data.toLowerCase() : '';
+  if (!html) {
+    return createUnknownState('No response from Netflix status page');
+  }
+
+  const hasOutage =
+    html.includes('currently experiencing an issue') ||
+    html.includes('experiencing an outage') ||
+    html.includes('currently down') ||
+    html.includes('service disruption');
+
+  const isUp = !hasOutage && (html.includes('netflix is up') || html.length > 200);
+  const status = hasOutage ? 'outage' : isUp ? 'operational' : 'unknown';
+
+  return {
+    status,
+    statusDescription: hasOutage
+      ? 'Netflix is experiencing a streaming disruption'
+      : isUp
+      ? 'Netflix is up'
+      : 'Status currently unavailable',
+    indicator: hasOutage ? 'critical' : isUp ? 'none' : 'unknown',
+    updatedAt: new Date().toISOString(),
+    incidents: hasOutage
+      ? [
+          {
+            id: 'netflix-outage',
+            name: 'Netflix Streaming Disruption',
+            status: 'active',
+            impact: 'critical',
+            updatedAt: new Date().toISOString(),
+            message: 'Netflix Help Center reports an ongoing service interruption.',
+          },
+        ]
+      : [],
+    components: [
+      { id: 'netflix-streaming', name: 'Streaming Playback', status },
+      { id: 'netflix-apps', name: 'Web & TV Apps', status },
+      { id: 'netflix-auth', name: 'Account & Auth', status },
+    ],
   };
 }
 
@@ -526,6 +1125,9 @@ export function normalizeStatus(provider, rawData) {
     case 'gcp-json':
       return normalizeGcpJson(rawData);
 
+    case 'google-workspace-json':
+      return normalizeGoogleWorkspaceJson(rawData);
+
     case 'stripe-json':
       return normalizeStripeJson(rawData);
 
@@ -537,6 +1139,27 @@ export function normalizeStatus(provider, rawData) {
 
     case 'api-health':
       return normalizeApiHealth(rawData, provider);
+
+    case 'cve-feed':
+      return normalizeCveFeed(rawData, provider);
+
+    case 'cisa-kev':
+      return normalizeCisaKev(rawData);
+
+    case 'm365-json':
+      return normalizeM365Json(rawData, provider);
+
+    case 'apple-json':
+      return normalizeAppleJson(rawData);
+
+    case 'slack-json':
+      return normalizeSlackJson(rawData);
+
+    case 'heroku-json':
+      return normalizeHerokuJson(rawData);
+
+    case 'netflix-health':
+      return normalizeNetflixHealth(rawData, provider);
 
     default:
       if (rawData.status?.indicator) {
