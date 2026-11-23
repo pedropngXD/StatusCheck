@@ -1317,6 +1317,80 @@ export function normalizeInstatusJson(data, provider) {
   };
 }
 
+export function normalizeRiotJson(data, provider) {
+  if (!data || (!Array.isArray(data.incidents) && !Array.isArray(data.maintenances))) {
+    return createUnknownState('Unexpected format for Riot Games Status');
+  }
+
+  const pickLocalized = (entries) => {
+    if (!Array.isArray(entries) || entries.length === 0) return '';
+    return (
+      entries.find((e) => e.locale === 'en_US')?.content ||
+      entries.find((e) => e.locale === 'pt_BR')?.content ||
+      entries[0]?.content ||
+      ''
+    );
+  };
+
+  const activeIncidents = (data.incidents || []).filter(
+    (inc) => (inc.incident_severity || '').toLowerCase() !== 'info'
+  );
+  const activeMaintenances = (data.maintenances || []).filter(
+    (m) => (m.maintenance_status || '').toLowerCase() === 'in_progress'
+  );
+
+  const hasOutage = activeIncidents.some(
+    (inc) => (inc.incident_severity || '').toLowerCase() === 'critical'
+  );
+  const hasDegraded = activeIncidents.length > 0 || activeMaintenances.length > 0;
+  const status = hasOutage ? 'outage' : hasDegraded ? 'degraded' : 'operational';
+  const indicator = hasOutage ? 'critical' : hasDegraded ? 'minor' : 'none';
+
+  const incidents = [
+    ...activeIncidents.map((inc) => ({
+      id: `riot-inc-${inc.id}`,
+      name: pickLocalized(inc.titles) || `${provider?.name || 'Riot'} Incident`,
+      status: inc.incident_severity || 'warning',
+      impact: (inc.incident_severity || '').toLowerCase() === 'critical' ? 'critical' : 'minor',
+      updatedAt: inc.updated_at || inc.created_at || new Date().toISOString(),
+      message: pickLocalized(inc.updates?.[0]?.translations),
+    })),
+    ...activeMaintenances.map((m) => ({
+      id: `riot-maint-${m.id}`,
+      name: pickLocalized(m.titles) || `${provider?.name || 'Riot'} Maintenance`,
+      status: m.maintenance_status || 'in_progress',
+      impact: 'minor',
+      updatedAt: m.updated_at || m.created_at || new Date().toISOString(),
+      message: pickLocalized(m.updates?.[0]?.translations),
+    })),
+  ];
+
+  const components = [
+    {
+      id: `${provider?.id || 'riot'}-region`,
+      name: `${data.name || 'Brazil'} Server (${data.id || 'BR'})`,
+      status,
+    },
+    {
+      id: `${provider?.id || 'riot'}-login`,
+      name: 'Game Login & Matchmaking',
+      status,
+    },
+  ];
+
+  return {
+    status,
+    statusDescription:
+      status === 'operational'
+        ? 'All Systems Operational'
+        : `${incidents.length} active issue(s) reported`,
+    indicator,
+    updatedAt: new Date().toISOString(),
+    incidents,
+    components,
+  };
+}
+
 export function createUnknownState(description = 'Status currently unavailable') {
   return {
     status: 'unknown',
@@ -1390,6 +1464,9 @@ export function normalizeStatus(provider, rawData) {
 
     case 'netflix-health':
       return normalizeNetflixHealth(rawData, provider);
+
+    case 'riot-json':
+      return normalizeRiotJson(rawData, provider);
 
     default:
       if (rawData.status?.indicator) {

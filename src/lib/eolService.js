@@ -24,6 +24,13 @@ const EOL_SLUGS = {
   'cve-nextjs-react': 'nextjs',
   'cve-spring': 'spring-boot',
   'cve-laravel': 'laravel',
+  'cve-mysql': 'mysql',
+  'cve-apache': 'apache',
+  'cve-openssl': 'openssl',
+  'cve-django': 'django',
+  'cve-rails': 'rails',
+  'cve-angular': 'angular',
+  'cve-vue': 'vue',
 };
 
 const EOL_SOON_MS = 180 * 24 * 60 * 60 * 1000;
