@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import StatusBadge from '../StatusBadge';
 import ServiceLogo from '../ServiceLogo';
+import { getEolSlug, fetchEolData } from '../../lib/eolService';
 
 function IncidentMessage({ message }) {
   const [expanded, setExpanded] = useState(false);
@@ -84,6 +85,30 @@ export default function IncidentList({ service, statusData, onClose }) {
 
   const [componentSearch, setComponentSearch] = useState('');
   const [showAllComponents, setShowAllComponents] = useState(false);
+
+  const eolSlug = service ? getEolSlug(service.id) : null;
+  const [eolData, setEolData] = useState(null);
+  const [eolLoading, setEolLoading] = useState(Boolean(eolSlug));
+
+  useEffect(() => {
+    if (!eolSlug) return;
+    let cancelled = false;
+    fetchEolData(eolSlug)
+      .then((res) => {
+        if (!cancelled) {
+          setEolData(res);
+          setEolLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setEolLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [eolSlug]);
 
   const incidents = statusData?.incidents || [];
   const rawComponents = statusData?.components;
@@ -262,6 +287,78 @@ export default function IncidentList({ service, statusData, onClose }) {
                 >
                   Show all {filteredComponents.length} components
                 </button>
+              )}
+            </div>
+          )}
+
+          {eolSlug && (eolLoading || eolData?.cycles?.length > 0) && (
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-[0.875rem] font-semibold text-[var(--text-secondary)] uppercase tracking-[0.05em] m-0">
+                  Release Lifecycle & LTS
+                </h3>
+                <a
+                  href={`https://endoflife.date/${eolSlug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] underline underline-offset-2"
+                >
+                  endoflife.date ↗
+                </a>
+              </div>
+
+              {eolLoading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="h-14 rounded-[var(--radius-sm)] bg-[rgba(142,142,147,0.1)] animate-pulse" />
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {eolData.cycles.map((c) => {
+                    const pillClass =
+                      c.status === 'eol'
+                        ? 'bg-[rgba(255,59,48,0.14)] text-[var(--status-outage)]'
+                        : c.status === 'eol-soon'
+                        ? 'bg-[rgba(255,149,0,0.14)] text-[var(--status-degraded)]'
+                        : 'bg-[var(--status-operational-bg)] text-[var(--status-operational)]';
+                    const statusLabel =
+                      c.status === 'eol'
+                        ? 'EOL'
+                        : c.status === 'eol-soon'
+                        ? 'EOL Soon'
+                        : c.isLts
+                        ? 'LTS'
+                        : 'Active';
+
+                    return (
+                      <div
+                        key={c.cycle}
+                        className="flex items-center justify-between gap-2 px-3 py-2.5 bg-[rgba(142,142,147,0.08)] rounded-[var(--radius-sm)]"
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[0.84rem] font-semibold text-[var(--text-primary)] font-mono">
+                              v{c.cycle}
+                            </span>
+                            {c.isLts && c.status !== 'eol' && c.status !== 'eol-soon' ? null : c.isLts ? (
+                              <span className="text-[0.65rem] font-bold uppercase px-1 py-0.5 rounded bg-[rgba(142,142,147,0.2)] text-[var(--text-secondary)]">
+                                LTS
+                              </span>
+                            ) : null}
+                          </div>
+                          <div className="text-[0.72rem] text-[var(--text-secondary)] truncate font-mono mt-0.5">
+                            {c.latest ? `Latest ${c.latest} · ` : ''}{c.eolLabel}
+                          </div>
+                        </div>
+
+                        <span className={`text-[0.6875rem] font-bold uppercase px-2 py-0.5 rounded-full shrink-0 ${pillClass}`}>
+                          {statusLabel}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
               )}
             </div>
           )}

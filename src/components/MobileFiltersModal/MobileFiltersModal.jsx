@@ -22,6 +22,8 @@ export default function MobileFiltersModal({
   activePresetId = 'all',
   onSelectPreset,
   onEditPreset,
+  sortMode = 'issues',
+  onChangeSortMode,
 }) {
   const [isClosing, setIsClosing] = useState(false);
   const backdropRef = useRef(null);
@@ -76,6 +78,29 @@ export default function MobileFiltersModal({
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 pb-24 overscroll-contain">
+          {/* SORT BY */}
+          {onChangeSortMode && (
+            <div className="mb-6">
+              <h3 className="text-[0.6875rem] font-bold text-[var(--text-secondary)] uppercase tracking-wider m-0 mb-3">Sort By</h3>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => onChangeSortMode('issues')}
+                  className={`px-3 py-2.5 rounded-[var(--radius-md)] border text-[0.875rem] font-medium transition-colors ${sortMode === 'issues' ? 'bg-[var(--text-primary)] border-[var(--text-primary)] text-[var(--bg-primary)]' : 'bg-transparent border-[var(--border-subtle)] text-[var(--text-primary)]'}`}
+                >
+                  Issues first
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onChangeSortMode('name')}
+                  className={`px-3 py-2.5 rounded-[var(--radius-md)] border text-[0.875rem] font-medium transition-colors ${sortMode === 'name' ? 'bg-[var(--text-primary)] border-[var(--text-primary)] text-[var(--bg-primary)]' : 'bg-transparent border-[var(--border-subtle)] text-[var(--text-primary)]'}`}
+                >
+                  A–Z
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* STATUS */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-3">

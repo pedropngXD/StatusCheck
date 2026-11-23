@@ -13,6 +13,8 @@ export default function ServiceGrid({
   getHistory,
   onSelectService,
   onResetFilter,
+  pinnedSet,
+  onTogglePin,
 }) {
   const isGrid = viewMode === 'grid';
 
@@ -83,6 +85,8 @@ export default function ServiceGrid({
             bars={getHistory ? getHistory(provider.id) : undefined}
             loading={statusEntry?.loading ?? loading}
             onSelect={onSelectService}
+            isPinned={Boolean(pinnedSet?.has(provider.id))}
+            onTogglePin={onTogglePin}
           />
         );
       })}

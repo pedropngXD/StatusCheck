@@ -7,11 +7,13 @@ import { useViewMode } from '../hooks/useViewMode';
 import { usePresets } from '../hooks/usePresets';
 import { useTheme } from '../hooks/useTheme';
 import { useStatusNotifications } from '../hooks/useStatusNotifications';
+import { usePinnedServices } from '../hooks/usePinnedServices';
 
 import ServiceGrid from '../components/ServiceGrid';
 import ViewToggle from '../components/ViewToggle';
 import PresetManager from '../components/PresetManager';
 import IncidentList from '../components/IncidentList';
+import IncidentFeedModal from '../components/IncidentFeedModal';
 import ThemeToggle from '../components/ThemeToggle';
 import StatusSummary from '../components/StatusSummary';
 import StatusDropdown from '../components/StatusDropdown/StatusDropdown';
@@ -20,8 +22,19 @@ import SavedViewsDropdown from '../components/SavedViewsDropdown/SavedViewsDropd
 import MobileFiltersModal from '../components/MobileFiltersModal/MobileFiltersModal';
 import SocialLinks from '../components/SocialLinks';
 
+const SORT_STORAGE_KEY = 'statuscheck_sort_mode';
+const STATUS_PRIORITY = { outage: 0, degraded: 1, unknown: 2, operational: 3 };
+
 function getServiceStatus(statuses, id) {
   return statuses[id]?.data?.status || 'unknown';
+}
+
+function loadSortMode() {
+  try {
+    const saved = localStorage.getItem(SORT_STORAGE_KEY);
+    if (saved === 'issues' || saved === 'name') return saved;
+  } catch {}
+  return 'issues';
 }
 
 export default function DashboardPage() {
@@ -29,11 +42,20 @@ export default function DashboardPage() {
   const [selectedService, setSelectedService] = useState(null);
   const [statusFilters, setStatusFilters] = useState([]);
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [sortMode, setSortMode] = useState(loadSortMode);
+  const [isFeedOpen, setIsFeedOpen] = useState(false);
   const searchInputRef = useRef(null);
   const presetManagerRef = useRef(null);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(SORT_STORAGE_KEY, sortMode);
+    } catch {}
+  }, [sortMode]);
+
   const { theme, toggleTheme } = useTheme();
   const { viewMode, setViewMode } = useViewMode('row');
+  const { pinnedSet, togglePin } = usePinnedServices();
   const { statuses, loading, refreshing, lastCycleAt, refetch } = useServiceStatus(STATUS_PROVIDERS);
   const { getBars } = useStatusHistory(statuses, lastCycleAt);
   const updatedAgo = useRelativeTime(lastCycleAt);
@@ -107,8 +129,30 @@ export default function DashboardPage() {
         provider.description.toLowerCase().includes(query) ||
         provider.category.toLowerCase().includes(query)
       );
-    }).sort((a, b) => a.name.localeCompare(b.name));
-  }, [selectedServiceIds, statusFilters, statuses, searchQuery, categoryFilter]);
+    }).sort((a, b) => {
+      const aPinned = pinnedSet.has(a.id) ? 0 : 1;
+      const bPinned = pinnedSet.has(b.id) ? 0 : 1;
+      if (aPinned !== bPinned) return aPinned - bPinned;
+
+      if (sortMode === 'issues') {
+        const pA = STATUS_PRIORITY[getServiceStatus(statuses, a.id)] ?? 4;
+        const pB = STATUS_PRIORITY[getServiceStatus(statuses, b.id)] ?? 4;
+        if (pA !== pB) return pA - pB;
+      }
+
+      return a.name.localeCompare(b.name);
+    });
+  }, [selectedServiceIds, statusFilters, statuses, searchQuery, categoryFilter, pinnedSet, sortMode]);
+
+  const activeIncidentCount = useMemo(() => {
+    const selectedSet = new Set(selectedServiceIds);
+    let count = 0;
+    for (const provider of STATUS_PROVIDERS) {
+      if (!selectedSet.has(provider.id)) continue;
+      count += statuses[provider.id]?.data?.incidents?.length || 0;
+    }
+    return count;
+  }, [selectedServiceIds, statuses]);
 
   const selectedStatusData = selectedService ? statuses[selectedService.id]?.data : null;
   const categories = useMemo(() => {
@@ -171,6 +215,8 @@ export default function DashboardPage() {
     refreshing,
     getHistory: getBars,
     onSelectService: handleSelectService,
+    pinnedSet,
+    onTogglePin: togglePin,
   };
 
   const updatedLabel = updatedAgo && (
@@ -242,6 +288,24 @@ export default function DashboardPage() {
                 </svg>
               )}
               <span className="hidden md:inline">{isMuted ? 'Muted' : 'Alerts On'}</span>
+            </button>
+
+            <button
+              type="button"
+              className="relative inline-flex items-center justify-center gap-1.5 bg-[var(--bg-card)] border border-[var(--border-card)] w-9 h-9 md:w-auto md:h-auto md:px-3 md:py-1.5 rounded-[var(--radius-md)] text-[var(--text-primary)] font-sans text-[0.8125rem] font-medium cursor-pointer shadow-[var(--shadow-card)] transition-all duration-200 hover:bg-[var(--bg-card-hover)] hover:shadow-[var(--shadow-card-hover)]"
+              onClick={() => setIsFeedOpen(true)}
+              aria-label="Open incident and CVE timeline feed"
+              title="Incident & CVE Timeline"
+            >
+              <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
+              <span className="hidden md:inline">Feed</span>
+              {activeIncidentCount > 0 && (
+                <span className="max-md:absolute max-md:-top-1.5 max-md:-right-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[var(--status-outage)] text-white text-[0.65rem] font-bold font-mono">
+                  {activeIncidentCount}
+                </span>
+              )}
             </button>
 
             <ThemeToggle theme={theme} onToggle={toggleTheme} />
@@ -368,7 +432,23 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="shrink-0 hidden md:flex items-center w-full xl:w-auto">
+          <div className="shrink-0 hidden md:flex items-center gap-2 w-full xl:w-auto">
+            <button
+              type="button"
+              onClick={() => setSortMode((prev) => (prev === 'issues' ? 'name' : 'issues'))}
+              className="inline-flex items-center justify-center gap-1.5 px-3 h-[38px] rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] font-medium text-[0.8125rem] transition-colors hover:bg-[var(--bg-card-hover)] cursor-pointer whitespace-nowrap"
+              title={sortMode === 'issues' ? 'Sorting by issues first (click for A-Z)' : 'Sorting A-Z (click for issues first)'}
+            >
+              <svg className="w-3.5 h-3.5 text-[var(--text-secondary)] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="m3 16 4 4 4-4" />
+                <path d="M7 20V4" />
+                <path d="M11 4h10" />
+                <path d="M11 8h7" />
+                <path d="M11 12h4" />
+              </svg>
+              <span>{sortMode === 'issues' ? 'Issues first' : 'A–Z'}</span>
+            </button>
+
             <ViewToggle viewMode={viewMode} onChange={setViewMode} className="w-full md:w-auto flex md:inline-flex" />
           </div>
         </div>
@@ -447,6 +527,20 @@ export default function DashboardPage() {
         activePresetId={activePresetId}
         onSelectPreset={selectPreset}
         onEditPreset={handleOpenEditPreset}
+        sortMode={sortMode}
+        onChangeSortMode={setSortMode}
+      />
+
+      <IncidentFeedModal
+        isOpen={isFeedOpen}
+        onClose={() => setIsFeedOpen(false)}
+        providers={STATUS_PROVIDERS}
+        selectedServiceIds={selectedServiceIds}
+        statuses={statuses}
+        onSelectService={(provider) => {
+          setIsFeedOpen(false);
+          setSelectedService(provider);
+        }}
       />
 
       <IncidentList

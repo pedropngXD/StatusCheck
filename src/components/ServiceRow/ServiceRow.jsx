@@ -10,6 +10,8 @@ function ServiceRow({
   bars = [],
   loading = false,
   onSelect,
+  isPinned = false,
+  onTogglePin,
 }) {
   const status = loading && !statusData ? 'loading' : (statusData?.status || 'unknown');
   const meta = getStatusMeta(status);
@@ -51,7 +53,30 @@ function ServiceRow({
         <span className="sr-only md:hidden">{meta.label}</span>
       </div>
 
-      <ExternalLinkButton href={provider.pageUrl} name={provider.name} />
+      <div className="flex items-center gap-1 shrink-0">
+        {onTogglePin && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onTogglePin(provider.id);
+            }}
+            aria-label={isPinned ? `Unpin ${provider.name}` : `Pin ${provider.name} to top`}
+            aria-pressed={isPinned}
+            title={isPinned ? `Unpin ${provider.name}` : `Pin ${provider.name} to top`}
+            className={`w-7 h-7 rounded-[var(--radius-sm)] inline-flex items-center justify-center transition-colors cursor-pointer shrink-0 ${
+              isPinned
+                ? 'text-amber-400 bg-amber-500/10 hover:bg-amber-500/20'
+                : 'text-[var(--text-secondary)] opacity-55 hover:opacity-100 hover:bg-[rgba(142,142,147,0.12)] hover:text-[var(--text-primary)]'
+            }`}
+          >
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill={isPinned ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+            </svg>
+          </button>
+        )}
+        <ExternalLinkButton href={provider.pageUrl} name={provider.name} />
+      </div>
     </div>
   );
 }
