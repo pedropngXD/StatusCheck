@@ -14,7 +14,7 @@ function ServiceRow({
   isPinned = false,
   onTogglePin,
 }) {
-  const { t, statusLabel } = useLanguage();
+  const { t, statusLabel, providerDescription } = useLanguage();
   const status = loading && !statusData ? 'loading' : (statusData?.status || 'unknown');
   const meta = getStatusMeta(status);
 
@@ -42,7 +42,7 @@ function ServiceRow({
 
       <div className="min-w-0 flex-1">
         <h3 className="text-[0.9375rem] font-semibold m-0 text-[var(--text-primary)] truncate">{provider.name}</h3>
-        <p className="text-[0.75rem] text-[var(--text-secondary)] m-0 mt-0.5 truncate">{provider.description}</p>
+        <p className="text-[0.75rem] text-[var(--text-secondary)] m-0 mt-0.5 truncate">{providerDescription(provider)}</p>
       </div>
 
       <div className="hidden md:block w-[200px] shrink-0">

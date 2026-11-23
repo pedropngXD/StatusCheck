@@ -1855,7 +1855,7 @@ export const STATUS_PROVIDERS = [
   {
     id: 'pagbank',
     name: 'PagBank / PagSeguro',
-    description: 'Pagamentos Online, Pix, Maquininhas & APIs',
+    description: 'Online Payments, Pix, POS & APIs',
     category: 'web-apps',
     pageUrl: 'https://status.pagseguro.uol.com.br',
     apiUrl: 'https://status.pagseguro.uol.com.br/api/v2/summary.json',
@@ -1865,7 +1865,7 @@ export const STATUS_PROVIDERS = [
   {
     id: 'pagarme',
     name: 'Pagar.me',
-    description: 'Gateway de Pagamentos, Cartão, Boleto & Pix',
+    description: 'Payment Gateway, Cards, Boleto & Pix',
     category: 'web-apps',
     pageUrl: 'https://status.pagar.me',
     apiUrl: 'https://status.pagar.me/api/v2/summary.json',
@@ -1875,7 +1875,7 @@ export const STATUS_PROVIDERS = [
   {
     id: 'asaas',
     name: 'Asaas',
-    description: 'Automação Financeira, Cobranças & Pix API',
+    description: 'Financial Automation, Billing & Pix API',
     category: 'web-apps',
     pageUrl: 'https://status.asaas.com',
     apiUrl: 'https://status.asaas.com/api/v2/summary.json',

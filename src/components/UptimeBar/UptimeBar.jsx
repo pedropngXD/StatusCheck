@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useLanguage } from '../../lib/translations';
 
 const SEGMENT_CLASSES = {
   operational: 'bg-[var(--status-operational)] opacity-60',
@@ -7,11 +8,13 @@ const SEGMENT_CLASSES = {
 };
 
 function UptimeBar({ bars = [], className = 'h-3.5' }) {
+  const { t } = useLanguage();
+
   return (
     <div
       className={`flex w-full gap-[2px] ${className}`}
       role="img"
-      aria-label="Status history for the last 24 hours"
+      aria-label={t('uptimeHistoryAria')}
     >
       {bars.map((status, index) => (
         <span

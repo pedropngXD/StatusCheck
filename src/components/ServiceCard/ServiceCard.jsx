@@ -14,7 +14,7 @@ function ServiceCard({
   isPinned = false,
   onTogglePin,
 }) {
-  const { t, statusLabel } = useLanguage();
+  const { t, statusLabel, providerDescription } = useLanguage();
   const status = loading && !statusData ? 'loading' : (statusData?.status || 'unknown');
   const meta = getStatusMeta(status);
   const componentCount = statusData?.components?.length || 0;
@@ -44,7 +44,7 @@ function ServiceCard({
         <ServiceLogo provider={provider} className="w-9 h-9" />
         <div className="min-w-0 flex-1">
           <h3 className="text-[0.9375rem] font-semibold m-0 text-[var(--text-primary)] tracking-[-0.015em] truncate">{provider.name}</h3>
-          <p className="text-[0.75rem] text-[var(--text-secondary)] m-0 mt-0.5 truncate">{provider.description}</p>
+          <p className="text-[0.75rem] text-[var(--text-secondary)] m-0 mt-0.5 truncate">{providerDescription(provider)}</p>
         </div>
         <div className="flex items-center gap-1 shrink-0">
           {onTogglePin && (

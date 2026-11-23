@@ -4,8 +4,10 @@ import {
   CATEGORY_LABELS,
   PRESET_LABELS,
   formatTranslation,
+  translateDynamicText,
   LanguageContext,
 } from './translations';
+import { PROVIDER_DESCRIPTIONS_PT } from './providerDescriptionsPt';
 
 const STORAGE_LANG_KEY = 'statuscheck_lang';
 
@@ -63,6 +65,19 @@ export function LanguageProvider({ children }) {
     [lang]
   );
 
+  const providerDescription = useCallback(
+    (provider) => {
+      if (!provider) return '';
+      if (lang === 'pt-BR') {
+        return PROVIDER_DESCRIPTIONS_PT[provider.id] || provider.description || '';
+      }
+      return provider.description || '';
+    },
+    [lang]
+  );
+
+  const translateText = useCallback((text) => translateDynamicText(lang, text), [lang]);
+
   const value = useMemo(
     () => ({
       lang,
@@ -72,8 +87,10 @@ export function LanguageProvider({ children }) {
       statusLabel,
       categoryLabel,
       presetName,
+      providerDescription,
+      translateText,
     }),
-    [lang, toggleLang, t, statusLabel, categoryLabel, presetName]
+    [lang, toggleLang, t, statusLabel, categoryLabel, presetName, providerDescription, translateText]
   );
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;

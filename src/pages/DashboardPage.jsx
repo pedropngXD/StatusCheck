@@ -56,7 +56,7 @@ export default function DashboardPage() {
     } catch {}
   }, [sortMode]);
 
-  const { lang, toggleLang, t, statusLabel, categoryLabel } = useLanguage();
+  const { lang, toggleLang, t, statusLabel, categoryLabel, providerDescription } = useLanguage();
   const { theme, toggleTheme } = useTheme();
   const { viewMode, setViewMode } = useViewMode('row');
   const { pinnedSet, togglePin } = usePinnedServices();
@@ -131,6 +131,7 @@ export default function DashboardPage() {
       return (
         provider.name.toLowerCase().includes(query) ||
         provider.description.toLowerCase().includes(query) ||
+        providerDescription(provider).toLowerCase().includes(query) ||
         provider.category.toLowerCase().includes(query)
       );
     }).sort((a, b) => {
@@ -146,7 +147,7 @@ export default function DashboardPage() {
 
       return a.name.localeCompare(b.name);
     });
-  }, [selectedServiceIds, statusFilters, statuses, searchQuery, categoryFilter, pinnedSet, sortMode]);
+  }, [selectedServiceIds, statusFilters, statuses, searchQuery, categoryFilter, pinnedSet, sortMode, providerDescription]);
 
   const activeIncidentCount = useMemo(() => {
     const selectedSet = new Set(selectedServiceIds);
@@ -330,11 +331,28 @@ export default function DashboardPage() {
             <ThemeToggle theme={theme} onToggle={toggleTheme} />
           </div>
 
-          <div className="flex md:hidden items-center shrink-0">
+          <div className="flex md:hidden items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setIsFeedOpen(true)}
+              className="relative inline-flex items-center justify-center bg-[var(--bg-card)] border border-[var(--border-card)] w-9 h-9 rounded-[var(--radius-md)] text-[var(--text-primary)] cursor-pointer shadow-[var(--shadow-card)] active:scale-95 transition-all"
+              aria-label={t('incidentFeed')}
+              title={t('incidentFeed')}
+            >
+              <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
+              {activeIncidentCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[var(--status-outage)] text-white text-[0.65rem] font-bold font-mono ring-2 ring-[var(--bg-primary)]">
+                  {activeIncidentCount}
+                </span>
+              )}
+            </button>
+
             <button
               type="button"
               onClick={() => setIsMobileSettingsOpen(true)}
-              className="relative inline-flex items-center justify-center bg-[var(--bg-card)] border border-[var(--border-card)] w-9 h-9 rounded-[var(--radius-md)] text-[var(--text-primary)] cursor-pointer shadow-[var(--shadow-card)] active:scale-95 transition-all"
+              className="inline-flex items-center justify-center bg-[var(--bg-card)] border border-[var(--border-card)] w-9 h-9 rounded-[var(--radius-md)] text-[var(--text-primary)] cursor-pointer shadow-[var(--shadow-card)] active:scale-95 transition-all"
               aria-label={t('settings')}
               title={t('settings')}
             >
@@ -342,9 +360,6 @@ export default function DashboardPage() {
                 <circle cx="12" cy="12" r="3" />
                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
               </svg>
-              {activeIncidentCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[var(--status-outage)] ring-2 ring-[var(--bg-primary)]" />
-              )}
             </button>
           </div>
         </div>
@@ -585,10 +600,6 @@ export default function DashboardPage() {
         onClose={() => setIsMobileSettingsOpen(false)}
         refreshing={refreshing}
         onRefresh={refetch}
-        isMuted={isMuted}
-        onToggleMute={toggleMute}
-        activeIncidentCount={activeIncidentCount}
-        onOpenFeed={() => setIsFeedOpen(true)}
         theme={theme}
         onToggleTheme={toggleTheme}
       />

@@ -1,4 +1,9 @@
+import { useLanguage } from '../../lib/translations';
+
 export default function ExternalLinkButton({ href, name }) {
+  const { t } = useLanguage();
+  const label = t('openStatusPage', { name });
+
   return (
     <a
       href={href}
@@ -7,8 +12,8 @@ export default function ExternalLinkButton({ href, name }) {
       className="inline-flex items-center justify-center w-7 h-7 rounded-[var(--radius-sm)] text-[var(--text-secondary)] bg-[rgba(142,142,147,0.08)] border border-[var(--border-subtle)] no-underline shrink-0 transition-all duration-[180ms] ease-out hover:!bg-[rgba(142,142,147,0.22)] hover:!border-[var(--text-secondary)] hover:!text-[var(--text-primary)] active:scale-[0.92] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)]"
       onClick={(e) => e.stopPropagation()}
       onKeyDown={(e) => e.stopPropagation()}
-      aria-label={`Open official status page for ${name}`}
-      title={`Open official status page for ${name}`}
+      aria-label={label}
+      title={label}
     >
       <svg
         className="w-[13px] h-[13px]"

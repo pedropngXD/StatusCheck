@@ -42,6 +42,8 @@ export const TRANSLATIONS = {
     activeIncidents: 'active incidents',
     componentsCount: '{count} components',
     officialStatus: 'Official status',
+    openStatusPage: 'Open official status page for {name}',
+    uptimeHistoryAria: 'Status history for the last 24 hours',
     noServicesFound: 'No services found',
     noServicesDesc: 'No services match your active filter or preset. Try selecting a different preset.',
     showAllServices: 'Show All Services',
@@ -151,6 +153,8 @@ export const TRANSLATIONS = {
     activeIncidents: 'incidentes ativos',
     componentsCount: '{count} componentes',
     officialStatus: 'Status oficial',
+    openStatusPage: 'Abrir página oficial de status de {name}',
+    uptimeHistoryAria: 'Histórico de status das últimas 24 horas',
     noServicesFound: 'Nenhum serviço encontrado',
     noServicesDesc: 'Nenhum serviço corresponde ao filtro ou preset ativo. Tente selecionar outro preset.',
     showAllServices: 'Mostrar Todos os Serviços',
@@ -281,6 +285,42 @@ export function formatTranslation(lang, key, vars) {
     });
   }
   return str;
+}
+
+const EXACT_DYNAMIC_PT = {
+  'All Systems Operational': 'Todos os Sistemas Operacionais',
+  'All services operating normally': 'Todos os serviços operando normalmente',
+  'All services are online': 'Todos os serviços estão online',
+  'All services online': 'Todos os serviços online',
+  'All AWS services operating normally': 'Todos os serviços AWS operando normalmente',
+  'All Azure services operating normally': 'Todos os serviços Azure operando normalmente',
+  'All Firebase services operating normally': 'Todos os serviços Firebase operando normalmente',
+  'All Google Workspace services operating normally': 'Todos os serviços Google Workspace operando normalmente',
+  'All Apple & iCloud Services Operational': 'Todos os serviços Apple e iCloud operacionais',
+  'All Codex services operational': 'Todos os serviços Codex operacionais',
+  'Slack is up and running': 'Slack está online e operando normalmente',
+  'Netflix is up': 'Netflix está online',
+  'Service Disruption Detected': 'Interrupção de Serviço Detectada',
+  'No critical or high CVEs in the last 72h': 'Nenhuma CVE crítica ou alta nas últimas 72h',
+  'No new actively exploited CVEs added in the last 7 days': 'Nenhuma nova CVE explorada ativamente adicionada nos últimos 7 dias',
+  'Scheduled Maintenance in Progress': 'Manutenção Programada em Andamento',
+  'Status currently unavailable': 'Status indisponível no momento',
+};
+
+export function translateDynamicText(lang, text) {
+  if (!text || lang !== 'pt-BR') return text;
+  if (EXACT_DYNAMIC_PT[text]) return EXACT_DYNAMIC_PT[text];
+
+  return String(text)
+    .replace(/^(\d+) critical \/ (\d+) high recent CVEs detected$/, '$1 CVE(s) crítica(s) e $2 alta(s) detectadas recentemente')
+    .replace(/^(\d+) active incident\(s\) ongoing$/, '$1 incidente(s) ativo(s) em andamento')
+    .replace(/^(\d+) active issue\(s\) reported$/, '$1 problema(s) ativo(s) reportado(s)')
+    .replace(/^Critical CVEs \(7d\): (\d+)$/, 'CVEs Críticas (7d): $1')
+    .replace(/^High CVEs \(7d\): (\d+)$/, 'CVEs Altas (7d): $1')
+    .replace(/^CISA KEV \(30d\): (\d+)$/, 'CISA KEV (30d): $1')
+    .replace(/^Added last 3d: (\d+)$/, 'Adicionadas nos últimos 3d: $1')
+    .replace(/^Added last 7d: (\d+)$/, 'Adicionadas nos últimos 7d: $1')
+    .replace(/^Added last 30d: (\d+)$/, 'Adicionadas nos últimos 30d: $1');
 }
 
 export const LanguageContext = createContext(null);

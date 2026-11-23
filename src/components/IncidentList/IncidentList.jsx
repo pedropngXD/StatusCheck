@@ -28,7 +28,7 @@ function IncidentMessage({ message }) {
 }
 
 export default function IncidentList({ service, statusData, onClose }) {
-  const { t } = useLanguage();
+  const { t, translateText } = useLanguage();
   const backdropRef = useRef(null);
   const [dragY, setDragY] = useState(0);
   const [isClosing, setIsClosing] = useState(false);
@@ -232,7 +232,7 @@ export default function IncidentList({ service, statusData, onClose }) {
               ))
             ) : (
               <p className="text-[var(--text-secondary)] text-[0.9rem] m-0">
-                {statusData?.statusDescription || t('noActiveIncidents')}
+                {statusData?.statusDescription ? translateText(statusData.statusDescription) : t('noActiveIncidents')}
               </p>
             )}
           </div>
@@ -273,7 +273,7 @@ export default function IncidentList({ service, statusData, onClose }) {
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-2 max-md:grid-cols-1">
                   {visibleComponents.map((comp) => (
                     <div key={comp.id} className="flex items-center justify-between px-3 py-2 bg-[rgba(142,142,147,0.08)] rounded-[var(--radius-sm)] text-[0.8125rem] text-[var(--text-primary)]">
-                      <span>{comp.name}</span>
+                      <span>{translateText(comp.name)}</span>
                       <StatusBadge status={comp.status} size="sm" showDot />
                     </div>
                   ))}

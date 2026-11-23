@@ -6,10 +6,6 @@ export default function MobileSettingsSheet({
   onClose,
   refreshing,
   onRefresh,
-  isMuted,
-  onToggleMute,
-  activeIncidentCount = 0,
-  onOpenFeed,
   theme = 'light',
   onToggleTheme,
 }) {
@@ -120,30 +116,6 @@ export default function MobileSettingsSheet({
         </div>
 
         <div className="p-4 pb-[calc(1.25rem+env(safe-area-inset-bottom,12px))] flex flex-col gap-2.5 overflow-y-auto overscroll-contain">
-          {/* Feed / Timeline */}
-          <button
-            type="button"
-            onClick={() => {
-              handleClose();
-              setTimeout(() => onOpenFeed(), 150);
-            }}
-            className="w-full flex items-center justify-between px-4 py-3 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[rgba(142,142,147,0.06)] text-[var(--text-primary)] text-[0.9rem] font-medium active:scale-[0.99] transition-all cursor-pointer"
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <svg className="w-4 h-4 shrink-0 text-[var(--text-secondary)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-              </svg>
-              <span className="truncate">{t('incidentFeed')}</span>
-            </div>
-            {activeIncidentCount > 0 ? (
-              <span className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full bg-[var(--status-outage)] text-white text-xs font-bold font-mono">
-                {activeIncidentCount}
-              </span>
-            ) : (
-              <span className="text-xs text-[var(--text-secondary)]">0</span>
-            )}
-          </button>
-
           {/* Refresh */}
           <button
             type="button"
@@ -172,40 +144,6 @@ export default function MobileSettingsSheet({
               </svg>
               <span>{refreshing ? t('checking') : t('refresh')}</span>
             </div>
-          </button>
-
-          {/* Notifications */}
-          <button
-            type="button"
-            onClick={onToggleMute}
-            className="w-full flex items-center justify-between px-4 py-3 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[rgba(142,142,147,0.06)] text-[var(--text-primary)] text-[0.9rem] font-medium active:scale-[0.99] transition-all cursor-pointer"
-          >
-            <div className="flex items-center gap-3">
-              {isMuted ? (
-                <svg className="w-4 h-4 shrink-0 text-[var(--text-secondary)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                  <path d="M18.63 13A17.89 17.89 0 0 1 18 8" />
-                  <path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14" />
-                  <path d="M18 8a6 6 0 0 0-9.33-5" />
-                  <line x1="1" y1="1" x2="23" y2="23" />
-                </svg>
-              ) : (
-                <svg className="w-4 h-4 shrink-0 text-[var(--text-secondary)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                </svg>
-              )}
-              <span>{t('notifications')}</span>
-            </div>
-            <span
-              className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                isMuted
-                  ? 'bg-[rgba(142,142,147,0.16)] text-[var(--text-secondary)]'
-                  : 'bg-[var(--status-operational-bg)] text-[var(--status-operational)]'
-              }`}
-            >
-              {isMuted ? t('muted') : t('alertsOn')}
-            </span>
           </button>
 
           {/* Language */}
