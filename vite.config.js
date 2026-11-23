@@ -2,6 +2,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { getCveFeed } from './api/_cveFeed.js';
+import { getAllStatuses } from './api/_allStatuses.js';
 
 export default defineConfig({
   plugins: [
@@ -22,6 +23,22 @@ export default defineConfig({
               res.statusCode = 502;
               res.setHeader('Content-Type', 'application/json');
               res.end(JSON.stringify({ error: 'Failed to load CVE feed', message: err.message }));
+            }
+            return;
+          }
+          if (req.url && (req.url.startsWith('/api/statuses?') || req.url === '/api/statuses')) {
+            try {
+              const urlObj = new URL(req.url, 'http://localhost');
+              const force = urlObj.searchParams.get('force') === '1';
+              const payload = await getAllStatuses({ force });
+              res.statusCode = 200;
+              res.setHeader('Content-Type', 'application/json');
+              res.setHeader('Access-Control-Allow-Origin', '*');
+              res.end(JSON.stringify(payload));
+            } catch (err) {
+              res.statusCode = 502;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ error: 'Failed to load aggregated statuses', message: err.message }));
             }
             return;
           }

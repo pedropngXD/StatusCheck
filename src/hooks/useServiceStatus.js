@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { STATUS_PROVIDERS } from '../lib/statusProviders';
 import { normalizeStatus, createUnknownState } from '../lib/normalizeStatus';
 
-const REQUEST_TIMEOUT_MS = 8000;
-const CONCURRENCY_LIMIT = 16;
+const REQUEST_TIMEOUT_MS = 4500;
+const AGGREGATE_TIMEOUT_MS = 15000;
+const CONCURRENCY_LIMIT = 28;
+const BATCH_FLUSH_MS = 250;
 const CORS_PROXY_URL = 'https://api.allorigins.win/raw?url=';
 const STORAGE_TELEMETRY_CACHE_KEY = 'statuscheck_telemetry_cache';
 const NO_CORS_PROVIDERS = new Set(['aws', 'cloudflare', 'stripe', 'huggingface']);
@@ -118,14 +120,25 @@ async function fetchRawUrl(provider, signal) {
     }
   }
 
+  let proxyStatus = null;
+
   if (provider.useProxy || NO_CORS_PROVIDERS.has(provider.id) || provider.adapter === 'aws-json') {
     try {
       const proxyUrl = `/api/status?url=${encodeURIComponent(provider.apiUrl)}&_t=${Date.now()}`;
       const proxyRes = await fetchWithTimeout(proxyUrl);
+      proxyStatus = proxyRes.status;
       if (proxyRes.ok || (provider.adapter === 'api-health' && (proxyRes.status === 401 || proxyRes.status === 429))) {
         return await parseResponse(proxyRes);
       }
-    } catch {}
+      if (proxyStatus !== 404) {
+        throw new Error(`HTTP error ${proxyStatus}`);
+      }
+    } catch (err) {
+      if (signal?.aborted) throw err;
+      if (proxyStatus !== null && proxyStatus !== 404) {
+        throw err;
+      }
+    }
   }
 
   try {
@@ -142,13 +155,20 @@ async function fetchRawUrl(provider, signal) {
       throw directErr;
     }
 
-    try {
-      const vercelProxyUrl = `/api/status?url=${encodeURIComponent(provider.apiUrl)}&_t=${Date.now()}`;
-      const vercelRes = await fetchWithTimeout(vercelProxyUrl);
-      if (vercelRes.ok || (provider.adapter === 'api-health' && (vercelRes.status === 401 || vercelRes.status === 429))) {
-        return await parseResponse(vercelRes);
-      }
-    } catch {}
+    if (proxyStatus === null) {
+      try {
+        const vercelProxyUrl = `/api/status?url=${encodeURIComponent(provider.apiUrl)}&_t=${Date.now()}`;
+        const vercelRes = await fetchWithTimeout(vercelProxyUrl);
+        proxyStatus = vercelRes.status;
+        if (vercelRes.ok || (provider.adapter === 'api-health' && (vercelRes.status === 401 || vercelRes.status === 429))) {
+          return await parseResponse(vercelRes);
+        }
+      } catch {}
+    }
+
+    if (proxyStatus !== null && proxyStatus !== 404) {
+      throw directErr;
+    }
 
     const proxyUrl = `${CORS_PROXY_URL}${encodeURIComponent(provider.apiUrl)}`;
     const proxyRes = await fetchWithTimeout(proxyUrl);
@@ -178,7 +198,7 @@ async function fetchProviderStatus(provider, signal, cycleCache) {
 }
 
 export function useServiceStatus(providers = STATUS_PROVIDERS, options = {}) {
-  const { pollingInterval = 60000, enabled = true } = options;
+  const { pollingInterval = 600000, enabled = true } = options;
 
   const cachedInitial = useMemo(() => loadCachedStatuses(providers), [providers]);
 
@@ -210,7 +230,7 @@ export function useServiceStatus(providers = STATUS_PROVIDERS, options = {}) {
 
   const activeAbortRef = useRef(null);
 
-  const fetchAll = useCallback(async () => {
+  const fetchAll = useCallback(async (force = false) => {
     if (activeAbortRef.current) {
       activeAbortRef.current.abort();
     }
@@ -233,8 +253,84 @@ export function useServiceStatus(providers = STATUS_PROVIDERS, options = {}) {
     const startTime = performance.now();
     console.log(`[StatusCheck] 🔄 Fetching live status for ${providers.length} services...`);
 
+    const completeCycle = (durationLabel) => {
+      const now = new Date();
+      setIsInitialLoading(false);
+      setIsRefreshing(false);
+      setLastCycleAt(now);
+
+      try {
+        localStorage.setItem('statuscheck_last_cycle_time', now.toISOString());
+      } catch {}
+
+      console.log(durationLabel);
+    };
+
+    // Fast path: 1 aggregated request via /api/statuses
+    try {
+      const aggController = new AbortController();
+      const aggTimer = setTimeout(() => aggController.abort(), AGGREGATE_TIMEOUT_MS);
+      const onOuterAbort = () => aggController.abort();
+      controller.signal.addEventListener('abort', onOuterAbort, { once: true });
+
+      const endpoint = force ? `/api/statuses?force=1&_t=${Date.now()}` : '/api/statuses';
+      const res = await fetch(endpoint, {
+        signal: aggController.signal,
+        headers: { Accept: 'application/json' },
+        cache: force ? 'no-store' : 'default',
+      });
+      clearTimeout(aggTimer);
+      controller.signal.removeEventListener('abort', onOuterAbort);
+
+      if (controller.signal.aborted) return;
+
+      if (res.ok) {
+        const payload = await res.json();
+        if (controller.signal.aborted) return;
+
+        if (payload?.statuses && typeof payload.statuses === 'object') {
+          const syncedAt = payload.fetchedAt ? new Date(payload.fetchedAt) : new Date();
+          const next = {};
+          providers.forEach((p) => {
+            next[p.id] = {
+              data: payload.statuses[p.id] || createUnknownState('Missing in snapshot'),
+              loading: false,
+              error: null,
+              lastFetched: syncedAt,
+            };
+          });
+
+          setStatuses(next);
+          saveTelemetryCache(next);
+
+          const duration = Math.round(performance.now() - startTime);
+          completeCycle(
+            `[StatusCheck] ⚡ Telemetry synced for ${providers.length} services in ${duration}ms (server: ${payload.durationMs ?? '?'}ms).`
+          );
+          return;
+        }
+      }
+    } catch {
+      if (controller.signal.aborted) return;
+    }
+
+    // Fallback path: direct/proxied browser worker pool with batched state updates
     const cycleCache = new Map();
     let nextIndex = 0;
+    let pendingUpdates = {};
+
+    const flushBatch = () => {
+      const batch = pendingUpdates;
+      const keys = Object.keys(batch);
+      if (keys.length === 0) return;
+      pendingUpdates = {};
+      setStatuses((prev) => ({
+        ...prev,
+        ...batch,
+      }));
+    };
+
+    const flushTimer = setInterval(flushBatch, BATCH_FLUSH_MS);
 
     const runWorker = async () => {
       while (nextIndex < providers.length) {
@@ -244,55 +340,47 @@ export function useServiceStatus(providers = STATUS_PROVIDERS, options = {}) {
           const normalized = await fetchProviderStatus(provider, controller.signal, cycleCache);
           if (controller.signal.aborted) return;
 
-          setStatuses((prev) => ({
-            ...prev,
-            [provider.id]: {
-              data: normalized,
-              loading: false,
-              error: null,
-              lastFetched: new Date(),
-            },
-          }));
+          pendingUpdates[provider.id] = {
+            data: normalized,
+            loading: false,
+            error: null,
+            lastFetched: new Date(),
+          };
         } catch (err) {
           if (controller.signal.aborted) return;
 
-          setStatuses((prev) => ({
-            ...prev,
-            [provider.id]: {
-              data: createUnknownState(err.message || 'Fetch failed'),
-              loading: false,
-              error: err.message,
-              lastFetched: new Date(),
-            },
-          }));
+          pendingUpdates[provider.id] = {
+            data: createUnknownState(err.message || 'Fetch failed'),
+            loading: false,
+            error: err.message,
+            lastFetched: new Date(),
+          };
         }
       }
     };
 
     const workerCount = Math.min(CONCURRENCY_LIMIT, providers.length);
     await Promise.allSettled(Array.from({ length: workerCount }, () => runWorker()));
+    clearInterval(flushTimer);
 
     if (controller.signal.aborted) {
       return;
     }
 
+    flushBatch();
+
     const duration = Math.round(performance.now() - startTime);
-    console.log(`[StatusCheck] ✓ Telemetry updated for ${providers.length} services in ${duration}ms at ${new Date().toLocaleTimeString()}.`);
-
-    const now = new Date();
-    setIsInitialLoading(false);
-    setIsRefreshing(false);
-    setLastCycleAt(now);
-
-    try {
-      localStorage.setItem('statuscheck_last_cycle_time', now.toISOString());
-    } catch {}
+    completeCycle(
+      `[StatusCheck] ✓ Telemetry updated via fallback for ${providers.length} services in ${duration}ms at ${new Date().toLocaleTimeString()}.`
+    );
 
     setStatuses((latest) => {
       saveTelemetryCache(latest);
       return latest;
     });
   }, [providers]);
+
+  const refetch = useCallback(() => fetchAll(true), [fetchAll]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -353,6 +441,6 @@ export function useServiceStatus(providers = STATUS_PROVIDERS, options = {}) {
     loading: isInitialLoading,
     refreshing: isRefreshing,
     lastCycleAt,
-    refetch: fetchAll,
+    refetch,
   };
 }
